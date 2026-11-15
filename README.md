@@ -2,16 +2,17 @@
 
 Elektroniczny dziennik ocen: uczeń, nauczyciel i administrator. Dokumentacja w języku polskim; kod i identyfikatory po angielsku.
 
-**Stan 2026-11-15: szkielet aplikacji (F-001, do przeglądu).** Repozytorium zawiera zaadaptowany starter Laravel 13 + Inertia 3 + React 19 (TypeScript strict, Vite 8, Tailwind 4, ESLint, Prettier) z lockfiles, bez funkcji dziennika i bez migracji domenowych. Brak Git, Docker Compose (F-002) i CI (F-502). Pozostałe funkcje mają status `Planned`; szczegóły i dowody kontroli w [F-001](docs/features/F-001.md#22-raport-realizacji-2026-11-15).
+**Stan 2026-11-15: szkielet F-001 i środowisko Docker F-002.** Jedna aplikacja Laravel 13 + Inertia 3 + React 19, bez funkcji dziennika. Docelowy schemat i migracje techniczne należą do F-003, CI do F-502.
 
-Wymagane runtime: PHP 8.3, Composer 2, Node 22 (≥22.12; `engine-strict`). Do czasu F-002 kontrole uruchamiamy w jednorazowych kontenerach:
+Uruchomienie bez lokalnego PHP, Composer, Node i MariaDB — wymagany działający Docker z Compose v2+:
 
 ```sh
-composer install && cp .env.example .env && php artisan key:generate
-composer wayfinder                       # typy tras dla TS (przed buildem)
-composer lint:check && composer types:check && composer test
-npm ci && npm run lint && npm run format:check && npm run typecheck && npm run build
+cp .env.example .env
+# Ustaw prywatne, losowe DB_PASSWORD i MARIADB_ROOT_PASSWORD w .env.
+./scripts/bootstrap.sh
 ```
+
+Bootstrap nie wykonuje migracji ani seedów. Health: `http://localhost:8080/up`, Vite: `http://localhost:5173`. Strony korzystające z sesji/cache DB wymagają migracji przygotowanych w F-003. Procedura, polecenia QA, konflikty portów i test trwałości: [Docker](docs/infrastructure/DOCKER.md). Dowody kontroli: [F-001](docs/features/F-001.md#22-raport-realizacji-2026-11-15), [F-002](docs/features/F-002.md#22-raport-realizacji-2026-11-15).
 
 ## Od czego zacząć
 
@@ -21,7 +22,7 @@ npm ci && npm run lint && npm run format:check && npm run typecheck && npm run b
 4. [Indeks funkcji](docs/features/FEATURE_INDEX.md) i [roadmapa](docs/product/ROADMAP.md).
 5. [Mapa ekranów Figmy](docs/design/SCREEN_MAP.md).
 
-Pierwsza funkcja: [F-001](docs/features/F-001.md) (zrealizowana, do przeglądu). Następnie F-002 i F-003. Polecenia uruchomienia w [Docker](docs/infrastructure/DOCKER.md) są **planowane**, nie działają w obecnym katalogu.
+Kolejny etap: [F-003](docs/features/F-003.md), docelowa baza danych.
 
 ## Mapa dokumentacji
 
@@ -38,4 +39,4 @@ Pierwsza funkcja: [F-001](docs/features/F-001.md) (zrealizowana, do przeglądu).
 | `docs/adr` | Decyzje architektoniczne |
 | `docs/templates` | Szablon kolejnych funkcji |
 
-[Wynik audytu i otwarte kwestie](docs/AUDIT.md). Nie utworzono pustych katalogów przyszłej aplikacji ani fikcyjnych plików infrastruktury.
+[Wynik audytu i otwarte kwestie](docs/AUDIT.md).
