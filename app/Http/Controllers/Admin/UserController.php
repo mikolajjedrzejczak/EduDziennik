@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Http\Requests\Admin\UserFilterRequest;
 use App\Models\SchoolClass;
 use App\Models\StudentEnrollment;
@@ -16,11 +17,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/** F-302 list/detail; F-303 creation. Editing and deletion belong to F-304/F-305. */
+/** F-302 list/detail, F-303 creation, F-304 account editing. */
 class UserController extends Controller
 {
     /** Per-relation cap on the detail page (REQUESTS_RESPONSES: relacje max100). */
@@ -83,6 +85,36 @@ class UserController extends Controller
         );
 
         return redirect()->route('admin.users.show', $user)->with('success', 'Utworzono konto użytkownika.');
+    }
+
+    public function edit(User $user): Response
+    {
+        Gate::authorize('update', $user);
+
+        return Inertia::render('admin/users/edit', [
+            'user' => $this->dto($user),
+            'options' => ['roles' => ['student', 'teacher', 'admin'], 'classes' => [], 'terms' => [], 'subjects' => []],
+        ]);
+    }
+
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
+    {
+        $data = $request->validated();
+        $updated = $this->users->update($request->user()->id, $user->id, [
+            'first_name' => $data['first_name'], 'last_name' => $data['last_name'], 'email' => $data['email'],
+            'role' => $data['role'], 'status' => $data['status'], 'password' => $data['password'] ?? null,
+        ]);
+        // The session middleware must not reinsert the current administrator's revoked session.
+        if ($request->user()->is($updated) && ($request->user()->role !== $updated->role
+            || $request->user()->status !== $updated->status || $request->filled('password'))) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->with('success', 'Zapisano zmiany. Zaloguj się ponownie.');
+        }
+
+        return redirect()->route('admin.users.show', $updated)->with('success', 'Zapisano zmiany użytkownika.');
     }
 
     public function show(User $user): Response
