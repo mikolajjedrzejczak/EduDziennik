@@ -15,6 +15,7 @@ export const sidebarIcons: Record<NavigationIcon, LucideIcon> = {
     classes: GraduationCap,
     profile: SlidersHorizontal,
     subjects: BookOpen,
+    assignments: Users,
     users: Users,
 };
 
@@ -23,5 +24,6 @@ export const mobileIcons: Record<NavigationIcon, LucideIcon> = {
     classes: GraduationCap,
     profile: User,
     subjects: BookOpen,
+    assignments: Users,
     users: Users,
 };

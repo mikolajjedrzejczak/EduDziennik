@@ -87,6 +87,10 @@ GET grades/edit wyprowadza assignmentId z kontekstu oceny: dla teacher jego niec
 
 Formularze grades/create i grades/edit mają kanoniczny URL; desktop renderuje je jako panel na tle autoryzowanego dziennika, mobile jako arkusz/stronę. Bezpośredni reload URL musi działać. Pola assignment_id w formularzach określają kontekst powrotu, walidowany serwerowo. Redirect nigdy nie ufa surowemu referer/return_to.
 
+## Stan integracji F-308
+
+FACT: `admin.assignments.{index,store,update,destroy}` (`Admin\TeacherAssignmentController`, `role:admin`, logika w `AssignmentService`) są zarejestrowane; nieistniejący przydział daje 404, obca rola 403.
+
 ## Stan integracji F-306
 
 FACT: `admin.classes.index/store/update/destroy` i `admin.enrollments.store/update` są zarejestrowane w `routes/web.php` pod `auth` i `role:admin`. Mutacje mają własne Form Requests/Policies i przekierowanie do kanonicznego GET. Zagnieżdżony enrollment innej klasy daje 404; nie istnieje trasa DELETE enrollment. Pozostałe planowane trasy tej tabeli zachowują dotychczasowe statusy.

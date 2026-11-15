@@ -14,7 +14,7 @@ export type NavItem = {
 };
 
 export type NavigationIcon =
-    'dashboard' | 'profile' | 'classes' | 'subjects' | 'users';
+    'dashboard' | 'profile' | 'classes' | 'subjects' | 'assignments' | 'users';
 
 /** Built by the server (NavigationService); the client only renders it. */
 export type NavigationItem = {
