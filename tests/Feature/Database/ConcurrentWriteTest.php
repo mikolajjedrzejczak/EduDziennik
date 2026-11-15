@@ -8,6 +8,7 @@ use App\Models\SchoolClass;
 use App\Models\StudentEnrollment;
 use App\Models\Term;
 use App\Models\User;
+use App\Services\School\AssignmentService;
 use App\Services\School\CalendarService;
 use App\Services\School\EnrollmentService;
 use Illuminate\Support\Facades\Artisan;
@@ -105,6 +106,35 @@ class ConcurrentWriteTest extends TestCase
             $this->assertSame(0, $worker->wait(), $worker->getErrorOutput());
             $this->assertStringContainsString('rejected', $worker->getOutput());
             $this->assertSame($before, Grade::withTrashed()->count());
+        } finally {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            $worker?->stop();
+        }
+    }
+
+    public function test_grade_waiting_for_a_revoke_is_rejected_and_co_teacher_scope_survives(): void
+    {
+        $header = Assessment::where('topic', 'Fixture 1')->firstOrFail();
+        $teacher = User::where('email', 'teacher1@example.test')->firstOrFail();
+        $enrollment = User::where('email', 'student9@example.test')->firstOrFail()->enrollments()->firstOrFail();
+        $assignment = $teacher->assignments()->where(['school_class_id' => $header->school_class_id, 'subject_id' => $header->subject_id, 'term_id' => $header->term_id])->firstOrFail();
+        $coTeacher = User::where('email', 'teacher2@example.test')->firstOrFail();
+        $kept = app(AssignmentService::class)->assign($coTeacher->id, $assignment->school_class_id, $assignment->subject_id, $assignment->term_id);
+        $before = Grade::withTrashed()->count();
+        DB::beginTransaction();
+        $worker = null;
+        try {
+            Term::whereKey($header->term_id)->lockForUpdate()->firstOrFail();
+            $worker = $this->worker(['grade', $teacher->id, $enrollment->id, $header->id]);
+            app(AssignmentService::class)->revoke($assignment->id);
+            DB::commit();
+            $this->assertSame(0, $worker->wait(), $worker->getErrorOutput());
+            $this->assertStringContainsString('rejected', $worker->getOutput());
+            $this->assertSame($before, Grade::withTrashed()->count());
+            $this->assertNotNull($assignment->fresh()->revoked_at);
+            $this->assertNull($kept->fresh()->revoked_at);
         } finally {
             if (DB::transactionLevel() > 0) {
                 DB::rollBack();

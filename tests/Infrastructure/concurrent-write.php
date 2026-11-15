@@ -4,6 +4,7 @@
 use App\Models\Assessment;
 use App\Services\Grades\GradeService;
 use App\Services\School\EnrollmentService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
@@ -43,7 +44,7 @@ try {
     } else {
         throw new RuntimeException('Nieznana operacja.');
     }
-} catch (ValidationException) {
+} catch (ValidationException|AuthorizationException) {
     fwrite(STDOUT, "rejected\n");
     exit(0);
 }

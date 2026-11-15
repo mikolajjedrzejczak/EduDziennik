@@ -30,7 +30,7 @@ Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja doda
 | F-305 | User Deletion | P0 | Planned | F-304 | [spec](F-305.md) | A4 |
 | F-306 | Class Management | P0 | Implemented — review UI | F-007, F-402, F-003 | [spec](F-306.md) | wsparcie A1–A8 |
 | F-307 | Subject Management | P0 | Implementacja do przeglądu | F-007, F-402, F-003 | [spec](F-307.md) | wsparcie A1–A8 |
-| F-308 | Teacher Assignments | P0 | Planned | F-306, F-307, F-005, F-402 | [spec](F-308.md) | wsparcie A1–A8 |
+| F-308 | Teacher Assignments | P0 | Implementacja do przeglądu | F-306, F-307, F-005, F-402 | [spec](F-308.md) | wsparcie A1–A8 |
 | F-401 | Profile Management | P1 | Planned | F-007, F-402 | [spec](F-401.md) | wsparcie A1–A8 |
 | F-402 | Form Validation | P0 | Ready for review | F-001 | [spec](F-402.md) | A5 |
 | F-403 | Search, Filtering and Pagination | P1 | Planned | F-102, F-104, F-202, F-302 | [spec](F-403.md) | wsparcie A1–A8 |

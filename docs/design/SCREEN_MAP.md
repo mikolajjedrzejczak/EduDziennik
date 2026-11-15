@@ -94,6 +94,7 @@ Powyższe ID są odczytane; działanie wszystkich interakcji prototypowych nie b
 - **Teacher history**: student detail17:1204/23:705 i zapis18:3707 pokazują kontekst; oddzielna lista korzysta z14:604/21:473 z zakresem T.
 - **AssessmentForm, transfer, pełny CRUD klas/przedmiotów**:20:2220/24:1180/24:1328 pokazują organizację, nie każdą mutację. Formularze z istniejących Input/Dialog; przed Done potrzebny przegląd adaptacji.
 - **Klasy i przedmioty**: główna ramka mapuje `admin.classes.index`; zakładka przedmiotów `admin.subjects.index`→`admin/subjects/index`, przydziały `admin.assignments.index`→`admin/assignments/index`. To współdzielony ekran organizacji, nie trzy odkryte osobne ramki. F-307 (adaptacja do przeglądu): osobna strona `admin/subjects/index` bez zakładek Klasy/Przydziały (te trasy jeszcze nie istnieją), stylem tabeli i listy mobilnej z 20:2220/24:1180; dialogi dodaj/zmień nazwę/archiwizuj i filtr aktywne/zarchiwizowane nie mają ramek.
+- **F-308 (adaptacja do przeglądu)**: `admin/assignments/index` to osobna strona z filtrami, listą/tabelą i dialogami nadania/cofnięcia/przywrócenia; ramka 24:1328 (lista przedmiot + nauczyciel klasy, przycisk „Przypisz nauczyciela”) jest referencją układu, bez dedykowanych ramek desktop/tablet i dialogów.
 - **Tryb serii23:2099**, Dark37:379/37:530/37:793 i alternatywy nawigacji40:*/41:* nie są P0/P1.
 
 Luki nie blokują modeli i backendu. Nie wolno oznaczyć pełnej zgodności z Figmą dla adaptacji bez jej odrębnego przeglądu. Figma nie została automatycznie rozszerzona w ramach zadania dokumentacyjnego.

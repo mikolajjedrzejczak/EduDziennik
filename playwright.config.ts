@@ -16,7 +16,7 @@ export default defineConfig({
         { name: 'forms', testMatch: /(?:forms|primitives)\.spec\.ts/ },
         {
             name: 'shell',
-            testMatch: /(?:shell|subjects)\.spec\.ts/,
+            testMatch: /(?:shell|subjects|assignments)\.spec\.ts/,
             use: { baseURL: 'http://127.0.0.1:8189' },
         },
         {
