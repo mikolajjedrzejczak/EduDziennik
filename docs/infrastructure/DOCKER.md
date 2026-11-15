@@ -55,7 +55,7 @@ Kontener Node nie ma PHP. W Compose `WAYFINDER_EXTERNAL=true` wyłącza automaty
 
 Test WebSocket HMR: `docker compose exec -T node node tests/Infrastructure/hmr.mjs` (na chwilę zmienia i przywraca welcome.tsx; nie uruchamiaj równocześnie z restartem kontenera ani edycją tego pliku).
 
-PHPUnit obecnego startera używa SQLite in-memory (nie potwierdza reguł docelowej MariaDB). F-003/F-501 dodadzą testową bazę i testy domenowe. Vitest/RTL i Playwright nie są jeszcze skonfigurowane; F-002 nie dodaje UI ani nie wymaga Figmy.
+PHPUnit od F-003 używa dedykowanej MariaDB `edudziennik_test`, bez SQLite. Jednorazowe utworzenie: `docker compose exec app php tests/Infrastructure/create-test-database.php`, następnie `docker compose exec app php artisan test`. Migracje, seed i konfiguracja operatorska: [SEEDING](../database/SEEDING.md). Vitest/RTL i Playwright wzorca formularzy pochodzą z F-402; F-003 nie dodaje UI i nie wymaga Figmy.
 
 ## Test infrastruktury i błędy
 

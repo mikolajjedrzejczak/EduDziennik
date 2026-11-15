@@ -103,4 +103,12 @@ class ProfileUpdateTest extends TestCase
 
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
+
+    public function test_profile_name_respects_domain_column_lengths(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user)->patch(route('profile.update'), [
+            'name' => str_repeat('A', 81).' Nazwisko', 'email' => $user->email,
+        ])->assertSessionHasErrors('name');
+    }
 }
