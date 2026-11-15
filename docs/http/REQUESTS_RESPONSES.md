@@ -127,7 +127,7 @@ interface UserDTO extends AuthUser { status: AccountStatus; deletedAt: ISODateTi
 interface EnrollmentDTO { id: Id; student: Option; schoolClass: Option; startsOn: ISODate; endsOn: ISODate | null }
 interface AssignmentDTO { id: Id; teacher: Option; schoolClass: Option; subject: Option; term: Option; revokedAt: ISODateTime | null }
 interface ClassDTO { id: Id; name: string; academicYear: Option; deletedAt: ISODateTime | null }
-interface SubjectDTO { id: Id; name: string; deletedAt: ISODateTime | null }
+interface SubjectDTO { id: Id; name: string; deletedAt: ISODateTime | null; activeAssignmentsCount: number }
 interface UserOptions { roles: Role[]; classes: Option[]; subjects: Option[]; terms: Option[] }
 interface SubjectSummary { subject: Option; average: Average; count: number }
 interface LoginProps extends SharedProps { retryAfter?: number | null }
@@ -166,7 +166,7 @@ interface UserListProps extends SharedProps { users: Page<UserDTO>; filters: Fil
 interface UserDetailProps extends SharedProps { user: UserDTO; enrollments: EnrollmentDTO[]; assignments: AssignmentDTO[] }
 interface UserFormProps extends SharedProps { user: UserDTO | null; options: UserOptions }
 interface ClassManagementProps extends SharedProps { classes: Page<ClassDTO>; filters: Filters; years: Option[]; selectedClass: ClassDTO | null; enrollments: Page<EnrollmentDTO> | null; students: Option[] }
-interface SubjectManagementProps extends SharedProps { subjects: Page<SubjectDTO>; filters: Filters }
+interface SubjectManagementProps extends SharedProps { subjects: Page<SubjectDTO>; filters: Filters & { archived: boolean } }
 interface AssignmentManagementProps extends SharedProps { assignments: Page<AssignmentDTO>; filters: Filters; teachers: Option[]; classes: Option[]; subjects: Option[]; terms: Option[] }
 ```
 
@@ -198,5 +198,9 @@ FACT: `bootstrap/app.php` renderuje `shared/error` (`App\Http\Responses\ErrorPag
 
 ### Stan integracji F-007
 
-FACT: `/dashboard` zwraca 302 do pulpitu roli (`student.dashboard` → `/student`, `teacher.dashboard` → `/teacher`, `admin.dashboard` → `/admin`); pulpity renderują `student|teacher|admin/dashboard` bez danych domenowych (props tylko shared). Obca rola: 403. SharedProps zawierają `navigation: { primary, secondary } | null`, gdzie element to `{ key, label, shortLabel, href, icon }` (`icon` ∈ `dashboard|profile`), budowane wyłącznie na serwerze i tylko dla istniejących tras. `sidebarOpen` usunięto.
+FACT: `/dashboard` zwraca 302 do pulpitu roli (`student.dashboard` → `/student`, `teacher.dashboard` → `/teacher`, `admin.dashboard` → `/admin`); pulpity renderują `student|teacher|admin/dashboard` bez danych domenowych (props tylko shared). Obca rola: 403. SharedProps zawierają `navigation: { primary, secondary } | null`, gdzie element to `{ key, label, shortLabel, href, icon }` (`icon` ∈ `dashboard|profile|subjects`), budowane wyłącznie na serwerze i tylko dla istniejących tras. `sidebarOpen` usunięto.
 
+
+### Stan integracji F-307
+
+FACT: `admin.subjects.{index,store,update,destroy}` (`Admin\SubjectController`, middleware `role:admin`, Form Requests `SubjectFilterRequest`, `StoreSubjectRequest`, `UpdateSubjectRequest`, `DeleteSubjectRequest`, logika w `SubjectService`). `SubjectDTO` dodaje informacyjne `activeAssignmentsCount` (niecofnięte przydziały); to podpowiedź UI, nie autoryzacja — archiwizację rozstrzyga serwis pod blokadą (`errors.form`, bez zapisu). `filters` dodatkowo niesie `archived` (true = tylko zarchiwizowane; domyślnie aktywne). `per_page` ∈ 10/25/50 (domyślnie 25); `sort` wyłącznie `name`. Błędny filtr GET → 303 do tej samej trasy bez błędnych parametrów + `errors`; strona poza zakresem → przekierowanie na ostatnią stronę. Nazwa: trim, 1–100, unikalna także wśród zarchiwizowanych i bez rozróżniania wielkości liter (collation MariaDB + indeks UNIQUE; wyścig daje błąd pola `name`). Zarchiwizowany przedmiot nie jest edytowalny ani ponownie archiwizowany (404); przywracanie nie należy do zakresu. Sukces: redirect do `admin.subjects.index` z flash `toast` (`type`, `message`) renderowanym przez `Toaster`. `NavigationService` dodaje adminowi wpis „Przedmioty” (`icon: subjects`).

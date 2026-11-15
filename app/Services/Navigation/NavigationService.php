@@ -33,10 +33,15 @@ class NavigationService
             return null;
         }
 
+        $primary = [
+            ['key' => 'dashboard', 'label' => 'Pulpit', 'shortLabel' => 'Start', 'href' => route($dashboard, absolute: false), 'icon' => 'dashboard'],
+        ];
+        if ($user->role === 'admin') {
+            $primary[] = ['key' => 'subjects', 'label' => 'Przedmioty', 'shortLabel' => 'Przedmioty', 'href' => route('admin.subjects.index', absolute: false), 'icon' => 'subjects'];
+        }
+
         return [
-            'primary' => [
-                ['key' => 'dashboard', 'label' => 'Pulpit', 'shortLabel' => 'Start', 'href' => route($dashboard, absolute: false), 'icon' => 'dashboard'],
-            ],
+            'primary' => $primary,
             'secondary' => [
                 ['key' => 'profile', 'label' => 'Profil i hasło', 'shortLabel' => 'Profil', 'href' => route('profile.edit', absolute: false), 'icon' => 'profile'],
             ],

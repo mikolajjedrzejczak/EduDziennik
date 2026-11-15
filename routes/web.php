@@ -13,6 +13,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('student', [Student\DashboardController::class, 'index'])->middleware('role:student')->name('student.dashboard');
     Route::get('teacher', [Teacher\DashboardController::class, 'index'])->middleware('role:teacher')->name('teacher.dashboard');
     Route::get('admin', [Admin\DashboardController::class, 'index'])->middleware('role:admin')->name('admin.dashboard');
+
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('subjects', Admin\SubjectController::class)->only(['index', 'store', 'update', 'destroy']);
+    });
 });
 
 require __DIR__.'/settings.php';
