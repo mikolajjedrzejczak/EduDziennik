@@ -17,7 +17,7 @@ export default defineConfig({
         {
             name: 'shell',
             testMatch:
-                /(?:shell|subjects|assignments|user-create|user-edit)\.spec\.ts/,
+                /(?:shell|subjects|assignments|user-create|user-edit|student-grades)\.spec\.ts/,
             use: { baseURL: 'http://127.0.0.1:8189' },
         },
         {

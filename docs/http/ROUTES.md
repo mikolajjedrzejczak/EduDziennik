@@ -94,3 +94,5 @@ FACT: `admin.assignments.{index,store,update,destroy}` (`Admin\TeacherAssignment
 ## Stan integracji F-306
 
 FACT: `admin.classes.index/store/update/destroy` i `admin.enrollments.store/update` są zarejestrowane w `routes/web.php` pod `auth` i `role:admin`. Mutacje mają własne Form Requests/Policies i przekierowanie do kanonicznego GET. Zagnieżdżony enrollment innej klasy daje 404; nie istnieje trasa DELETE enrollment. Pozostałe planowane trasy tej tabeli zachowują dotychczasowe statusy.
+
+FACT F-102: `student.grades.index` (`GET /student/grades`, `role:student`) jest zarejestrowana; teacher/admin dostają 403, gość redirect na login. Pozostałe trasy ocen (`show`, `history`, teacher/admin) zachowują status planowany.

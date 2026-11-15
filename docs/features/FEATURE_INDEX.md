@@ -14,7 +14,7 @@ Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja doda
 | F-006 | Design System | P0 | Planned | F-001 | [spec](F-006.md) | wsparcie A1–A8 |
 | F-007 | Application Layouts | P0 | Implementacja do przeglądu | F-004, F-005, F-006, F-404 | [spec](F-007.md) | A2/A3 |
 | F-101 | Student Dashboard | P1 | Planned | F-007, F-102 | [spec](F-101.md) | A2/A3 |
-| F-102 | Student Grades | P0 | Planned | F-007, F-003 | [spec](F-102.md) | A1 |
+| F-102 | Student Grades | P0 | Implementacja do przeglądu | F-007, F-003 | [spec](F-102.md) | A1 |
 | F-103 | Grade Details | P0 | Planned | F-102 | [spec](F-103.md) | A1 |
 | F-104 | Grade History | P0 | Planned | F-103 | [spec](F-104.md) | A1 |
 | F-201 | Teacher Dashboard | P1 | Planned | F-007, F-202, F-203 | [spec](F-201.md) | A2/A3 |

@@ -11,6 +11,7 @@ Route::inertia('/', 'welcome')->name('home');
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('student', [Student\DashboardController::class, 'index'])->middleware('role:student')->name('student.dashboard');
+    Route::get('student/grades', [Student\GradeController::class, 'index'])->middleware('role:student')->name('student.grades.index');
     Route::get('teacher', [Teacher\DashboardController::class, 'index'])->middleware('role:teacher')->name('teacher.dashboard');
     Route::get('admin', [Admin\DashboardController::class, 'index'])->middleware('role:admin')->name('admin.dashboard');
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
