@@ -96,7 +96,7 @@ Obramowanie pól/paneli zwykle1px border; fokus outline2px focus. Efekt Focus/Ri
 
 Lucide: sekcja3:2,41 ikon o rozmiarze bazowym24px. Ikony dekoracyjne aria-hidden; samodzielne przyciski muszą mieć nazwę dostępną. GradeChip ma cyfrę niezależnie od koloru. Button: Primary/Secondary/Ghost/Destructive × Default/Hover/Focus/Disabled/Loading. Input: Text/Select/Search/Password i warianty stanów; dokładne warianty ponownie odczytać przy implementacji.
 
-## Mapowanie Tailwind 4 (PLANNED)
+## Mapowanie Tailwind 4 (F-006)
 
 ```css
 @import "tailwindcss";
@@ -120,3 +120,6 @@ Lucide: sekcja3:2,41 ikon o rozmiarze bazowym24px. Ikony dekoracyjne aria-hidden
 To fragment instrukcyjny, nie pełny wygenerowany theme. F-006 mapuje wszystkie używane w tabeli tokeny (w tym grade-N-bg/fg/border) do `tokens.css`; shadcn background→bg, card→surface, foreground→text-primary, muted→surface-secondary, destructive→error, ring→focus. Tailwind standard spacing4px odpowiada odczytanej bazie; zachować istniejące wyjątki komponentów. Nie nadpisywać semantycznego primary generycznym blue-600.
 
 Breakpointy opisane w [RESPONSIVENESS](RESPONSIVENESS.md), nie znaleziono ich jako zmiennych kolekcji. Kolory i fonty są zweryfikowane z API; pełna zgodność WCAG implementacji pozostaje PLANNED, ponieważ wymaga rzeczywistego DOM, stanów i pomiaru.
+
+
+FACT F-006: pełne tokeny Light i aliasy shadcn znajdują się w `resources/css/tokens.css`; powyższy fragment pozostaje skróconym przykładem. Rozmiary tekstu mają semantyczne utilities (`text-label`, `text-body`, `text-grade`, `text-numeric-lg` itd.), a wagi dobierają komponenty do stylu Figmy. `lib/utils.ts` rozszerza theme tailwind-merge o te nazwy. Dark poza MVP; aplikacja nie przełącza palety według systemu. Szczegóły i ograniczenia: [F-006](../features/F-006.md#22-raport-realizacji--2026-11-15).

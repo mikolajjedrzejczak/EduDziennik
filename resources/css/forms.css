@@ -1,16 +1,15 @@
-/* F-402: subset of Semantic/Input tokens read from Figma 29:219 / 5:228.
-   Scoped controls; the full application theme belongs to F-006. */
-@theme {
+/* Compatibility aliases for the existing F-402 form composition. */
+@theme inline {
     --font-form: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
-    --color-form-text: #141b2d;
-    --color-form-muted: #5b6577;
-    --color-form-disabled: #98a2b3;
-    --color-form-surface: #ffffff;
-    --color-form-secondary: #edf0f4;
-    --color-form-border: #c5ccd7;
-    --color-form-error: #b91c1c;
-    --color-form-error-bg: #fce8e8;
-    --color-form-focus: #2350d8;
+    --color-form-text: var(--text-primary);
+    --color-form-muted: var(--text-secondary);
+    --color-form-disabled: var(--text-disabled);
+    --color-form-surface: var(--surface);
+    --color-form-secondary: var(--surface-secondary);
+    --color-form-border: var(--border-strong);
+    --color-form-error: var(--error);
+    --color-form-error-bg: var(--error-bg);
+    --color-form-focus: var(--focus);
     --radius-form-control: 6px;
 }
 
@@ -19,9 +18,17 @@
     @apply min-h-12 w-full min-w-0 rounded-form-control border border-form-border bg-form-surface px-3 text-sm leading-5 text-form-text shadow-none md:min-h-10;
 }
 
+.form-field [data-slot='password-input'] input {
+    @apply pr-12;
+}
+
+.form-field input[type='search'] {
+    @apply pl-[38px];
+}
+
 .form-field :is(input, textarea, [role='combobox']):focus-visible {
     @apply border-form-focus outline-2 outline-form-focus;
-    box-shadow: 0 0 0 3px rgb(35 80 216 / 35%);
+    box-shadow: var(--shadow-focus);
 }
 
 .form-field [aria-invalid='true'] {
@@ -32,12 +39,12 @@
     @apply bg-form-secondary text-form-disabled opacity-100;
 }
 
-/* F-004: light authentication surface, independently of the deferred app theme. */
-@theme {
-    --color-auth-nav: #14213d;
-    --color-auth-muted: #aeb8cf;
-    --color-auth-divider: #33436a;
-    --color-auth-primary-hover: #1a3fb0;
+/* Compatibility aliases for the existing F-004 authentication surface. */
+@theme inline {
+    --color-auth-nav: var(--nav-bg);
+    --color-auth-muted: var(--nav-text-muted);
+    --color-auth-divider: var(--nav-active);
+    --color-auth-primary-hover: var(--primary-hover);
 }
 
 .login-shell .login-submit {

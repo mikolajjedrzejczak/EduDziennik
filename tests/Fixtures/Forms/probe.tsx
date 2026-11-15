@@ -2,6 +2,15 @@ import { useForm } from '@inertiajs/react';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { FormField } from '@/components/forms/form-field';
 import { SubmitButton } from '@/components/forms/submit-button';
+import { GradeChip } from '@/components/grades/grade-chip';
+import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 
 const fields = {
@@ -89,6 +98,57 @@ export default function Probe({ success = false }: { success?: boolean }) {
                 })}
                 <SubmitButton processing={form.processing}>Zapisz</SubmitButton>
             </form>
+            <section aria-label="Prymitywy F-006" className="mt-8 grid gap-4">
+                <div className="flex flex-wrap gap-2">
+                    {(
+                        [
+                            'primary',
+                            'secondary',
+                            'ghost',
+                            'destructive',
+                        ] as const
+                    ).map((variant) => (
+                        <Button key={variant} variant={variant}>
+                            {variant}
+                        </Button>
+                    ))}
+                    <Button loading>Ładowanie</Button>
+                    <Button disabled>Niedostępny</Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    {(['S', 'M', 'L'] as const).map((size) => (
+                        <div key={size} className="flex flex-wrap gap-2">
+                            {([1, 2, 3, 4, 5, 6] as const).map((value) => (
+                                <GradeChip
+                                    key={value}
+                                    value={value}
+                                    size={size}
+                                />
+                            ))}
+                        </div>
+                    ))}
+                </div>
+                <FormField id="primitive-search" label="Szukaj">
+                    {(attributes) => (
+                        <Input
+                            {...attributes}
+                            type="search"
+                            placeholder="Szukaj przedmiotu"
+                        />
+                    )}
+                </FormField>
+                <GradeChip value={5} size="S" onClick={() => undefined} />
+                <label htmlFor="primitive-select">Przedmiot</label>
+                <Select>
+                    <SelectTrigger id="primitive-select">
+                        <SelectValue placeholder="Wybierz przedmiot" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="math">Matematyka</SelectItem>
+                        <SelectItem value="polish">Język polski</SelectItem>
+                    </SelectContent>
+                </Select>
+            </section>
         </main>
     );
 }

@@ -26,3 +26,12 @@ AppShell/PageHeader/DataTable/GradeDetails są kompozycjami projektowanymi na po
 Stany wspólne: FormField label/error/hint, SubmitButton processing, skeleton z aria-busy, toast z aria-live. Komponenty nie zawierają adresów endpointów na sztywno: kontroler/strona przekazuje nazwane trasy lub URL. Komponenty Headless Radix zapewniają zachowanie, ale należy przetestować fokus i style po dostosowaniu.
 
 FACT F-402: `components/forms/{form-field,error-summary,submit-button}.tsx` i istniejący `InputError` realizują wspólny wzorzec. Kontrakty, tokeny, źródło 29:219 i jawna adaptacja podsumowania opisane w [FORM_VALIDATION](../http/FORM_VALIDATION.md). Pozostałe komponenty tej specyfikacji nadal mają własne statusy.
+
+
+## Implementacja prymitywów F-006
+
+FACT: Button/Input/Select w `components/ui`, GradeChip w `components/grades`. Button ma `loading`, natywne `type=button` domyślnie i alias `primary` dla `default`; `secondary`/`outline` odpowiadają obrysowanemu wariantowi Figmy. `loading` jest dostępne dla natywnego przycisku, `asChild` służy kompozycji linku. Mutacje używają SubmitButton z `type=submit`. Linki wyświetlane przez Button nie otrzymują automatycznie autoryzacji ani zachowania disabled.
+
+Input pozostaje natywnym polem; etykietę, hint, błąd i powiązania ARIA dostarcza FormField z F-402. PasswordInput obsługuje widoczność hasła; `type=search` dodaje dekoracyjną ikonę. Select zachowuje Radix i obsługę kolizji menu z viewportem. GradeChip: `value: GradeValue`, `size?: 'S'|'M'|'L'` (domyślnie M), `href?` lub `onClick?`, `disabled?` dla przycisku, `deleted?`, `differsFromAssessment?`. URL przekazuje wywołująca strona; chip niczego sam nie pobiera i nie mutuje. Stan deleted i oznaczenie indywidualnej korekty są adaptacjami do przeglądu, nie wariantami potwierdzonymi w 4:209.
+
+Źródła, dowody kontroli i ograniczenia: [raport F-006](../features/F-006.md#22-raport-realizacji--2026-11-15). Pozostałe wiersze tabeli nadal opisują przyszłe funkcje.

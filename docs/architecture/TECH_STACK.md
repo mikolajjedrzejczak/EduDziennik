@@ -45,3 +45,6 @@ DECISION F-402: minimalny harness testów formularzy dodaje już teraz Vitest 5.
 DECISION F-001: ESLint 9 jest oznaczony przez npm jako niewspierany, a `eslint-plugin-react` 7.37.5 (ostatnie wydanie 2025-04) nie deklaruje zgodności z ESLint 10. Zamiast obniżać ESLint lub wymuszać peer deps użyto utrzymywanego `@eslint-react/eslint-plugin` (preset `recommended-typescript`) oraz `eslint-plugin-react-hooks`. Lint obejmuje typy (`projectService`), zabrania `any` i wymusza `import type`. Wyłączone z lintu i Prettier: wygenerowane typy Wayfinder oraz prymitywy shadcn `components/ui` (jak w starterze).
 
 DECISION F-001: Wayfinder działa jako generator w etapie PHP (`composer wayfinder`, wynik nieśledzony w Git). Plugin Vite uruchamia generator tylko w `vite` dev; `vite build` nie zakłada PHP i kończy się błędem, jeśli typy nie zostały wcześniej wygenerowane.
+
+
+FACT F-006: Button/Input/Select są już dostosowane i objęte lintem/format check; pozostałe niezmienione prymitywy startera nadal są wyłączone z tych kontroli. Public Sans 400/500/600/700 zastępuje Instrument Sans w theme i lokalnych assetach builda. Nie dodano zależności. Raport: [F-006](../features/F-006.md#22-raport-realizacji--2026-11-15).

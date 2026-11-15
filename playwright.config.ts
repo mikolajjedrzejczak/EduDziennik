@@ -13,7 +13,7 @@ export default defineConfig({
         ['html', { open: 'never' }],
     ],
     projects: [
-        { name: 'forms', testMatch: 'forms.spec.ts' },
+        { name: 'forms', testMatch: /(?:forms|primitives)\.spec\.ts/ },
         {
             name: 'build',
             testMatch: 'build.spec.ts',
