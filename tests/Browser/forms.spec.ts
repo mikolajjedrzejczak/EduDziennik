@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 for (const width of [390, 1024, 1440, 320]) {
     test(`server validation and keyboard feedback at ${width}px`, async ({

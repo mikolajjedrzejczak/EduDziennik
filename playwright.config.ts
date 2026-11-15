@@ -2,9 +2,53 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
     testDir: './tests/Browser',
+    outputDir: 'test-results/playwright',
     fullyParallel: false,
-    use: { baseURL: 'http://127.0.0.1:8187', browserName: 'chromium' },
+    workers: 1,
+    retries: 0,
+    forbidOnly: true,
+    reporter: [
+        ['list'],
+        ['junit', { outputFile: 'test-results/playwright.xml' }],
+        ['html', { open: 'never' }],
+    ],
+    projects: [
+        { name: 'forms', testMatch: 'forms.spec.ts' },
+        {
+            name: 'build',
+            testMatch: 'build.spec.ts',
+            use: { baseURL: 'http://127.0.0.1:8188' },
+        },
+    ],
+    use: {
+        baseURL: 'http://127.0.0.1:8187',
+        browserName: 'chromium',
+        timezoneId: 'Europe/Warsaw',
+        locale: 'pl-PL',
+        trace: 'retain-on-failure',
+        screenshot: 'only-on-failure',
+    },
     webServer: [
+        {
+            command:
+                process.env.BUILD_PHP_COMMAND ??
+                'php -S 127.0.0.1:8188 -t public tests/Infrastructure/browser-server.php',
+            url: 'http://127.0.0.1:8188/login',
+            env: {
+                APP_ENV: 'testing',
+                APP_DEBUG: 'false',
+                APP_KEY: 'base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
+                SESSION_DRIVER: 'file',
+                CACHE_STORE: 'array',
+                // No DB access in this smoke. An accidental query must fail.
+                DB_URL: '',
+                DB_CONNECTION: 'mariadb',
+                DB_DATABASE: 'edudziennik_e2e',
+                DB_USERNAME: 'e2e_no_database_access',
+                DB_PASSWORD: '',
+                LOG_CHANNEL: 'stderr',
+            },
+        },
         {
             command:
                 process.env.FORMS_PHP_COMMAND ??
@@ -14,6 +58,11 @@ export default defineConfig({
                 APP_ENV: 'testing',
                 APP_DEBUG: 'false',
                 APP_LOCALE: 'pl',
+                DB_URL: '',
+                DB_CONNECTION: 'mariadb',
+                DB_DATABASE: 'edudziennik_e2e',
+                DB_USERNAME: 'e2e_no_database_access',
+                DB_PASSWORD: '',
                 APP_KEY: 'base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
                 SESSION_DRIVER: 'file',
                 CACHE_STORE: 'array',

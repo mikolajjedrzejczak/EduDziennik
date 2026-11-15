@@ -9,7 +9,11 @@ export default defineConfig({
     },
     test: {
         environment: 'jsdom',
-        include: ['tests/Frontend/**/*.test.tsx'],
+        include: ['tests/Frontend/**/*.test.{ts,tsx}'],
+        reporters: ['default', 'junit'],
+        outputFile: { junit: 'test-results/vitest.xml' },
+        clearMocks: true,
+        restoreMocks: true,
         setupFiles: ['tests/Frontend/setup.ts'],
     },
 });

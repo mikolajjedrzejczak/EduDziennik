@@ -2,7 +2,7 @@
 
 Elektroniczny dziennik ocen: uczeń, nauczyciel i administrator. Dokumentacja w języku polskim; kod i identyfikatory po angielsku.
 
-**Stan 2026-11-15: F-001, F-002 oraz fundament bazy F-003 do przeglądu.** Jedna aplikacja Laravel 13 + Inertia 3 + React 19. Model czasowy, konfiguracja operatorska i fixture są zaimplementowane; ekrany dziennika i CI pozostają w kolejnych funkcjach.
+**Stan 2026-11-15: F-001, F-002, fundament bazy F-003 oraz harness testów F-501 do przeglądu.** Jedna aplikacja Laravel 13 + Inertia 3 + React 19. Model czasowy, konfiguracja operatorska i fixture są zaimplementowane; ekrany dziennika i CI pozostają w kolejnych funkcjach.
 
 Uruchomienie bez lokalnego PHP, Composer, Node i MariaDB — wymagany działający Docker z Compose v2+:
 
@@ -23,6 +23,8 @@ Bootstrap nie wykonuje migracji ani seedów. Health: `http://localhost:8080/up`,
 5. [Mapa ekranów Figmy](docs/design/SCREEN_MAP.md).
 
 Weryfikacja fundamentu: [F-003](docs/features/F-003.md). Testy backendu wymagają dedykowanej bazy `edudziennik_test`; [utworzenie i polecenia](docs/database/SEEDING.md#testy-mariadb).
+
+Test harness F-501: `./scripts/test.sh` po bootstrapie i utworzeniu testowej bazy. PHPUnit/MariaDB, Vitest/RTL, Playwright formularzy oraz smoke zbudowanych assetów; [polecenia, izolacja i raporty](docs/testing/TEST_STRATEGY.md#harness-f-501).
 
 ## Mapa dokumentacji
 

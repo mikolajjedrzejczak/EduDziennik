@@ -14,6 +14,36 @@ FACT F-402: istnieją już testy startera i technicznego wzorca formularzy oraz 
 
 FACT F-003: PHPUnit korzysta teraz z MariaDB i stałej izolowanej bazy `edudziennik_test` (wymuszenie w phpunit.xml, kontrola rozwiązanego połączenia w createApplication **przed** RefreshDatabase). Jednorazowy provisioner i instrukcja: [SEEDING](../database/SEEDING.md#testy-mariadb). Dodano testy migracji/rollback, FK/CHECK, JSON audytu, spójnych factories, fixture i SQL średnich, temporalnych scopes, odmów zapisu i atomowości audytu. Dwa osobne procesy z barierą NOWAIT testują konkurencyjne enrollmenty i zamknięcie termu przed oczekującym zapisem. Wynik lokalny: 115 testów / 379 asercji; [raport F-003](../features/F-003.md#22-raport-realizacji-2026-11-15). Pełna macierz HTTP i scenariusze administratorów/wersji w dwóch procesach pozostają w kolejnych funkcjach.
 
+## Harness F-501
+
+FACT: wspólny zegar PHP (`Tests\Support\TestClock`), Vitest setup i Playwright fixture wskazują `2026-11-15T12:00:00Z`. Laravel przywraca zegar po teście; Vitest przywraca prawdziwe timery, czyści DOM i mocki. Playwright daje nowy context na każdy test, strefę Europe/Warsaw, locale pl-PL i automatycznie sprawdza błędy JavaScript. Nie włączamy globalnie fałszywych timerów — user-event i oczekiwanie na HTTP działają normalnie.
+
+`TestDatabase` sprawdza środowisko testing, domyślne/rozwiązane połączenie MariaDB, nazwę bazy i nadpisania read/write **przed** RefreshDatabase. Ten sam bezpiecznik działa w workerze współbieżności. PHPUnit wymusza środowisko/nazwę/driver i wyłącza DB_URL; osobny test potwierdza rzeczywistą bazę i serwer MariaDB 11.4. Testy błędnej konfiguracji nie łączą się z bazą. Schemat zmieniają wyłącznie migracje; migracje/konkurencja mają istniejące testy integracyjne. Nie uruchamiaj suite równolegle na jednej bazie i nie używaj `--parallel`.
+
+Po bootstrapie zależności F-002 i jednorazowym utworzeniu bazy według [SEEDING](../database/SEEDING.md#testy-mariadb):
+
+```sh
+./scripts/test.sh
+```
+
+Skrypt przerywa przy pierwszym błędzie, wykonuje kolejno PHPUnit → Vitest/RTL → Wayfinder → build → Playwright. Nie instaluje ani nie resetuje bazy deweloperskiej. Opcjonalny obraz `docker/testing/Dockerfile` łączy te same przypięte PHP 8.3/Node 22 co obrazy dev oraz Chromium instalowane przez Playwright z lockfile. Manifest nie publikuje portów runnera. Budowa obrazu wymaga sieci; błąd instalacji kończy etap. `.dockerignore` dopuszcza tylko katalog docker i manifesty npm, bez `.env` i danych aplikacji. Wykonanie pojedynczych runnerów:
+
+```sh
+docker compose exec -T app composer test
+docker compose run --rm node npm run test:unit
+docker compose exec -T app composer wayfinder
+docker compose run --rm node npm run build
+docker compose -f compose.yaml -f compose.testing.yaml run --build --rm browser
+```
+
+FACT: projekt Playwright `forms` weryfikuje prawdziwe Laravel Form Request/Inertia/CSRF i klawiaturę w technicznym fixture (390/1024/1440/320) z Vite dev. Projekt `build` sprawdza zbudowane assety rzeczywistego `/login`, przekierowanie gościa z `/dashboard`, załadowanie React, CSS i obsługę klawiatury (390/1024/1440), ignorując lokalny `public/hot`. Serwery fixture są jawne, CLI-only, nie są ładowane przez public/index.php i odmawiają poza testing. Nie dodano UI ani tras produkcyjnych.
+
+Oba obecne projekty E2E nie korzystają z bazy: formularz ma efekt wyłącznie w sesji plikowej, smoke nie loguje użytkownika. Używają nazwy `edudziennik_e2e` i nieistniejącego użytkownika, więc przypadkowa próba dostępu do danych kończy się błędem. Nie tworzą i nie resetują tego schematu. PLANNED: E2E domenowe otrzymają osobny provisioner/fixture dla bazy E2E oraz macierz ról z wdrażanymi funkcjami; obecny smoke jej nie zastępuje.
+
+Raporty (nieśledzone w Git): `test-results/phpunit.xml`, `test-results/vitest.xml`, `test-results/playwright.xml`, `playwright-report/index.html`; trace i screenshot Playwright przy błędzie. Nie są dowodem pokrycia całej domeny. PHPUnit odrzuca pusty suite, warning i risky; Vitest/Playwright domyślnie odrzucają brak testów, Playwright również `test.only`, bez retries ukrywających flaky. W CI F-502 trzeba zachować raporty jako artefakty, również przy błędzie. `scripts/test.sh` usuwa stare trzy raporty JUnit przed startem; przy osobnych wywołaniach usuń stare raporty albo oceniaj ich timestamp i exit code odpowiedniego runnera; sam plik nie oznacza sukcesu.
+
+Nowe funkcje dodają scenariusze sukcesu, odmowy i rollbacku do właściwej warstwy; wykorzystują istniejące zgodne factories/seeder F-003. Backend musi pozostać sprawdzany na MariaDB, także w CI. Wyniki F-501: [raport](../features/F-501.md#22-raport-realizacji-2026-11-15).
+
 ## Krytyczne scenariusze backendu
 
 1. Login/logout/inactive/deleted, regenerate session, CSRF,429, password change unieważniający inne sesje.
