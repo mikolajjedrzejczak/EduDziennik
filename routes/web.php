@@ -21,7 +21,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('classes/{schoolClass}/enrollments', [Admin\EnrollmentController::class, 'store'])->name('enrollments.store');
         Route::patch('classes/{schoolClass}/enrollments/{enrollment}', [Admin\EnrollmentController::class, 'update'])->name('enrollments.update');
         Route::resource('assignments', Admin\TeacherAssignmentController::class)->only(['index', 'store', 'update', 'destroy']);
-        Route::resource('users', Admin\UserController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update'])->withTrashed(['show']);
+        Route::resource('users', Admin\UserController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])->withTrashed(['show']);
         Route::resource('subjects', Admin\SubjectController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 });

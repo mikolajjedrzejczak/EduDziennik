@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
+import { DeleteUserDialog } from '@/components/admin/delete-user-dialog';
 import { RoleBadge, StatusBadge } from '@/components/admin/user-badges';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/states/empty-state';
@@ -52,6 +53,7 @@ export default function ShowUser({
                             </Link>
                         </Button>
                     )}
+                    <DeleteUserDialog user={user} />
                 </header>
                 {user.deletedAt && (
                     <p
