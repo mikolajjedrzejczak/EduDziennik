@@ -1,0 +1,33 @@
+/* F-402: subset of Semantic/Input tokens read from Figma 29:219 / 5:228.
+   Scoped controls; the full application theme belongs to F-006. */
+@theme {
+    --font-form: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+    --color-form-text: #141b2d;
+    --color-form-muted: #5b6577;
+    --color-form-disabled: #98a2b3;
+    --color-form-surface: #ffffff;
+    --color-form-secondary: #edf0f4;
+    --color-form-border: #c5ccd7;
+    --color-form-error: #b91c1c;
+    --color-form-error-bg: #fce8e8;
+    --color-form-focus: #2350d8;
+    --radius-form-control: 6px;
+}
+
+/* Override starter utilities only inside FormField. */
+.form-field :is(input, textarea, [role='combobox']) {
+    @apply min-h-12 w-full min-w-0 rounded-form-control border border-form-border bg-form-surface px-3 text-sm leading-5 text-form-text shadow-none md:min-h-10;
+}
+
+.form-field :is(input, textarea, [role='combobox']):focus-visible {
+    @apply border-form-focus outline-2 outline-form-focus;
+    box-shadow: 0 0 0 3px rgb(35 80 216 / 35%);
+}
+
+.form-field [aria-invalid='true'] {
+    @apply border-[1.5px] border-form-error;
+}
+
+.form-field :disabled {
+    @apply bg-form-secondary text-form-disabled opacity-100;
+}

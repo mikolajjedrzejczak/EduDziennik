@@ -40,6 +40,8 @@ VERIFIED 2026-11-15 instalacją z lockfiles w kontenerach PHP 8.3.36 / Node 22.2
 | Style / UI | tailwindcss i @tailwindcss/vite 4.3.5, Radix, lucide-react 0.475.0 | Komponenty `components/ui` bez zmian do F-006 |
 | JS QA | eslint 10.15.0, typescript-eslint 8.72.2, @eslint-react/eslint-plugin 5.30.2, eslint-plugin-react-hooks 7.1.1, prettier 3.10.1, prettier-plugin-tailwindcss 0.8.1 | Vitest/RTL/Playwright dodaje F-501 |
 
+DECISION F-402: minimalny harness testów formularzy dodaje już teraz Vitest 5.1, RTL 16.3/DOM 10.4/user-event 14.6/jest-dom 6.9, jsdom 31.0 i Playwright 1.65. Pełny F-501 pozostaje otwarty. jsdom wymaga podniesienia minimalnego developerskiego Node 22 do 22.22.2; `package.json` to egzekwuje, obrazy Docker mają 22.23.5. Uzasadnienie, zgodność i licencje: [wzorzec F-402](../http/FORM_VALIDATION.md).
+
 DECISION F-001: ESLint 9 jest oznaczony przez npm jako niewspierany, a `eslint-plugin-react` 7.37.5 (ostatnie wydanie 2025-04) nie deklaruje zgodności z ESLint 10. Zamiast obniżać ESLint lub wymuszać peer deps użyto utrzymywanego `@eslint-react/eslint-plugin` (preset `recommended-typescript`) oraz `eslint-plugin-react-hooks`. Lint obejmuje typy (`projectService`), zabrania `any` i wymusza `import type`. Wyłączone z lintu i Prettier: wygenerowane typy Wayfinder oraz prymitywy shadcn `components/ui` (jak w starterze).
 
 DECISION F-001: Wayfinder działa jako generator w etapie PHP (`composer wayfinder`, wynik nieśledzony w Git). Plugin Vite uruchamia generator tylko w `vite` dev; `vite build` nie zakłada PHP i kończy się błędem, jeśli typy nie zostały wcześniej wygenerowane.

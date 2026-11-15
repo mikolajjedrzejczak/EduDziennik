@@ -22,7 +22,7 @@ Po bootstrapie: aplikacja `http://localhost:8080`, Vite `http://localhost:5173`.
 |---|---|---|---|
 | app | `docker/php/Dockerfile`, PHP 8.3 FPM + Composer 2; pdo_mysql, mbstring, intl, zip, bcmath, opcache, dom/xml | repo bind, vendor named volume; 9000 wyłącznie w sieci Compose | jawny FPM ping przez cgi-fcgi |
 | nginx | stabilny obraz przypięty digestem; `docker/nginx/default.conf` | repo read-only; root tylko public; localhost:8080 | HTTP `/up` przez Laravel i DB |
-| node | `docker/node/Dockerfile`, Node 22 ≥22.12; profil dev | repo bind, node_modules named volume; localhost:5173 | klient HTTP Vite |
+| node | `docker/node/Dockerfile`, Node 22 ≥22.22.2 (harness F-402); profil dev | repo bind, node_modules named volume; localhost:5173 | klient HTTP Vite |
 | db | MariaDB 11.4, obraz przypięty digestem | db_data; bez portu hosta | `healthcheck.sh --connect --innodb_initialized` |
 
 Wszystkie obrazy bazowe mają digest indeksu wieloplatformowego. Aktualizacje digestów wymagają ponownego builda i kontroli F-002. Kontekst builda zawiera wyłącznie `docker/`, bez `.env`, źródeł aplikacji i sekretów. DB ma oddzielne hasło root, runtime korzysta z DB_USERNAME. UTC w kontenerach; prezentacja Europe/Warsaw. Lokalny `.env` pozostaje źródłem APP_KEY i ustawień Laravel. Po zmianie hasła w istniejącym DB volume trzeba jawnie zmienić konto w DB — zmienne inicjalizacyjne obrazu nie rotują haseł istniejącej bazy.

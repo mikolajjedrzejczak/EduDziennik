@@ -13,6 +13,11 @@ export default defineConfig(({ command }) => ({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
             refresh: true,
             fonts: [
+                bunny('Public Sans', {
+                    subsets: ['latin', 'latin-ext'],
+                    weights: [400, 500, 600],
+                    optimizedFallbacks: false,
+                }),
                 // Starter font; typography follows Figma in F-006. Fallback
                 // metric optimisation would need the optional `fontaine` dep.
                 bunny('Instrument Sans', {

@@ -32,7 +32,7 @@ Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja doda
 | F-307 | Subject Management | P0 | Planned | F-007, F-402, F-003 | [spec](F-307.md) | wsparcie A1–A8 |
 | F-308 | Teacher Assignments | P0 | Planned | F-306, F-307, F-005, F-402 | [spec](F-308.md) | wsparcie A1–A8 |
 | F-401 | Profile Management | P1 | Planned | F-007, F-402 | [spec](F-401.md) | wsparcie A1–A8 |
-| F-402 | Form Validation | P0 | Planned | F-001 | [spec](F-402.md) | A5 |
+| F-402 | Form Validation | P0 | Ready for review | F-001 | [spec](F-402.md) | A5 |
 | F-403 | Search, Filtering and Pagination | P1 | Planned | F-102, F-104, F-202, F-302 | [spec](F-403.md) | wsparcie A1–A8 |
 | F-404 | Application States and Error Handling | P0 | Planned | F-001, F-006 | [spec](F-404.md) | wsparcie A1–A8 |
 | F-501 | Automated Testing | P0 | Planned | F-001, F-002, F-003 | [spec](F-501.md) | wsparcie A1–A8 |
