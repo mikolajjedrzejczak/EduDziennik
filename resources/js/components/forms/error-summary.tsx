@@ -6,7 +6,9 @@ export type ErrorSummaryField = { id: string; label: string };
 export function ErrorSummary({
     errors,
     fields,
+    title = 'Nie udało się zapisać formularza',
 }: {
+    title?: string;
     errors: Readonly<Record<string, string | undefined>>;
     fields: Readonly<Record<string, ErrorSummaryField>>;
 }) {
@@ -30,7 +32,7 @@ export function ErrorSummary({
         >
             <h2 id={titleId} className="flex items-center gap-2 font-semibold">
                 <CircleAlert aria-hidden="true" className="size-4 shrink-0" />
-                Nie udało się zapisać formularza
+                {title}
             </h2>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm wrap-anywhere">
                 {entries.map(([name, message]) => {

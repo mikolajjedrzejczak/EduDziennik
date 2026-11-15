@@ -22,6 +22,8 @@ if (! $app->environment('testing')) {
 }
 
 Carbon::setTestNow(TestClock::NOW);
+// A fixed domain clock must not create cookies already expired by wall time.
+config(['session.expire_on_close' => true]);
 // Ignore any active developer HMR server without modifying public/hot.
 $app->make(Vite::class)->useHotFile(__DIR__.'/unused-hot');
 $app->handleRequest(Request::capture());

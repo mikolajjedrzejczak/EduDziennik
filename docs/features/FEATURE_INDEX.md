@@ -1,6 +1,6 @@
 # Indeks funkcji
 
-Stan implementacji: F-001, F-002, F-003 i F-501 `In Progress` (implementacje gotowe do przeglądu), pozostałe `Planned`. P0 = fundament/MVP, P1 = rozszerzenie lub jakość wymagana przed przekazaniem; P2 = odroczone, poza tym planem (Dark i tryb serii). Nie mylić gotowej specyfikacji z działającą funkcją.
+Stan implementacji: F-001, F-002, F-003, F-004 i F-501 `In Progress` (implementacje gotowe do przeglądu), pozostałe `Planned`. P0 = fundament/MVP, P1 = rozszerzenie lub jakość wymagana przed przekazaniem; P2 = odroczone, poza tym planem (Dark i tryb serii). Nie mylić gotowej specyfikacji z działającą funkcją.
 
 Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja dodaje własną walidację, stany i testy. F-403 rozwija istniejącą bazową paginację, nie blokuje MVP. [Roadmapa](../product/ROADMAP.md) ma kolejność topologiczną.
 
@@ -9,7 +9,7 @@ Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja doda
 | F-001 | Project Foundation | P0 | In Progress | — | [spec](F-001.md) | A6/A7/A8 |
 | F-002 | Docker Environment | P0 | In Progress | F-001 | [spec](F-002.md) | A6/A7/A8 |
 | F-003 | Database Foundation | P0 | In Progress | F-001, F-002 | [spec](F-003.md) | A6/A7/A8 |
-| F-004 | Authentication | P0 | Planned | F-003, F-402 | [spec](F-004.md) | A2/A3 |
+| F-004 | Authentication | P0 | In Progress | F-003, F-402 | [spec](F-004.md) | A2/A3 |
 | F-005 | Role-Based Authorization | P0 | Planned | F-004 | [spec](F-005.md) | A2/A3 |
 | F-006 | Design System | P0 | Planned | F-001 | [spec](F-006.md) | wsparcie A1–A8 |
 | F-007 | Application Layouts | P0 | Planned | F-004, F-005, F-006, F-404 | [spec](F-007.md) | A2/A3 |
