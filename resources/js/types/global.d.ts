@@ -13,6 +13,7 @@ declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: {
             name: string;
+            flash: { success?: string; error?: string };
             auth: Auth;
             can: Capabilities;
             navigation: Navigation | null;

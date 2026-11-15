@@ -1,6 +1,6 @@
 # Indeks funkcji
 
-Stan implementacji: F-001, F-002, F-003, F-004 i F-501 `In Progress` (implementacje gotowe do przeglądu), pozostałe `Planned`. P0 = fundament/MVP, P1 = rozszerzenie lub jakość wymagana przed przekazaniem; P2 = odroczone, poza tym planem (Dark i tryb serii). Nie mylić gotowej specyfikacji z działającą funkcją.
+Stan implementacji: F-001, F-002, F-003, F-004 i F-501 `In Progress` (implementacje gotowe do przeglądu), F-306 ma implementację do przeglądu adaptacji UI; szczegółowe statusy pozostałych funkcji są w tabeli. P0 = fundament/MVP, P1 = rozszerzenie lub jakość wymagana przed przekazaniem; P2 = odroczone, poza tym planem (Dark i tryb serii). Nie mylić gotowej specyfikacji z działającą funkcją.
 
 Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja dodaje własną walidację, stany i testy. F-403 rozwija istniejącą bazową paginację, nie blokuje MVP. [Roadmapa](../product/ROADMAP.md) ma kolejność topologiczną.
 
@@ -28,7 +28,7 @@ Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja doda
 | F-303 | User Creation | P0 | Planned | F-302, F-306, F-308, F-402 | [spec](F-303.md) | A4 |
 | F-304 | User Editing | P0 | Planned | F-303 | [spec](F-304.md) | A4 |
 | F-305 | User Deletion | P0 | Planned | F-304 | [spec](F-305.md) | A4 |
-| F-306 | Class Management | P0 | Planned | F-007, F-402, F-003 | [spec](F-306.md) | wsparcie A1–A8 |
+| F-306 | Class Management | P0 | Implemented — review UI | F-007, F-402, F-003 | [spec](F-306.md) | wsparcie A1–A8 |
 | F-307 | Subject Management | P0 | Implementacja do przeglądu | F-007, F-402, F-003 | [spec](F-307.md) | wsparcie A1–A8 |
 | F-308 | Teacher Assignments | P0 | Planned | F-306, F-307, F-005, F-402 | [spec](F-308.md) | wsparcie A1–A8 |
 | F-401 | Profile Management | P1 | Planned | F-007, F-402 | [spec](F-401.md) | wsparcie A1–A8 |

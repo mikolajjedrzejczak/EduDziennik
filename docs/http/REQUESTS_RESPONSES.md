@@ -55,7 +55,7 @@ Nazwiska Unicode: Laravel regex z `\p{L}`, `\p{M}`, spacją, apostrofem prostym/
 
 ## Typy DTO
 
-Jedna definicja każdego typu w `resources/js/types/domain.ts` i `pages.ts`. Poniższe interfejsy są kompletnym minimum kontraktu. Typy transportu są jawne, a nie duplikowane per rola.
+Jedna definicja każdego typu; docelowo `resources/js/types/domain.ts` i `pages.ts`. FACT F-306: wdrożone typy organizacji są współdzielone w `resources/js/types/school.ts`. Poniższe interfejsy są kompletnym minimum kontraktu. Typy transportu są jawne, a nie duplikowane per rola.
 
 ```ts
 type Id = string;
@@ -165,7 +165,7 @@ interface GradeFormProps extends SharedProps {
 interface UserListProps extends SharedProps { users: Page<UserDTO>; filters: Filters; options: UserOptions }
 interface UserDetailProps extends SharedProps { user: UserDTO; enrollments: EnrollmentDTO[]; assignments: AssignmentDTO[] }
 interface UserFormProps extends SharedProps { user: UserDTO | null; options: UserOptions }
-interface ClassManagementProps extends SharedProps { classes: Page<ClassDTO>; filters: Filters; years: Option[]; selectedClass: ClassDTO | null; enrollments: Page<EnrollmentDTO> | null; students: Option[] }
+interface ClassManagementProps extends SharedProps { classes: Page<ClassDTO>; filters: Filters; years: Option[]; selectedClass: ClassDTO | null; enrollments: Page<EnrollmentDTO> | null; students: Option[]; classOptions: Option[] }
 interface SubjectManagementProps extends SharedProps { subjects: Page<SubjectDTO>; filters: Filters & { archived: boolean } }
 interface AssignmentManagementProps extends SharedProps { assignments: Page<AssignmentDTO>; filters: Filters; teachers: Option[]; classes: Option[]; subjects: Option[]; terms: Option[] }
 ```
@@ -198,8 +198,18 @@ FACT: `bootstrap/app.php` renderuje `shared/error` (`App\Http\Responses\ErrorPag
 
 ### Stan integracji F-007
 
-FACT: `/dashboard` zwraca 302 do pulpitu roli (`student.dashboard` → `/student`, `teacher.dashboard` → `/teacher`, `admin.dashboard` → `/admin`); pulpity renderują `student|teacher|admin/dashboard` bez danych domenowych (props tylko shared). Obca rola: 403. SharedProps zawierają `navigation: { primary, secondary } | null`, gdzie element to `{ key, label, shortLabel, href, icon }` (`icon` ∈ `dashboard|profile|subjects`), budowane wyłącznie na serwerze i tylko dla istniejących tras. `sidebarOpen` usunięto.
+FACT: `/dashboard` zwraca 302 do pulpitu roli (`student.dashboard` → `/student`, `teacher.dashboard` → `/teacher`, `admin.dashboard` → `/admin`); pulpity renderują `student|teacher|admin/dashboard` bez danych domenowych (props tylko shared). Obca rola: 403. SharedProps zawierają `navigation: { primary, secondary } | null`, gdzie element to `{ key, label, shortLabel, href, icon }` (`icon` ∈ `dashboard|profile|classes|subjects`), budowane wyłącznie na serwerze i tylko dla istniejących tras. `sidebarOpen` usunięto.
 
+
+### Stan integracji F-306
+
+FACT: sześć tras klas/członkostw z ROUTES jest wdrożonych, wyłącznie dla administratora. GET autoryzuje również opcje i wybraną klasę; `selected_class_id` musi należeć do roku i statusu archiwum listy (404 w razie niezgodności). Wyszukiwanie nie zmienia zakresu wybranej klasy. Bez roku/termu lista obejmuje wszystkie lata; `term_id` bez `academic_year_id` wyznacza rok. Mutacje przekierowują do listy z rokiem i wybraną klasą, archiwizacja do listy aktywnych klas danego roku.
+
+DECISION: `ClassManagementProps.classOptions: Option[]` to dodatkowy słownik aktywnych klas (`id`, etykieta `nazwa · rok`) do wyboru celu transferu, niezależny od paginacji listy. `students` zawiera tylko aktywne, nieusunięte konta student i wyłącznie `id/label`. Słowniki uczniów i klas mają limit 500; pobranie 501 wykrywa przekroczenie i zwraca 503, bez cichego ucinania. Rozwinięcie selektorów dla większej szkoły pozostaje poza MVP.
+
+FACT: transfer jest POST do klasy docelowej, z `student_id`, `starts_on` (dzień D), opcjonalnym `ends_on` i `transfer_from_enrollment_id`. Źródło musi należeć do ucznia, obejmować D, zaczynać się przed D i być inną klasą. Daty źródła kończą się D−1. Oceny i audyty zachowują identyfikatory; ochrona zakresu dat uwzględnia także soft-deleted grades. PATCH służy korekcie dat/zakończeniu; nie zmienia ucznia ani klasy, dopuszcza zakończenie członkostwa nieaktywnego ucznia. Zarchiwizowana klasa ma odczyt historii bez mutacji.
+
+FACT: nawigacja administratora dodaje `classes` (`Klasy i przedmioty`, mobilnie `Klasy`) oraz ikonę `classes`. Wspólne props `flash` udostępniają wyłącznie `success/error` z sesji. Pozostałe sekcje organizacji dodają własne funkcje F-307/F-308.
 
 ### Stan integracji F-307
 

@@ -20,6 +20,11 @@ export default defineConfig({
             use: { baseURL: 'http://127.0.0.1:8189' },
         },
         {
+            name: 'classes',
+            testMatch: 'classes.spec.ts',
+            use: { baseURL: 'http://127.0.0.1:8189' },
+        },
+        {
             name: 'build',
             testMatch: 'build.spec.ts',
             use: { baseURL: 'http://127.0.0.1:8188' },

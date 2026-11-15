@@ -66,6 +66,29 @@ class ConcurrentWriteTest extends TestCase
         }
     }
 
+    public function test_two_concurrent_transfers_cannot_split_the_same_membership_twice(): void
+    {
+        $source = User::where('email', 'student1@example.test')->firstOrFail()->enrollments()->where('starts_on', '2026-09-01')->firstOrFail();
+        $targets = SchoolClass::factory()->count(2)->create(['academic_year_id' => $source->schoolClass->academic_year_id]);
+        DB::beginTransaction();
+        $worker = null;
+        try {
+            User::whereKey($source->student_id)->lockForUpdate()->firstOrFail();
+            $worker = $this->worker(['transfer', $source->student_id, $targets[1]->id, $source->id]);
+            app(EnrollmentService::class)->enroll($source->student_id, $targets[0]->id, '2026-11-15', null, $source->id);
+            DB::commit();
+            $this->assertSame(0, $worker->wait(), $worker->getErrorOutput());
+            $this->assertStringContainsString('rejected', $worker->getOutput());
+            $this->assertSame('2026-11-14', $source->fresh()->ends_on->toDateString());
+            $this->assertSame(1, StudentEnrollment::where('student_id', $source->student_id)->onDate('2026-11-15')->count());
+        } finally {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            $worker?->stop();
+        }
+    }
+
     public function test_grade_waiting_for_closed_term_cannot_commit(): void
     {
         $header = Assessment::where('topic', 'Fixture 1')->firstOrFail();
