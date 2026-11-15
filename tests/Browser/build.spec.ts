@@ -17,6 +17,10 @@ for (const width of [320, 390, 1024, 1440]) {
         await expect(page.getByLabel('Adres e-mail')).toBeFocused();
         await page.keyboard.press('Tab');
         await expect(page.getByLabel('Hasło', { exact: true })).toBeFocused();
+        await expect(page.getByLabel('Hasło', { exact: true })).toHaveCSS(
+            'padding-right',
+            '48px',
+        );
         expect(
             await page.locator('script[src*="/build/assets/"]').count(),
         ).toBeGreaterThan(0);
@@ -139,3 +143,26 @@ for (const status of [419, 429]) {
         });
     });
 }
+
+test('F-006 keeps the built MVP light with a legacy dark preference', async ({
+    page,
+    context,
+}) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await context.addCookies([
+        { name: 'appearance', value: 'dark', url: 'http://127.0.0.1:8188' },
+    ]);
+    await page.addInitScript(() => localStorage.setItem('appearance', 'dark'));
+    await page.goto('/login');
+    await expect(page.locator('html')).not.toHaveClass(/dark/);
+    await expect(page.locator('html')).toHaveCSS('color-scheme', 'light');
+    await expect(page.locator('body')).toHaveCSS('font-family', /Public Sans/);
+    await page.evaluate(() =>
+        document.fonts.load('700 14px "Public Sans"', 'Zażółć gęślą jaźń'),
+    );
+    expect(
+        await page.evaluate(() =>
+            document.fonts.check('700 14px "Public Sans"', 'Zażółć gęślą jaźń'),
+        ),
+    ).toBe(true);
+});

@@ -15,13 +15,7 @@ export default defineConfig(({ command }) => ({
             fonts: [
                 bunny('Public Sans', {
                     subsets: ['latin', 'latin-ext'],
-                    weights: [400, 500, 600],
-                    optimizedFallbacks: false,
-                }),
-                // Starter font; typography follows Figma in F-006. Fallback
-                // metric optimisation would need the optional `fontaine` dep.
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
+                    weights: [400, 500, 600, 700],
                     optimizedFallbacks: false,
                 }),
             ],

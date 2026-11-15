@@ -4,5 +4,8 @@ package-lock.json
 resources/js/actions/
 resources/js/routes/
 resources/js/wayfinder/
-resources/js/components/ui/
+resources/js/components/ui/*
+!resources/js/components/ui/button.tsx
+!resources/js/components/ui/input.tsx
+!resources/js/components/ui/select.tsx
 resources/views/mail/
