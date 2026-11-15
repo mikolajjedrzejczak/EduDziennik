@@ -4,6 +4,8 @@
 
 ## Konwencje
 
+Wspólny wzorzec implementacyjny Form Request/useForm, polskie komunikaty, pola i podsumowanie: [FORM_VALIDATION](FORM_VALIDATION.md) (F-402). Nie dodaje samodzielnego kontraktu strony ani produkcyjnej trasy.
+
 ID w URL i DTO to dziesiętne stringi, walidowane jako dodatnie ID istniejących rekordów w autoryzowanym zakresie. HTTP body ma snake_case, DTO camelCase; mapowanie jawne w kontrolerze/serializerze. Daty `YYYY-MM-DD`, timestampy ISO 8601 UTC. Nie wysyłać całych modeli Eloquent, hasha, session payload, IP ani remember token.
 
 Mutacja → redirect do wskazanego GET z `flash.success` lub `errors`. Adapter konwertuje przekierowania po PUT/PATCH/DELETE na 303. Walidacja Inertia nie zwraca ręcznego 422 JSON. [Dokumentacja Inertia](https://inertiajs.com/docs/v3/the-basics/validation).

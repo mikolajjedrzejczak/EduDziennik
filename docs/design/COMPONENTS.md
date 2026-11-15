@@ -24,3 +24,5 @@ Props poniżej to kontrakt komponentu; typy domenowe importować z jednej defini
 AppShell/PageHeader/DataTable/GradeDetails są kompozycjami projektowanymi na podstawie wskazanych elementów, nie znalezionymi komponentami o tych nazwach. Pozostałe mapowania odpowiadają komponentom lub zestawom Figmy. GradeForm współdzielony przez create/edit i role teacher/admin; AssessmentForm częścią F-203, do adaptacji istniejącego formularza oceny (brak dedykowanego frame).
 
 Stany wspólne: FormField label/error/hint, SubmitButton processing, skeleton z aria-busy, toast z aria-live. Komponenty nie zawierają adresów endpointów na sztywno: kontroler/strona przekazuje nazwane trasy lub URL. Komponenty Headless Radix zapewniają zachowanie, ale należy przetestować fokus i style po dostosowaniu.
+
+FACT F-402: `components/forms/{form-field,error-summary,submit-button}.tsx` i istniejący `InputError` realizują wspólny wzorzec. Kontrakty, tokeny, źródło 29:219 i jawna adaptacja podsumowania opisane w [FORM_VALIDATION](../http/FORM_VALIDATION.md). Pozostałe komponenty tej specyfikacji nadal mają własne statusy.

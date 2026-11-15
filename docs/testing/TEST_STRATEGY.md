@@ -1,6 +1,8 @@
 # Strategia testowania
 
-PLANNED. Nie istnieją jeszcze testy aplikacji. F-501 buduje harness wcześnie; testy każdej funkcji powstają razem z nią. F-502 automatyzuje je. [Polecenia](../infrastructure/CI_CD.md) i [Docker](../infrastructure/DOCKER.md) są planem.
+PLANNED: pełne pokrycie domeny. Testy każdej funkcji powstają razem z nią; F-501 rozszerza harness, F-502 automatyzuje kontrole. [Polecenia](../infrastructure/CI_CD.md) i [Docker](../infrastructure/DOCKER.md) opisują własny stan realizacji.
+
+FACT F-402: istnieją już testy startera i technicznego wzorca formularzy oraz minimalny harness PHPUnit/Vitest/RTL/Playwright. Poniższa strategia domenowa nadal jest planem. Uruchomienie i granice dowodów: [FORM_VALIDATION](../http/FORM_VALIDATION.md), [raport F-402](../features/F-402.md#22-raport-realizacji--2026-11-15).
 
 | Warstwa | Narzędzie | Co dowodzi |
 |---|---|---|

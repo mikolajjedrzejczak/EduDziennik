@@ -1,5 +1,7 @@
 # Obsługa błędów
 
+Wdrożony wzorzec błędów formularzy i jego integracja: [FORM_VALIDATION](FORM_VALIDATION.md). Wspólne komponenty nie zastępują obsługi stron HTTP z F-404.
+
 | Sytuacja | Odpowiedź | Zachowanie UI |
 |---|---|---|
 | Niezalogowany GET chroniony | 302 login | Formularz; po login kanoniczny pulpit roli |
