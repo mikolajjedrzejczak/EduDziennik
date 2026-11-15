@@ -31,3 +31,15 @@
 .form-field :disabled {
     @apply bg-form-secondary text-form-disabled opacity-100;
 }
+
+/* F-004: light authentication surface, independently of the deferred app theme. */
+@theme {
+    --color-auth-nav: #14213d;
+    --color-auth-muted: #aeb8cf;
+    --color-auth-divider: #33436a;
+    --color-auth-primary-hover: #1a3fb0;
+}
+
+.login-shell .login-submit {
+    @apply inline-flex items-center justify-center rounded-form-control bg-form-focus text-white hover:bg-auth-primary-hover focus-visible:outline-2 focus-visible:outline-form-focus disabled:opacity-100;
+}

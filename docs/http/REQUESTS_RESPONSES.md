@@ -130,7 +130,7 @@ interface ClassDTO { id: Id; name: string; academicYear: Option; deletedAt: ISOD
 interface SubjectDTO { id: Id; name: string; deletedAt: ISODateTime | null }
 interface UserOptions { roles: Role[]; classes: Option[]; subjects: Option[]; terms: Option[] }
 interface SubjectSummary { subject: Option; average: Average; count: number }
-interface LoginProps extends SharedProps { }
+interface LoginProps extends SharedProps { retryAfter?: number | null }
 interface ErrorProps extends SharedProps {
   status: 403 | 404 | 419 | 429 | 500 | 503; message: string;
   correlationId?: string; retryAfter?: number;
@@ -177,3 +177,9 @@ Dashboard recentGrades/recentAudits max5, subjects max100 w ramach jednej szkoł
 ClassFilterRequest selected_class_id/enrollment_page mapują się na Filters.selectedClassId/enrollmentPage; wybór klasy zasila selectedClass/enrollments. HistoryFilterRequest student_enrollment_id mapuje się na studentEnrollmentId i zawęża historię linkowaną ze szczegółów ucznia. Admin students w ClassManagementProps zawiera tylko aktywne konta student (limit słownika jak wyżej). Żadne pole nie wybiera kontekstu poza uprawnieniami.
 
 SharedProps nie są współdzielonym cache między użytkownikami. Partial reload ma ponownie autoryzować rekord i opcje. Payload historii jest projekcją allowlisty, nie dowolnym JSON. Rozróżniaj brak danych (`[]`, null) od braku uprawnień (403/404), nigdy nie wysyłaj danych i nie ukrywaj ich tylko CSS.
+
+### Stan integracji F-004
+
+FACT: logowanie i wylogowanie używają powyższych tras i walidacji. `errors.form` zawiera neutralny błąd uwierzytelnienia; 429 zachowuje status i nagłówek Retry-After, dodaje `retryAfter` w sekundach. 419 renderuje formularz z instrukcją ponownego logowania, bez automatycznego POST. W obu odpowiedziach `auth.user` i `auth.role` są null. Login zawsze prowadzi do `/dashboard`, ignoruje url.intended i dane klienta określające rolę/cel. Docelowe rozdzielenie pulpitów należy do F-007 i pozostaje niewdrożone. Istniejący starter korzysta dodatkowo z allowlistowanego `auth.user.name` (firstName + lastName); id jest stringiem.
+
+DECISION F-004: limiter działa w LoginService po walidacji LoginRequest; zlicza nieudane uwierzytelnienia, a nie wszystkie wywołania HTTP. Nie rejestrujemy dodatkowego `throttle:login`, który podwójnie naliczałby próby.

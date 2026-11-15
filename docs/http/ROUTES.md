@@ -9,7 +9,7 @@ Dla GET bez Form Request wejście to tylko parametry ścieżki; brak body. Dla p
 | HTTP | URL | Nazwa | Controller/action | Middleware / zakres | Form Request | Wynik | Feature |
 |---|---|---|---|---|---|---|---|
 | GET | /login | login | Auth/SessionController@create | guest | — | auth/login; LoginProps | F-004 |
-| POST | /login | login.store | Auth/SessionController@store | guest + throttle:login | LoginRequest | redirect dashboard | F-004 |
+| POST | /login | login.store | Auth/SessionController@store | guest + limiter LoginService | LoginRequest | redirect dashboard | F-004 |
 | POST | /logout | logout | Auth/SessionController@destroy | auth | — | redirect login | F-004 |
 | GET | /dashboard | dashboard | DashboardController@index | auth | — | redirect wg roli | F-007 |
 | GET | /profile | profile.edit | ProfileController@edit | auth | — | settings/profile; ProfileProps | F-401 |
