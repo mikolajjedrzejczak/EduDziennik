@@ -63,7 +63,7 @@ export type UserDetailProps = {
     relationTotals: { enrollments: number; assignments: number };
 };
 
-/** F-303 create form (UserFormProps): subjects are a server allowlist, `user` is null on create. */
+/** UserFormProps: user is null on create; edit exposes only role options and empty relation dictionaries. */
 export type UserFormOptions = UserListOptions & { subjects: Option[] };
 
 export type UserFormProps = {

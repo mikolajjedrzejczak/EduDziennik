@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import { RoleBadge, StatusBadge } from '@/components/admin/user-badges';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/states/empty-state';
 import { formatDateTime, fullName } from '@/lib/users';
 import type { UserDetailProps } from '@/types/users';
@@ -44,6 +45,13 @@ export default function ShowUser({
                     </h1>
                     <RoleBadge role={user.role} />
                     <StatusBadge user={user} />
+                    {!user.deletedAt && (
+                        <Button asChild variant="secondary">
+                            <Link href={`/admin/users/${user.id}/edit`}>
+                                Edytuj użytkownika
+                            </Link>
+                        </Button>
+                    )}
                 </header>
                 {user.deletedAt && (
                     <p
