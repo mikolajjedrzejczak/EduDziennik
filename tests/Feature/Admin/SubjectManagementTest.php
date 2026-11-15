@@ -211,8 +211,8 @@ class SubjectManagementTest extends TestCase
     public function test_admin_navigation_lists_subjects_only_for_admins(): void
     {
         $this->actingAs($this->admin())->get(route('admin.dashboard'))
-            ->assertInertia(fn (Assert $page) => $page->where('navigation.primary.1.key', 'subjects')
-                ->where('navigation.primary.1.href', route('admin.subjects.index', absolute: false)));
+            ->assertInertia(fn (Assert $page) => $page->where('navigation.primary.2.key', 'subjects')
+                ->where('navigation.primary.2.href', route('admin.subjects.index', absolute: false)));
         $this->actingAs(User::factory()->teacher()->create())->get(route('teacher.dashboard'))
             ->assertInertia(fn (Assert $page) => $page->has('navigation.primary', 1));
     }

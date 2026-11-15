@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use App\Services\Authorization\RecordAccess;
+use Carbon\CarbonImmutable;
 use Database\Factories\TeacherAssignmentFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/** @property CarbonImmutable|null $revoked_at */
 class TeacherAssignment extends DomainModel
 {
     /** @use HasFactory<TeacherAssignmentFactory> */

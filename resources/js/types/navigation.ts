@@ -13,7 +13,8 @@ export type NavItem = {
     isActive?: boolean;
 };
 
-export type NavigationIcon = 'dashboard' | 'profile' | 'classes' | 'subjects';
+export type NavigationIcon =
+    'dashboard' | 'profile' | 'classes' | 'subjects' | 'users';
 
 /** Built by the server (NavigationService); the client only renders it. */
 export type NavigationItem = {
