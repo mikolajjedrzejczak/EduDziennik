@@ -180,7 +180,7 @@ SharedProps nie są współdzielonym cache między użytkownikami. Partial reloa
 
 ### Stan integracji F-004
 
-FACT: logowanie i wylogowanie używają powyższych tras i walidacji. `errors.form` zawiera neutralny błąd uwierzytelnienia; 429 zachowuje status i nagłówek Retry-After, dodaje `retryAfter` w sekundach. 419 renderuje formularz z instrukcją ponownego logowania, bez automatycznego POST. W obu odpowiedziach `auth.user` i `auth.role` są null. Login zawsze prowadzi do `/dashboard`, ignoruje url.intended i dane klienta określające rolę/cel. Docelowe rozdzielenie pulpitów należy do F-007 i pozostaje niewdrożone. Istniejący starter korzysta dodatkowo z allowlistowanego `auth.user.name` (firstName + lastName); id jest stringiem.
+FACT: logowanie i wylogowanie używają powyższych tras i walidacji. `errors.form` zawiera neutralny błąd uwierzytelnienia; 429 zachowuje status i nagłówek Retry-After, dodaje `retryAfter` w sekundach. 419 renderuje formularz z instrukcją ponownego logowania, bez automatycznego POST. W obu odpowiedziach `auth.user` i `auth.role` są null. Login zawsze prowadzi do `/dashboard`, ignoruje url.intended i dane klienta określające rolę/cel. Rozdzielenie pulpitów wdraża F-007 (poniżej). Istniejący starter korzysta dodatkowo z allowlistowanego `auth.user.name` (firstName + lastName); id jest stringiem.
 
 DECISION F-004: limiter działa w LoginService po walidacji LoginRequest; zlicza nieudane uwierzytelnienia, a nie wszystkie wywołania HTTP. Nie rejestrujemy dodatkowego `throttle:login`, który podwójnie naliczałby próby.
 
@@ -195,3 +195,8 @@ DECISION: F-005 nie dodaje strony, produkcyjnych tras ani nowego payloadu ocen. 
 ### Stan integracji F-404
 
 FACT: `bootstrap/app.php` renderuje `shared/error` (`App\Http\Responses\ErrorPage`) dla 403/404/500/503 żądań nie-JSON; komunikaty w `lang/pl/errors.php`, bez treści wyjątku i stack trace. 500 dodaje `correlationId` (UUID, logowany bez danych formularza); w trybie debug 500 pozostaje stroną diagnostyczną frameworka. DECISION: `retryUrl` (ścieżka i query żądania) jest ustawiane wyłącznie dla 503 na GET; po mutacji klient nie oferuje ponowienia, tylko prosi o sprawdzenie stanu danych. 419/429 pozostają na `auth/login` (F-004). `shared/error` renderuje się bez AppLayout. Offline: `OfflineNotice` (aria-live) i wyłączony `SubmitButton` bez sieci; nic nie jest automatycznie ponawiane.
+
+### Stan integracji F-007
+
+FACT: `/dashboard` zwraca 302 do pulpitu roli (`student.dashboard` → `/student`, `teacher.dashboard` → `/teacher`, `admin.dashboard` → `/admin`); pulpity renderują `student|teacher|admin/dashboard` bez danych domenowych (props tylko shared). Obca rola: 403. SharedProps zawierają `navigation: { primary, secondary } | null`, gdzie element to `{ key, label, shortLabel, href, icon }` (`icon` ∈ `dashboard|profile`), budowane wyłącznie na serwerze i tylko dla istniejących tras. `sidebarOpen` usunięto.
+

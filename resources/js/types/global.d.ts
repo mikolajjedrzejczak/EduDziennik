@@ -1,4 +1,5 @@
 import type { Auth, Capabilities } from '@/types/auth';
+import type { Navigation } from '@/types/navigation';
 
 declare module 'react' {
     // Module augmentation must repeat React's generic parameter.
@@ -14,7 +15,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             can: Capabilities;
-            sidebarOpen: boolean;
+            navigation: Navigation | null;
             [key: string]: unknown;
         };
     }

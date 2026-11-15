@@ -12,3 +12,19 @@ export type NavItem = {
     icon?: LucideIcon | null;
     isActive?: boolean;
 };
+
+export type NavigationIcon = 'dashboard' | 'profile';
+
+/** Built by the server (NavigationService); the client only renders it. */
+export type NavigationItem = {
+    key: string;
+    label: string;
+    shortLabel: string;
+    href: string;
+    icon: NavigationIcon;
+};
+
+export type Navigation = {
+    primary: NavigationItem[];
+    secondary: NavigationItem[];
+};

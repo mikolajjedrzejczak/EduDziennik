@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Grade;
 use App\Models\SchoolClass;
 use App\Models\User;
+use App\Services\Navigation\NavigationService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -57,7 +58,7 @@ class HandleInertiaRequests extends Middleware
                 'manageUsers' => $request->user()?->can('viewAny', User::class) ?? false,
                 'manageSchool' => $request->user()?->can('create', SchoolClass::class) ?? false,
             ],
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'navigation' => fn () => app(NavigationService::class)->for($request->user()),
         ];
     }
 }

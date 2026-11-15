@@ -268,7 +268,7 @@ class RecordAuthorizationTest extends TestCase
     public function test_shared_capabilities_and_admin_and_profile_policies(string $name, bool $gradeWriter, bool $admin): void
     {
         $actor = $this->actor($name);
-        $this->actingAs($actor)->get('/dashboard')->assertInertia(fn (Assert $page) => $page
+        $this->actingAs($actor)->followingRedirects()->get('/dashboard')->assertInertia(fn (Assert $page) => $page
             ->where('can', ['createGrade' => $gradeWriter, 'manageUsers' => $admin, 'manageSchool' => $admin])
             ->where('auth.user.id', (string) $actor->id)->missing('auth.user.password')->missing('auth.user.remember_token'));
         $this->assertFalse($actor->can('create', Grade::class));

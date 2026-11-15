@@ -28,7 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias(['role' => EnsureRole::class]);
         $middleware->prependToPriorityList(SubstituteBindings::class, EnsureRole::class);
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->encryptCookies(except: ['appearance']);
         $middleware->prependToPriorityList(
             AuthenticatesRequests::class,
             EnsureActiveAccount::class,

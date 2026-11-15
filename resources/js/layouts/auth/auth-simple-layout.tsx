@@ -1,22 +1,6 @@
 import { GraduationCap, Sheet, ShieldCheck } from 'lucide-react';
+import { Brand } from '@/components/brand';
 import type { AuthLayoutProps } from '@/types';
-
-function Brand() {
-    return (
-        <div className="flex items-center gap-2.5 font-semibold">
-            <span
-                aria-hidden="true"
-                className="grid size-7 shrink-0 grid-cols-2 gap-0.5"
-            >
-                <i className="rounded-[3px] bg-current" />
-                <i className="rounded-[3px] bg-current opacity-40" />
-                <i className="rounded-[3px] bg-current opacity-40" />
-                <i className="rounded-[3px] bg-form-focus" />
-            </span>
-            <span className="text-[15px] leading-[22px]">EduDziennik</span>
-        </div>
-    );
-}
 
 const roles = [
     {
