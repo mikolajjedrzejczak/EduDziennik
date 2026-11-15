@@ -8,6 +8,7 @@ use App\Models\Subject;
 use App\Models\TeacherAssignment;
 use App\Models\Term;
 use App\Models\User;
+use App\Services\Authorization\RecordAccess;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
@@ -16,7 +17,7 @@ class WriteContext
     // The caller owns a transaction and has locked Term, then users ordered by ID.
     public function authorize(User $actor, Term $term, int $classId, int $subjectId): void
     {
-        if ($actor->trashed() || $actor->status !== 'active' || ! in_array($actor->role, ['teacher', 'admin'], true)) {
+        if (! RecordAccess::writer($actor)) {
             throw new AuthorizationException('Brak uprawnień do zapisu ocen.');
         }
         if ($actor->role === 'teacher' && ! TeacherAssignment::active()->where([

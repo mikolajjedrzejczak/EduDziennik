@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\Authorization\RecordAccess;
 use Carbon\CarbonImmutable;
 use Database\Factories\AssessmentFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -59,6 +61,22 @@ class Assessment extends DomainModel
     public function grades(): HasMany
     {
         return $this->hasMany(Grade::class, 'assessment_id');
+    }
+
+    /** @param Builder<Assessment> $query */
+    public function scopeVisibleTo(Builder $query, User $actor): void
+    {
+        if (! RecordAccess::active($actor)) {
+            $query->whereRaw('1 = 0');
+        } elseif ($actor->role === 'student') {
+            $query->whereHas('grades', fn ($grades) => $grades->withTrashed()->visibleTo($actor));
+        } elseif ($actor->role === 'teacher') {
+            $query->whereExists(fn ($assignments) => $assignments->selectRaw('1')->from('teacher_assignments')
+                ->whereColumn('teacher_assignments.school_class_id', 'assessments.school_class_id')
+                ->whereColumn('teacher_assignments.subject_id', 'assessments.subject_id')
+                ->whereColumn('teacher_assignments.term_id', 'assessments.term_id')
+                ->where('teacher_assignments.teacher_id', $actor->id)->whereNull('teacher_assignments.revoked_at'));
+        }
     }
 
     protected static function booted(): void

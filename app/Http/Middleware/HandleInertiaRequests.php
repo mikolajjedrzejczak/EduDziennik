@@ -2,6 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Grade;
+use App\Models\SchoolClass;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -48,6 +51,11 @@ class HandleInertiaRequests extends Middleware
                     'role' => $request->user()->role,
                 ] : null,
                 'role' => $request->user()?->role,
+            ],
+            'can' => [
+                'createGrade' => $request->user()?->can('createAny', Grade::class) ?? false,
+                'manageUsers' => $request->user()?->can('viewAny', User::class) ?? false,
+                'manageSchool' => $request->user()?->can('create', SchoolClass::class) ?? false,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

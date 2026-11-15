@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\Authorization\RecordAccess;
 use Database\Factories\SchoolClassFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +16,18 @@ class SchoolClass extends DomainModel
     use HasFactory;
 
     use SoftDeletes;
+
+    /** @param Builder<SchoolClass> $query */
+    public function scopeVisibleTo(Builder $query, User $actor): void
+    {
+        if (! RecordAccess::active($actor)) {
+            $query->whereRaw('1 = 0');
+        } elseif ($actor->role === 'student') {
+            $query->whereHas('enrollments', fn ($enrollments) => $enrollments->where('student_id', $actor->id));
+        } elseif ($actor->role === 'teacher') {
+            $query->whereHas('assignments', fn ($assignments) => $assignments->visibleTo($actor));
+        }
+    }
 
     /** @return array<string, string> */
     protected function casts(): array

@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\StudentEnrollment;
+use App\Policies\EnrollmentPolicy;
+use App\Policies\ProfilePolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        Gate::policy(StudentEnrollment::class, EnrollmentPolicy::class);
+        Gate::define('viewProfile', [ProfilePolicy::class, 'view']);
+        Gate::define('updateProfile', [ProfilePolicy::class, 'update']);
     }
 
     /**

@@ -3,10 +3,13 @@
 namespace App\Services\School;
 
 use App\Models\Assessment;
+use App\Models\SchoolClass;
+use App\Models\Subject;
 use App\Models\Term;
 use App\Models\User;
 use App\Services\Grades\WriteContext;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -31,6 +34,7 @@ class AssessmentService
             $context = new WriteContext;
             $context->authorize($actor, $term, (int) $data['school_class_id'], (int) $data['subject_id']);
             $context->dateAndCategory($term, $data['graded_on'], (int) $data['category_id']);
+            Gate::forUser($actor)->authorize('create', [Assessment::class, SchoolClass::findOrFail($data['school_class_id']), Subject::findOrFail($data['subject_id']), $term]);
 
             return Assessment::create([...$data, 'created_by' => $actor->id]);
         }, 3);
@@ -47,6 +51,7 @@ class AssessmentService
             if ($header->grades()->withTrashed()->exists()) {
                 throw ValidationException::withMessages(['assessment' => 'Kolumna z historią ocen nie może być usunięta.']);
             }
+            Gate::forUser($actor)->authorize('delete', $header);
             $header->delete();
         }, 3);
     }
