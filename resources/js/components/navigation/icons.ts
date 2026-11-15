@@ -17,6 +17,7 @@ export const sidebarIcons: Record<NavigationIcon, LucideIcon> = {
     subjects: BookOpen,
     assignments: Users,
     users: Users,
+    grades: BookOpen,
 };
 
 export const mobileIcons: Record<NavigationIcon, LucideIcon> = {
@@ -26,4 +27,5 @@ export const mobileIcons: Record<NavigationIcon, LucideIcon> = {
     subjects: BookOpen,
     assignments: Users,
     users: Users,
+    grades: BookOpen,
 };

@@ -36,6 +36,9 @@ class NavigationService
         $primary = [
             ['key' => 'dashboard', 'label' => 'Pulpit', 'shortLabel' => 'Start', 'href' => route($dashboard, absolute: false), 'icon' => 'dashboard'],
         ];
+        if ($user->role === 'student') {
+            $primary[] = ['key' => 'grades', 'label' => 'Moje oceny', 'shortLabel' => 'Oceny', 'href' => route('student.grades.index', absolute: false), 'icon' => 'grades'];
+        }
         if ($user->role === 'admin') {
             $primary[] = ['key' => 'classes', 'label' => 'Klasy i przedmioty', 'shortLabel' => 'Klasy', 'href' => route('admin.classes.index', absolute: false), 'icon' => 'classes'];
             $primary[] = ['key' => 'subjects', 'label' => 'Przedmioty', 'shortLabel' => 'Przedmioty', 'href' => route('admin.subjects.index', absolute: false), 'icon' => 'subjects'];

@@ -66,7 +66,11 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('navigation.primary.0.href', route($route, absolute: false))
                 ->where('navigation.primary.0.label', 'Pulpit')
-                ->has('navigation.primary', $role === 'admin' ? 5 : 1)
+                ->has('navigation.primary', match ($role) {
+                    'admin' => 5,
+                    'student' => 2,
+                    default => 1,
+                })
                 ->where('navigation.secondary.0.href', route('profile.edit', absolute: false))
                 ->has('navigation.secondary', 1));
     }

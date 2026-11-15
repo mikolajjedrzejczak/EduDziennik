@@ -123,6 +123,8 @@ test('keyboard reaches skip link, navigation and logout in order; 390px bar yiel
     await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: 'Pulpit' })).toBeFocused();
     await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Moje oceny' })).toBeFocused();
+    await page.keyboard.press('Tab');
     await expect(
         page.getByRole('link', { name: 'Profil i hasło' }),
     ).toBeFocused();
