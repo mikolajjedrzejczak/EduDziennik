@@ -133,7 +133,7 @@ interface SubjectSummary { subject: Option; average: Average; count: number }
 interface LoginProps extends SharedProps { retryAfter?: number | null }
 interface ErrorProps extends SharedProps {
   status: 403 | 404 | 419 | 429 | 500 | 503; message: string;
-  correlationId?: string; retryAfter?: number;
+  correlationId?: string; retryAfter?: number; retryUrl?: string;
 }
 interface ProfileProps extends SharedProps { user: AuthUser }
 interface StudentDashboardProps extends SharedProps {
@@ -191,3 +191,7 @@ FACT: SharedProps zawierają `can: { createGrade, manageUsers, manageSchool }`, 
 FACT: `GradeAccess` dostarcza scoped lookup oceny (jawny tryb archiwalny), historię, autoryzowany assignment i query opcji enrollment/assessment jednego kontekstu. Wynikowe query należy filtrować przed `count`, agregacją i `paginate`; modele pozostają wewnątrz backendu, kontroler nadal buduje DTO z allowlisty. `capabilities(actor, grade)` zwraca flagi rekordowe dopiero po autoryzacji odczytu. Roster nie uprawnia do innych przedmiotów ucznia; oceny i historia wymagają własnego scope.
 
 DECISION: F-005 nie dodaje strony, produkcyjnych tras ani nowego payloadu ocen. Kontrolery funkcji dziennika wdrażają ten mechanizm przy realizacji swoich kontraktów. Domyślne 403/404 Laravel pozostają do prezentacji przez F-404; nie deklarujemy wdrożenia `shared/error`.
+
+### Stan integracji F-404
+
+FACT: `bootstrap/app.php` renderuje `shared/error` (`App\Http\Responses\ErrorPage`) dla 403/404/500/503 żądań nie-JSON; komunikaty w `lang/pl/errors.php`, bez treści wyjątku i stack trace. 500 dodaje `correlationId` (UUID, logowany bez danych formularza); w trybie debug 500 pozostaje stroną diagnostyczną frameworka. DECISION: `retryUrl` (ścieżka i query żądania) jest ustawiane wyłącznie dla 503 na GET; po mutacji klient nie oferuje ponowienia, tylko prosi o sprawdzenie stanu danych. 419/429 pozostają na `auth/login` (F-004). `shared/error` renderuje się bez AppLayout. Offline: `OfflineNotice` (aria-live) i wyłączony `SubmitButton` bez sieci; nic nie jest automatycznie ponawiane.

@@ -1,4 +1,5 @@
 import { createInertiaApp } from '@inertiajs/react';
+import { OfflineNotice } from '@/components/states/offline-notice';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
@@ -13,6 +14,7 @@ void createInertiaApp({
     layout: (name) => {
         switch (true) {
             case name === 'welcome':
+            case name === 'shared/error':
                 return null;
             case name.startsWith('auth/'):
                 return AuthLayout;
@@ -26,6 +28,7 @@ void createInertiaApp({
     withApp(app) {
         return (
             <TooltipProvider delayDuration={0}>
+                <OfflineNotice />
                 {app}
                 <Toaster />
             </TooltipProvider>
