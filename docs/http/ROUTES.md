@@ -71,7 +71,7 @@ Dla GET bez Form Request wejście to tylko parametry ścieżki; brak body. Dla p
 | DELETE | /admin/assignments/{assignment} | admin.assignments.destroy | Admin/TeacherAssignmentController@destroy | admin | DeleteAssignmentRequest | redirect admin.assignments.index | F-308 |
 | POST | /admin/classes/{schoolClass}/enrollments | admin.enrollments.store | Admin/EnrollmentController@store | admin | StoreEnrollmentRequest | redirect admin.classes.index | F-306 |
 | PATCH | /admin/classes/{schoolClass}/enrollments/{enrollment} | admin.enrollments.update | Admin/EnrollmentController@update | admin | UpdateEnrollmentRequest | redirect admin.classes.index | F-306 |
-| GET | /up | health | Framework health route | public | — | HTTP 200/503; bez danych domeny | F-503 |
+| GET | /up | health | HealthController | public | — | HTTP 200/503 + SELECT 1; bez sesji i danych domeny | F-002 / F-503 |
 
 ## Uprawnienia i błędy odziedziczone przez każdą trasę
 

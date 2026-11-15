@@ -1,63 +1,68 @@
-# Docker — projekt środowiska
+# Docker — środowisko lokalne F-002
 
-**PLANNED: nie istnieją jeszcze compose.yaml/Dockerfile (`.env.example` dodano w F-001). Nie uruchomiono Compose. Wszystkie polecenia poniżej są docelowe po F-001/F-002.** Host wymaga Docker Engine/Desktop + Compose v2, nie lokalnego PHP/MariaDB/Node.
+Host wymaga tylko Docker Engine/Desktop z działającym daemonem i Compose v2+ oraz powłoki POSIX. PHP, Composer, Node i MariaDB działają w kontenerach. To konfiguracja deweloperska; produkcyjne obrazy i wdrożenie pozostają zakresem F-503.
 
-## Usługi i pliki
-
-| Usługa | Projekt obrazu/konfiguracji | Dostęp i wolumeny | Gotowość |
-|---|---|---|---|
-| app | docker/php/Dockerfile: PHP 8.3-FPM, Composer 2, pdo_mysql, mbstring, intl, zip, bcmath, opcache, xml/dom dla testów | /var/www/html bind repo; vendor named volume;9000 tylko sieć | php-fpm ping; DB gotowa przed aplikacją |
-| nginx | docker/nginx/default.conf, stabilny Nginx przypięty digestem | localhost:8080→80, repo read-only, tylko public jako root; fastcgi app:9000 | /up przez app; start po app |
-| node | docker/node/Dockerfile: Node 22.x≥22.12 + npm | repo bind, node_modules named volume; localhost:5173 dla HMR | Vite HTTP; dev profile |
-| db | mariadb:11.4 z przypiętym patchem/digestem w implementacji | db_data volume;3306 bez portu hosta | healthcheck.sh --connect --innodb_initialized |
-
-Sieć Compose prywatna; nazwy DNS app/db. PHP i Nginx widzą ten sam public/build. Nginx `try_files` kieruje do public/index.php, blokuje dotfiles oraz wykonanie dowolnych uploadów/PHP poza front controllerem. Nie udostępniać root repo przez HTTP. storage i bootstrap/cache zapisywalne przez app, nie chmod777.
-
-depends_on service_healthy chroni cold start, lecz nie zastępuje obsługi utraty DB w runtime. FPM ping wymaga jawnej konfiguracji pool i klienta FastCGI w obrazie. Health /up ma listener sprawdzający DB krótkim SELECT1, bez ujawniania połączenia. Migracje wykonywane osobno; /up może być503 przed bootstrapem.
-
-## Zmienne
-
-`.env.example` (F-001) bez sekretów: APP_NAME=EduDziennik, APP_ENV=local, APP_DEBUG=true, APP_URL=http://localhost:8080, DB_CONNECTION=mariadb, DB_HOST=db, DB_PORT=3306, DB_DATABASE=edudziennik, DB_USERNAME=edudziennik, DB_PASSWORD=<lokalne>, SESSION_DRIVER=database, CACHE_STORE=database, QUEUE_CONNECTION=sync, SESSION_SECURE_COOKIE=false. APP_KEY generowany w bootstrapie. VITE_APP_NAME publiczne; nigdy DB_* ani sekrety z prefixem VITE_. Strefa serwera UTC, prezentacja Europe/Warsaw. SESSION_LIFETIME=120 minut (ASSUMPTION). Dodatkowo `INERTIA_DEVTOOLS_ENABLED=false`, bo DevTools Inertia zapisuje props stron na dysk; APP_LOCALE=pl.
-
-MARIADB_DATABASE/USER/PASSWORD przekazane do db z lokalnego env; osobne losowe hasło root tylko dla bootstrapu serwera. Nie drukować wartości w logach CI. Production: APP_DEBUG=false, HTTPS URL, secure cookie=true, oddzielny DB user runtime i migrator. .env ignorowany przez Git.
-
-## Bootstrap i polecenia — wszystkie PLANNED
-
-F-001 zakłada wygenerowanie szkieletu w jednorazowym kontenerze PHP/Composer i Node. F-002 dodaje poniższy Compose, nie wymaga wcześniejszego lokalnego PHP. Po utworzeniu .env przez kopię .env.example i ustawieniu lokalnych sekretów:
+## Pierwsze uruchomienie
 
 ```sh
-docker compose build
-docker compose up -d db
-docker compose run --rm app composer install
-docker compose run --rm app php artisan key:generate
-docker compose run --rm app php artisan migrate
-docker compose run --rm app php artisan db:seed --class=DemoSeeder
-docker compose run --rm node npm ci
-docker compose --profile dev up -d app nginx node
+cp .env.example .env
+# Ustaw w .env niezależne, losowe DB_PASSWORD i MARIADB_ROOT_PASSWORD.
+./scripts/bootstrap.sh
 ```
 
-DemoSeeder tylko local/testing, z DEMO_PASSWORD ustawionym prywatnie. Nie używać migrate:fresh poza dedykowaną bazą testową. Node dev nasłuchuje0.0.0.0:5173 wewnątrz kontenera, HMR host=localhost, allowedHosts jawne; port hosta związany127.0.0.1.
+Nie publikuj `.env`; nie używaj `set -x` ani `docker compose config` bez `--quiet`, bo rozwinięta konfiguracja zawiera hasła. Bootstrap odmawia działania bez `.env` lub haseł. Build, instalacja albo healthcheck zakończone błędem przerywają skrypt bez komunikatu gotowości. Błąd nie usuwa danych; po usunięciu przyczyny można ponowić skrypt. Wymagany dostęp do rejestrów obrazów, repozytoriów pakietów oraz fontów używanych przez obecny build Vite.
 
-| Cel | Planowane polecenie |
+Bootstrap buduje obrazy, czeka na DB, instaluje zależności z lockfiles w named volumes, czyści cache konfiguracji, generuje APP_KEY tylko gdy go brak, generuje typy tras przez PHP, wykonuje `npm ci` i build, uruchamia cztery usługi i czeka na ich healthchecks. **Nie wykonuje migracji ani seedów.** `/up` sprawdza połączenie `SELECT 1`, nie wymaga tabel. Sesje/cache korzystają z bazy, więc strony aplikacji wymagające tych tabel mogą nie działać do jawnego uruchomienia migracji. F-002 nie tworzy migracji produktu; docelowy schemat i tabele techniczne należą do F-003. Istniejące migracje startera F-001 nie są schematem docelowym. DemoSeeder jeszcze nie istnieje.
+
+Po bootstrapie: aplikacja `http://localhost:8080`, Vite `http://localhost:5173`. Przy konflikcie portu ustaw `APP_PORT` oraz zgodny `APP_URL` w `.env`; dla Vite ustaw `VITE_PORT`. Następnie ponów bootstrap. Porty związane są z `127.0.0.1`; środowisko nie służy do udostępniania w LAN.
+
+## Usługi
+
+| Usługa | Konfiguracja | Wolumeny / dostęp | Healthcheck |
+|---|---|---|---|
+| app | `docker/php/Dockerfile`, PHP 8.3 FPM + Composer 2; pdo_mysql, mbstring, intl, zip, bcmath, opcache, dom/xml | repo bind, vendor named volume; 9000 wyłącznie w sieci Compose | jawny FPM ping przez cgi-fcgi |
+| nginx | stabilny obraz przypięty digestem; `docker/nginx/default.conf` | repo read-only; root tylko public; localhost:8080 | HTTP `/up` przez Laravel i DB |
+| node | `docker/node/Dockerfile`, Node 22 ≥22.12; profil dev | repo bind, node_modules named volume; localhost:5173 | klient HTTP Vite |
+| db | MariaDB 11.4, obraz przypięty digestem | db_data; bez portu hosta | `healthcheck.sh --connect --innodb_initialized` |
+
+Wszystkie obrazy bazowe mają digest indeksu wieloplatformowego. Aktualizacje digestów wymagają ponownego builda i kontroli F-002. Kontekst builda zawiera wyłącznie `docker/`, bez `.env`, źródeł aplikacji i sekretów. DB ma oddzielne hasło root, runtime korzysta z DB_USERNAME. UTC w kontenerach; prezentacja Europe/Warsaw. Lokalny `.env` pozostaje źródłem APP_KEY i ustawień Laravel. Po zmianie hasła w istniejącym DB volume trzeba jawnie zmienić konto w DB — zmienne inicjalizacyjne obrazu nie rotują haseł istniejącej bazy.
+
+App startuje po zdrowej DB, nginx po zdrowym FPM. `/up` zwraca 503 przy awarii DB z ogólnym komunikatem, bez surowego wyjątku połączenia. Kontroler health działa poza middleware web/sesją. Własna odpowiedź jest potrzebna, ponieważ health frameworka Laravel 13 zwraca 500 przy błędzie diagnostyki, a kontrakt projektu wymaga 503 także przy APP_DEBUG=true. Timeout połączenia MariaDB wynosi 3 sekundy. Runtime nie uruchamia migracji. Entrypoint zapewnia zapisywalność wyłącznie storage i bootstrap/cache przez www-data, bez chmod 777. Nginx blokuje dotfiles i wykonywanie PHP poza index.php; access log jest wyłączony, aby nie zapisywać parametrów URL.
+
+## Codzienna praca
+
+```sh
+docker compose --profile dev up -d --wait
+docker compose --profile dev down       # zachowuje named volumes
+# Nie używaj down -v, jeśli chcesz zachować dane!
+docker compose --profile dev up -d --build --wait
+```
+
+| Cel | Polecenie |
 |---|---|
-| Start | `docker compose --profile dev up -d` |
-| Stop bez utraty danych | `docker compose --profile dev down` |
-| Rebuild | `docker compose --profile dev up -d --build` |
-| Migracje | `docker compose exec app php artisan migrate` |
-| Seed demo | `docker compose exec app php artisan db:seed --class=DemoSeeder` |
-| PHPUnit | `docker compose exec app php artisan test` (jawny .env.testing z edudziennik_test) |
-| Frontend test | `docker compose run --rm node npm run test:unit` |
-| Lint PHP | `docker compose exec app vendor/bin/pint --test` |
-| Node QA | `docker compose run --rm node npm run lint` / `npm run format:check` / `npm run typecheck` |
+| Migracje (jawnie, po przygotowaniu F-003) | `docker compose exec app php artisan migrate` |
+| Typy tras po zmianie routes/controller | `docker compose exec app composer wayfinder` |
 | Composer | `docker compose run --rm app composer <command>` |
 | npm | `docker compose run --rm node npm <command>` |
-| Logi | `docker compose logs --tail=100 app nginx node db` |
-| Build assetów | `docker compose run --rm node npm run build` |
+| Build assetów | `docker compose run --rm app composer wayfinder` następnie `docker compose run --rm node npm run build` |
+| QA PHP | `docker compose exec app composer validate --strict`, `composer check-platform-reqs`, `composer lint:check`, `composer types:check`, `composer test` (każde z tym samym prefiksem `docker compose exec app`) |
+| QA Node | `docker compose run --rm node npm run lint`, `npm run format:check`, `npm run typecheck` (każde z tym samym prefiksem `docker compose run --rm node`) |
+| Test infrastruktury | `./scripts/test-infrastructure.sh` |
+| Stan | `docker compose --profile dev ps` |
+| Logi lokalne | `docker compose logs --tail=100 app nginx node db` — nie publikuj niesprawdzonych logów |
 
-W wierszu Node QA każdą komendę uruchomić z tym samym prefiksem docker compose, nie na hoście. Skrypty npm zdefiniowane w [CI_CD](CI_CD.md). Kontener Playwright w CI ma przeglądarki i biblioteki systemowe; zwykły node dev nie gwarantuje uruchomienia przeglądarki.
+Kontener Node nie ma PHP. W Compose `WAYFINDER_EXTERNAL=true` wyłącza automatyczny generator pluginu Vite; po zmianie tras wykonaj powyższy generator przez app. HMR komponentów i CSS oraz odświeżanie widoków nadal działa. Vite nasłuchuje na 0.0.0.0 wewnątrz kontenera, ma strictPort, jawne allowedHosts i HMR localhost. Zatrzymanie samego Node może pozostawić public/hot: przed pracą ze statycznym buildem usuń go przez `docker compose run --rm app rm -f public/hot`.
 
-## Produkcja
+Test WebSocket HMR: `docker compose exec -T node node tests/Infrastructure/hmr.mjs` (na chwilę zmienia i przywraca welcome.tsx; nie uruchamiaj równocześnie z restartem kontenera ani edycją tego pliku).
 
-Wielostopniowy root Dockerfile (PLANNED): Composer dependency stage, Node asset build stage, PHP-FPM runtime bez dev dependencies, Nginx z identycznym public/build. Build nie potrzebuje produkcyjnej DB ani sekretów runtime. Jeśli starter zachowa Wayfinder, generowanie typów tras wykonuje etap PHP przed build JS; Node nie zakłada dostępnego PHP. MVP bez SSR, Vite dev server i node poza runtime.
+PHPUnit obecnego startera używa SQLite in-memory (nie potwierdza reguł docelowej MariaDB). F-003/F-501 dodadzą testową bazę i testy domenowe. Vitest/RTL i Playwright nie są jeszcze skonfigurowane; F-002 nie dodaje UI ani nie wymaga Figmy.
 
-Release ma lockfiles i identyfikator SHA; używa wolumenu storage i zewnętrznego sekretu APP_KEY. Nie nadpisywać APP_KEY podczas wdrożeń. Nie bind-mountować całego repo w produkcji. Usługi mogą działać na jednym hoście; konkretny hosting pozostaje OPEN QUESTION. Test gotowości i rollback: [CI_CD](CI_CD.md).
+## Test infrastruktury i błędy
+
+Test zakłada zakończony bootstrap i APP_ENV=local. Tworzy **oddzielną** bazę `edudziennik_f002_probe`, tabelę fixture wyłącznie przez migrację w tests/Infrastructure/migrations, zapisuje marker, wykonuje down/up bez usuwania wolumenów, odczytuje marker i usuwa bazę fixture, następnie sprawdza HTTP i WebSocket HMR (chwilowa zmiana i przywrócenie welcome.tsx). Nie zmienia schematu aplikacji. Używa root tylko do operatorskiego utworzenia/usunięcia izolowanej bazy testowej. Odmawia nadpisania istniejącej bazy fixture. Po przerwanym teście sprawdź ją i jawnie usuń przez `docker compose exec app php tests/Infrastructure/persistence.php cleanup`, zanim ponowisz test. Skrypt restartuje lokalny zestaw usług.
+
+Brak zależności: uruchom ponownie bootstrap (install jest jawnym etapem). Konflikt portu: Compose zgłasza błąd bindowania, zmień port i APP_URL; brak komunikatu sukcesu. Awaria bazy: `/up` 503; depends_on nie zastępuje obsługi awarii w runtime. Nie resetuj db_data w celu obejścia błędu. Logi i manifesty sprawdzaj bez drukowania haseł ani APP_KEY.
+
+## Weryfikacja
+
+Dowody faktycznie wykonanych kontroli i ograniczenia: [raport F-002](../features/F-002.md#22-raport-realizacji-2026-11-15). Docelowy proces wydania: [CI/CD](CI_CD.md).

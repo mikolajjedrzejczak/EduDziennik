@@ -32,11 +32,17 @@ export default defineConfig(({ command }) => ({
         // must not assume PHP is available. The dev server regenerates them
         // on route/controller changes.
         command === 'serve' &&
+            process.env.WAYFINDER_EXTERNAL !== 'true' &&
             wayfinder({
                 formVariants: true,
             }),
     ],
     server: {
+        host: '0.0.0.0',
+        port: Number(process.env.VITE_PORT ?? 5173),
+        strictPort: true,
+        allowedHosts: ['localhost', '127.0.0.1'],
+        hmr: { host: 'localhost' },
         watch: {
             ignored: [
                 '**/.agents/**',
