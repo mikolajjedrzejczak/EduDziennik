@@ -12,7 +12,7 @@ Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja doda
 | F-004 | Authentication | P0 | In Progress | F-003, F-402 | [spec](F-004.md) | A2/A3 |
 | F-005 | Role-Based Authorization | P0 | Planned | F-004 | [spec](F-005.md) | A2/A3 |
 | F-006 | Design System | P0 | Planned | F-001 | [spec](F-006.md) | wsparcie A1–A8 |
-| F-007 | Application Layouts | P0 | Planned | F-004, F-005, F-006, F-404 | [spec](F-007.md) | A2/A3 |
+| F-007 | Application Layouts | P0 | Implementacja do przeglądu | F-004, F-005, F-006, F-404 | [spec](F-007.md) | A2/A3 |
 | F-101 | Student Dashboard | P1 | Planned | F-007, F-102 | [spec](F-101.md) | A2/A3 |
 | F-102 | Student Grades | P0 | Planned | F-007, F-003 | [spec](F-102.md) | A1 |
 | F-103 | Grade Details | P0 | Planned | F-102 | [spec](F-103.md) | A1 |

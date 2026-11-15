@@ -15,6 +15,11 @@ export default defineConfig({
     projects: [
         { name: 'forms', testMatch: /(?:forms|primitives)\.spec\.ts/ },
         {
+            name: 'shell',
+            testMatch: 'shell.spec.ts',
+            use: { baseURL: 'http://127.0.0.1:8189' },
+        },
+        {
             name: 'build',
             testMatch: 'build.spec.ts',
             use: { baseURL: 'http://127.0.0.1:8188' },
@@ -46,6 +51,26 @@ export default defineConfig({
                 DB_DATABASE: 'edudziennik_e2e',
                 DB_USERNAME: 'e2e_no_database_access',
                 DB_PASSWORD: '',
+                LOG_CHANNEL: 'stderr',
+            },
+        },
+        {
+            // F-007: real app, real sessions, isolated edudziennik_test database, built assets.
+            command:
+                process.env.SHELL_PHP_COMMAND ??
+                'php -S 127.0.0.1:8189 -t public tests/Infrastructure/browser-server.php',
+            url: 'http://127.0.0.1:8189/login',
+            env: {
+                APP_ENV: 'testing',
+                APP_DEBUG: 'false',
+                APP_LOCALE: 'pl',
+                APP_KEY: 'base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
+                SESSION_DRIVER: 'file',
+                CACHE_STORE: 'array',
+                DB_URL: '',
+                DB_CONNECTION: 'mariadb',
+                DB_DATABASE: 'edudziennik_test',
+                BCRYPT_ROUNDS: '4',
                 LOG_CHANNEL: 'stderr',
             },
         },

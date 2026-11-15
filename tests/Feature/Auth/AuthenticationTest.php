@@ -161,7 +161,7 @@ class AuthenticationTest extends TestCase
     public function test_shared_auth_props_are_an_allowlist(): void
     {
         $user = User::factory()->create();
-        $this->actingAs($user)->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page
+        $this->actingAs($user)->get(route('student.dashboard'))->assertInertia(fn (Assert $page) => $page
             ->where('auth.user.id', (string) $user->id)->where('auth.role', $user->role)
             ->has('auth.user', 6)->missing('auth.user.password')->missing('auth.user.remember_token')
             ->missing('auth.user.last_login_at')->missing('auth.user.status'));
