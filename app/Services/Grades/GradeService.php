@@ -9,6 +9,7 @@ use App\Models\StudentEnrollment;
 use App\Models\Term;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -25,6 +26,7 @@ class GradeService
                 ...$input,
             ]);
             $this->checkDates($enrollment, $term, $data);
+            Gate::forUser($actor)->authorize('create', [Grade::class, $assessment, $enrollment, $data['graded_on']]);
             $grade = Grade::create([...$data, 'student_enrollment_id' => $enrollment->id, 'assessment_id' => $assessment->id, 'issued_by' => $actor->id, 'version' => 1]);
             $this->audit($grade, $actor, 'create', null, null);
 
@@ -46,12 +48,15 @@ class GradeService
     /** @param array<string, mixed> $input */
     private function mutate(int $actorId, int $gradeId, int $version, string $reason, array $input, bool $delete): Grade
     {
+        $actor = User::findOrFail($actorId);
+        Gate::forUser($actor)->authorize('view', Grade::findOrFail($gradeId));
         Validator::make(['reason' => trim($reason)], ['reason' => ['required', 'string', 'min:3', 'max:500']])->validate();
 
         return DB::transaction(function () use ($actorId, $gradeId, $version, $reason, $input, $delete) {
             $reference = Grade::findOrFail($gradeId);
             [$actor, $enrollment, $assessment, $term] = $this->context($actorId, $reference->student_enrollment_id, $reference->assessment_id);
             $grade = Grade::lockForUpdate()->findOrFail($gradeId);
+            Gate::forUser($actor)->authorize($delete ? 'delete' : 'update', $grade);
             if ($grade->version !== $version) {
                 throw ValidationException::withMessages(['conflict' => 'Ocena została zmieniona. Odśwież dane.']);
             }

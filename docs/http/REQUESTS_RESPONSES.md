@@ -183,3 +183,11 @@ SharedProps nie są współdzielonym cache między użytkownikami. Partial reloa
 FACT: logowanie i wylogowanie używają powyższych tras i walidacji. `errors.form` zawiera neutralny błąd uwierzytelnienia; 429 zachowuje status i nagłówek Retry-After, dodaje `retryAfter` w sekundach. 419 renderuje formularz z instrukcją ponownego logowania, bez automatycznego POST. W obu odpowiedziach `auth.user` i `auth.role` są null. Login zawsze prowadzi do `/dashboard`, ignoruje url.intended i dane klienta określające rolę/cel. Docelowe rozdzielenie pulpitów należy do F-007 i pozostaje niewdrożone. Istniejący starter korzysta dodatkowo z allowlistowanego `auth.user.name` (firstName + lastName); id jest stringiem.
 
 DECISION F-004: limiter działa w LoginService po walidacji LoginRequest; zlicza nieudane uwierzytelnienia, a nie wszystkie wywołania HTTP. Nie rejestrujemy dodatkowego `throttle:login`, który podwójnie naliczałby próby.
+
+### Stan integracji F-005
+
+FACT: SharedProps zawierają `can: { createGrade, manageUsers, manageSchool }`, obliczane przez Gate dla bieżącego konta. `createGrade` korzysta z `GradePolicy.createAny` i oznacza wyłącznie aktywną rolę teacher/admin; nie dowodzi istnienia assignment ani spełnienia W. `GradePolicy.create` bez assessment/enrollment odmawia dostępu. Formularz musi dodatkowo wykonać `GradePolicy.create` z assessment, enrollment i datą, a serwis ponawia autoryzację w transakcji. Nie używać `can` z klienta jako wejścia autoryzacji.
+
+FACT: `GradeAccess` dostarcza scoped lookup oceny (jawny tryb archiwalny), historię, autoryzowany assignment i query opcji enrollment/assessment jednego kontekstu. Wynikowe query należy filtrować przed `count`, agregacją i `paginate`; modele pozostają wewnątrz backendu, kontroler nadal buduje DTO z allowlisty. `capabilities(actor, grade)` zwraca flagi rekordowe dopiero po autoryzacji odczytu. Roster nie uprawnia do innych przedmiotów ucznia; oceny i historia wymagają własnego scope.
+
+DECISION: F-005 nie dodaje strony, produkcyjnych tras ani nowego payloadu ocen. Kontrolery funkcji dziennika wdrażają ten mechanizm przy realizacji swoich kontraktów. Domyślne 403/404 Laravel pozostają do prezentacji przez F-404; nie deklarujemy wdrożenia `shared/error`.

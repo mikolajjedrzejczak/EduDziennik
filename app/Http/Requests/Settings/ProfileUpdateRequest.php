@@ -11,6 +11,11 @@ class ProfileUpdateRequest extends FormRequest
 {
     use ProfileValidationRules;
 
+    public function authorize(): bool
+    {
+        return $this->user()?->can('updateProfile', $this->user()) ?? false;
+    }
+
     /**
      * Prepare the data for validation.
      */

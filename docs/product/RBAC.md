@@ -29,3 +29,13 @@ Student nie może wybierać student_id w filtrze. Teacher widzi listę uczniów 
 Cudze rekordy i zagnieżdżenia niezgodne z URL → 404; wejście w sekcję innej roli → 403. Usunięte oceny mają osobny odczyt archiwalny szczegółów i historii (jawne withTrashed + Policy), bez edycji. `can` w props to wskazówka UI, nigdy ochrona.
 
 Admin nie może usunąć własnego konta; zmiana własnej roli/statusu dozwolona tylko jeśli pozostaje inny aktywny admin, po czym sesja jest unieważniana. Konta z historycznymi enrollmentami/assignmentami nie zmieniają roli domenowej student↔teacher/admin:  błąd walidacji; należy dezaktywować konto i utworzyć inne. Admin↔teacher dopuszczalne tylko bez assignmentów. [Reguły](../database/BUSINESS_RULES.md).
+
+## Integracja F-005
+
+FACT: alias middleware `role` rejestrowany jest w `bootstrap/app.php`; użycie po `auth`, np. `role:teacher,admin`. Lista ról jest jawna i nie zawiera domyślnego obejścia dla administratora. Aktywność konta obsługuje istniejący middleware `EnsureActiveAccount`.
+
+FACT: Policies są odkrywane przez Laravel; `StudentEnrollment` ma jawne mapowanie do `EnrollmentPolicy`. Profil używa osobnych abilities `viewProfile`/`updateProfile`, ponieważ `UserPolicy` chroni administrację kontami. Żaden globalny `Gate::before` nie przyznaje dostępu adminowi. Polityka audytu odmawia create/update/delete wszystkim rolom; audyt tworzy wewnętrznie wyłącznie GradeService przy zmianie oceny.
+
+FACT: `visibleTo(actor)` istnieje dla Grade, GradeAudit, Assessment, StudentEnrollment, TeacherAssignment, SchoolClass i Subject. Odczyt historii jawnie obejmuje soft-deleted grade. Zakres T ignoruje autorstwo, uwzględnia dokładny aktywny assignment i zachowuje odczyt zarchiwizowanego kontekstu. Roster nauczyciela uwzględnia tylko enrollmenty przecinające term assignmentu. `GradeAccess.enrollments/assessments` ponownie autoryzują przekazany assignment i zawężają opcje do jego kontekstu.
+
+DECISION: nie używać globalnego scope zależnego od sesji (operator, seeder i wewnętrzne transakcje mają inne potrzeby). Każdy nowy kontroler odczytu musi wywołać Policy i jawny scope/GradeAccess przed pobraniem danych. Każdy Form Request mutacji wykonuje Policy z rekordem/kontekstem; usługi ocen i kolumn ponawiają ją wraz z kontrolą W pod blokadami. Reguły ostatniego admina, transferów i archiwizacji pozostają obowiązkiem usług odpowiednich funkcji, a nie ogólnego middleware ról.

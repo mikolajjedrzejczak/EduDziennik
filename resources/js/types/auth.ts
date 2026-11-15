@@ -12,3 +12,9 @@ export type User = {
 export type Auth = {
     user: User;
 };
+
+export type Capabilities = {
+    createGrade: boolean;
+    manageUsers: boolean;
+    manageSchool: boolean;
+};

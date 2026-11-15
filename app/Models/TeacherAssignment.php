@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Authorization\RecordAccess;
 use Database\Factories\TeacherAssignmentFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -40,6 +41,16 @@ class TeacherAssignment extends DomainModel
     public function term(): BelongsTo
     {
         return $this->belongsTo(Term::class, 'term_id');
+    }
+
+    /** @param Builder<TeacherAssignment> $query */
+    public function scopeVisibleTo(Builder $query, User $actor): void
+    {
+        if (! RecordAccess::active($actor) || $actor->role === 'student') {
+            $query->whereRaw('1 = 0');
+        } elseif ($actor->role === 'teacher') {
+            $query->active()->where('teacher_id', $actor->id);
+        }
     }
 
     /** @param Builder<TeacherAssignment> $query */

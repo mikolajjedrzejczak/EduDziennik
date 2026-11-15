@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Authorization\RecordAccess;
 use Carbon\CarbonImmutable;
 use Database\Factories\GradeFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -59,7 +60,7 @@ class Grade extends DomainModel
     /** @param Builder<Grade> $query */
     public function scopeVisibleTo(Builder $query, User $actor): void
     {
-        if ($actor->trashed() || $actor->status !== 'active') {
+        if (! RecordAccess::active($actor)) {
             $query->whereRaw('1 = 0');
         } elseif ($actor->role === 'student') {
             $query->whereHas('enrollment', fn ($q) => $q->where('student_id', $actor->id));

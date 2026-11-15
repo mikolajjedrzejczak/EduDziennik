@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GradeAudit extends DomainModel
@@ -24,6 +25,12 @@ class GradeAudit extends DomainModel
     public function actor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'actor_id')->withTrashed();
+    }
+
+    /** @param Builder<GradeAudit> $query */
+    public function scopeVisibleTo(Builder $query, User $actor): void
+    {
+        $query->whereHas('grade', fn ($grades) => $grades->withTrashed()->visibleTo($actor));
     }
 
     protected static function booted(): void

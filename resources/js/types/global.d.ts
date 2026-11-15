@@ -1,4 +1,4 @@
-import type { Auth } from '@/types/auth';
+import type { Auth, Capabilities } from '@/types/auth';
 
 declare module 'react' {
     // Module augmentation must repeat React's generic parameter.
@@ -13,6 +13,7 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
+            can: Capabilities;
             sidebarOpen: boolean;
             [key: string]: unknown;
         };
