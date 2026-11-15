@@ -90,6 +90,7 @@ Powyższe ID są odczytane; działanie wszystkich interakcji prototypowych nie b
 ## Jawne luki i sposób realizacji
 
 - **F-302 user show**: nie znaleziono dedykowanej ramki szczegółów użytkownika w stronach04–11. PLANNED `admin/users/show`: kompozycja read-only z danych formularza20:1891/24:948 i PageHeader, wymaga przeglądu wizualnego. Nie utożsamiać show z edit ani pomijać wymaganego szczegółu CRUD.
+- **F-303 (adaptacja do przeglądu)**: ramki 20:1261/20:1600/24:685/24:807 pokazują opcje spoza kontraktu (wymuszenie zmiany hasła, wysyłka e-mail, domena szkoły, wiele klas w jednym przydziale); wdrożono wariant zgodny z `StoreUserRequest` — szczegóły odstępstw w F-303 §22. Sekcja „Klasa ucznia” i status konta nie mają ramki.
 - **Admin grade CRUD/history (F-203–206/F-103–104)**: brak dedykowanych ekranów admina. Wspólne pages `shared/gradebooks/show`, `shared/grades/*`, `shared/history/index`, shell admina i selector kontekstu. Referencje nauczyciela17:620/23:330,18:542/23:796,18:1741/23:2215 oraz historii14:604/21:473 są referencjami adaptacji, nie potwierdzeniem istnienia admin frames.
 - **Teacher history**: student detail17:1204/23:705 i zapis18:3707 pokazują kontekst; oddzielna lista korzysta z14:604/21:473 z zakresem T.
 - **AssessmentForm, transfer, pełny CRUD klas/przedmiotów**:20:2220/24:1180/24:1328 pokazują organizację, nie każdą mutację. Formularze z istniejących Input/Dialog; przed Done potrzebny przegląd adaptacji.
