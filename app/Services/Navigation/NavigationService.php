@@ -40,6 +40,7 @@ class NavigationService
             $primary[] = ['key' => 'classes', 'label' => 'Klasy i przedmioty', 'shortLabel' => 'Klasy', 'href' => route('admin.classes.index', absolute: false), 'icon' => 'classes'];
             $primary[] = ['key' => 'subjects', 'label' => 'Przedmioty', 'shortLabel' => 'Przedmioty', 'href' => route('admin.subjects.index', absolute: false), 'icon' => 'subjects'];
             $primary[] = ['key' => 'assignments', 'label' => 'Przydziały', 'shortLabel' => 'Przydziały', 'href' => route('admin.assignments.index', absolute: false), 'icon' => 'assignments'];
+            $primary[] = ['key' => 'users', 'label' => 'Użytkownicy', 'shortLabel' => 'Konta', 'href' => route('admin.users.index', absolute: false), 'icon' => 'users'];
         }
 
         return [
