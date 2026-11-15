@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
+    BookOpen,
     GraduationCap,
     LayoutGrid,
     SlidersHorizontal,
@@ -12,10 +13,12 @@ export const sidebarIcons: Record<NavigationIcon, LucideIcon> = {
     dashboard: LayoutGrid,
     classes: GraduationCap,
     profile: SlidersHorizontal,
+    subjects: BookOpen,
 };
 
 export const mobileIcons: Record<NavigationIcon, LucideIcon> = {
     dashboard: LayoutGrid,
     classes: GraduationCap,
     profile: User,
+    subjects: BookOpen,
 };

@@ -20,6 +20,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('classes/{schoolClass}', [Admin\SchoolClassController::class, 'destroy'])->name('classes.destroy');
         Route::post('classes/{schoolClass}/enrollments', [Admin\EnrollmentController::class, 'store'])->name('enrollments.store');
         Route::patch('classes/{schoolClass}/enrollments/{enrollment}', [Admin\EnrollmentController::class, 'update'])->name('enrollments.update');
+        Route::resource('subjects', Admin\SubjectController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 });
 
