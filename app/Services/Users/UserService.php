@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-/** F-303/F-304: transactional account creation and editing with access/history protection. */
+/** F-303/F-304/F-305: transactional account management with access/history protection. */
 class UserService
 {
     public function __construct(private readonly EnrollmentService $enrollments, private readonly AssignmentService $assignments) {}
@@ -96,6 +96,34 @@ class UserService
             }
 
             return $user;
+        }, 3);
+    }
+
+    /** Delete shares the edit lock; confirmation is rechecked against the locked account. */
+    public function delete(int $actorId, int $userId, string $confirmationLastName): void
+    {
+        DB::transaction(function () use ($actorId, $userId, $confirmationLastName) {
+            DB::table('domain_locks')->where('key', 'admin_membership')->lockForUpdate()->firstOrFail();
+            $users = User::withTrashed()->whereIn('id', [$actorId, $userId])->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $actor = $users->get($actorId);
+            $user = $users->get($userId);
+            abort_if($actor === null, 403);
+            abort_if($user === null || $user->trashed(), 404);
+            Gate::forUser($actor)->authorize('delete', $user);
+
+            if (trim($confirmationLastName) !== $user->last_name) {
+                throw ValidationException::withMessages(['confirmation_last_name' => 'Wpisz aktualne nazwisko użytkownika, aby potwierdzić usunięcie.']);
+            }
+            if ($user->role === 'admin' && $user->status === 'active'
+                && ! User::where('role', 'admin')->where('status', 'active')->where('id', '!=', $userId)->lockForUpdate()->first()) {
+                throw ValidationException::withMessages(['confirmation_last_name' => 'Musi pozostać co najmniej jeden aktywny administrator.']);
+            }
+
+            $user->status = 'inactive';
+            $user->remember_token = Str::random(60);
+            $user->save();
+            $user->delete();
+            DB::table('sessions')->where('user_id', $userId)->delete();
         }, 3);
     }
 

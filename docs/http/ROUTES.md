@@ -94,3 +94,5 @@ FACT: `admin.assignments.{index,store,update,destroy}` (`Admin\TeacherAssignment
 ## Stan integracji F-306
 
 FACT: `admin.classes.index/store/update/destroy` i `admin.enrollments.store/update` są zarejestrowane w `routes/web.php` pod `auth` i `role:admin`. Mutacje mają własne Form Requests/Policies i przekierowanie do kanonicznego GET. Zagnieżdżony enrollment innej klasy daje 404; nie istnieje trasa DELETE enrollment. Pozostałe planowane trasy tej tabeli zachowują dotychczasowe statusy.
+
+FACT F-305: `admin.users.destroy` jest zarejestrowana pod `auth`/`role:admin`, z `DeleteUserRequest` i `UserPolicy.delete`. Soft-deleted binding pozostaje wyłącznie dla show; ponowne DELETE daje 404. Kontroler deleguje do `UserService.delete`, sukces przekierowuje do `admin.users.index`.
