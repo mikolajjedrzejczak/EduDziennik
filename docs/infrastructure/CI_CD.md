@@ -12,10 +12,10 @@ PLANNED F-502/F-503. Brak repo GitHub, workflow, hostingu i wykonanego runu. Nie
 | format | prettier --write resources/ *.json *.ts *.js (tylko lokalnie, nie w CI) | F-001 |
 | format:check | prettier --check resources/ *.json *.ts *.js | F-001, VERIFIED |
 | typecheck | tsc --noEmit | F-001, VERIFIED |
-| test:unit | vitest run | PLANNED F-501 |
-| test:e2e | playwright test | PLANNED F-501 |
+| test:unit | vitest run | F-501, lokalny harness |
+| test:e2e | playwright test | F-501, forms + build smoke |
 
-Composer (F-001): `composer wayfinder` (generator typów tras), `composer lint` / `composer lint:check` (Pint), `composer types:check` (PHPStan/Larastan), `composer test` (`config:clear` + `php artisan test`). Glob Prettier rozszerzyć o `e2e` i `tests/Frontend`, gdy F-501 je utworzy. Glob Prettier dopasować do istniejących plików F-001; nie tworzyć pustych configów, by zaspokoić glob. PHP: `composer validate --strict`, `composer install --no-interaction --prefer-dist`, `composer check-platform-reqs`, `vendor/bin/pint --test`, `php artisan test`. Testy nie mogą uruchamiać autoformatowania plików. Lockfiles commitowane; cache keyed by lockfile+runtime.
+Composer (F-001): `composer wayfinder` (generator typów tras), `composer lint` / `composer lint:check` (Pint), `composer types:check` (PHPStan/Larastan), `composer test` (`config:clear` + `php artisan test`). FACT F-501: Prettier obejmuje tests/Frontend, tests/Browser i TSX fixture; typecheck obejmuje również te katalogi. Glob Prettier dopasować do istniejących plików F-001; nie tworzyć pustych configów, by zaspokoić glob. PHP: `composer validate --strict`, `composer install --no-interaction --prefer-dist`, `composer check-platform-reqs`, `vendor/bin/pint --test`, `php artisan test`. Testy nie mogą uruchamiać autoformatowania plików. Lockfiles commitowane; cache keyed by lockfile+runtime.
 
 ## Jobs
 
@@ -23,7 +23,7 @@ Trigger pull_request i push do domyślnej gałęzi; concurrency per branch, anul
 
 1. **changes/docs**: zawsze uruchamiany; lokalne linki Markdown, komplet specyfikacji, unikalność tras, graf zależności i spójność odniesień. Docs-only (`*.md` poza zmianą manifestów/configów/testów) uruchamia tylko tę ścieżkę.
 2. **frontend** (zmiana kodu): Node 22.x≥22.12, npm ci, lint, format:check, typecheck, test:unit, build; artefakt build + wyniki. PHP generator tras jeśli używany przez starter wykonywany przed Node build.
-3. **backend**: PHP 8.3, Composer 2, rozszerzenia jak Docker; MariaDB 11.4 health, baza edudziennik_test; install/validate/platform-check/Pint; losowy APP_KEY; migrate --force na test DB, seed kontrolowanych fixture; PHPUnit z oddzielną konfiguracją. Testy constraints i transakcji na MariaDB, nie SQLite.
+3. **backend**: PHP 8.3, Composer 2, rozszerzenia jak Docker; MariaDB 11.4 health, baza edudziennik_test; install/validate/platform-check/Pint; losowy APP_KEY; migrate --force na test DB, seed kontrolowanych fixture; PHPUnit z konfiguracją phpunit.xml wymuszającą testową bazę. Testy constraints i transakcji na MariaDB, nie SQLite.
 4. **E2E** po buildzie: Nginx/PHP-FPM/MariaDB i produkcyjne assety tego samego SHA, bez HMR; osobna resetowalna baza E2E. Playwright z przeglądarką Chromium i zależnościami systemowymi. `/up` gotowe przed testami. Scenariusze login3 role, IDOR, create/edit/delete grade i historia, CRUD users; desktop 1440/mobile 390, tablet smoke1024. Na zmianę wyłącznie docs nie uruchamia się.
 5. **required-check** zawsze po pozostałych (`always`): sprawdza, że wymagane dla danej kategorii jobs zakończyły się sukcesem. Skipped E2E dla docs dozwolone, skipped przy zmianie kodu nie. Dzięki temu branch protection nie oczekuje pominiętego workflow.
 
@@ -36,3 +36,5 @@ OPEN QUESTION: hosting, domena, TLS termination, magazyn backupów i polityka re
 Procedura: backup i sprawdzenie odtwarzalności → build/promocja artefaktu → migrate --force jako pojedynczy job → podmiana release → cache konfiguracji/tras/widoków → /up + DB health → smoke login/role/grade/history → dopiero ruch użytkowników. Migracje kompatybilne wstecz (expand/contract); w przypadku niekompatybilnych zmian uzgodnione okno maintenance i odcięcie zapisów.
 
 Rollback: poprzedni obraz przy kompatybilnym schemacie; przy destructive migration nie uruchamiać automatycznego migrate:rollback. Osobny plan przywrócenia backupu, ocena utraty zapisów od backupu i zgoda operatora. Ćwiczenie restore na osobnej bazie obejmuje FK i audyt, nie tylko /up. Alert/raport błędu bez danych uczniów.
+
+FACT F-501: lokalne polecenia i raporty runnerów opisano w [TEST_STRATEGY](../testing/TEST_STRATEGY.md#harness-f-501); automatyzacja workflow oraz domenowe E2E nadal PLANNED.

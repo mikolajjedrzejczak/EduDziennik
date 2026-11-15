@@ -1,6 +1,6 @@
 # Indeks funkcji
 
-Stan implementacji: F-001, F-002 i F-003 `In Progress` (implementacje gotowe do przeglądu), pozostałe `Planned`. P0 = fundament/MVP, P1 = rozszerzenie lub jakość wymagana przed przekazaniem; P2 = odroczone, poza tym planem (Dark i tryb serii). Nie mylić gotowej specyfikacji z działającą funkcją.
+Stan implementacji: F-001, F-002, F-003 i F-501 `In Progress` (implementacje gotowe do przeglądu), pozostałe `Planned`. P0 = fundament/MVP, P1 = rozszerzenie lub jakość wymagana przed przekazaniem; P2 = odroczone, poza tym planem (Dark i tryb serii). Nie mylić gotowej specyfikacji z działającą funkcją.
 
 Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja dodaje własną walidację, stany i testy. F-403 rozwija istniejącą bazową paginację, nie blokuje MVP. [Roadmapa](../product/ROADMAP.md) ma kolejność topologiczną.
 
@@ -35,7 +35,7 @@ Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja doda
 | F-402 | Form Validation | P0 | Ready for review | F-001 | [spec](F-402.md) | A5 |
 | F-403 | Search, Filtering and Pagination | P1 | Planned | F-102, F-104, F-202, F-302 | [spec](F-403.md) | wsparcie A1–A8 |
 | F-404 | Application States and Error Handling | P0 | Planned | F-001, F-006 | [spec](F-404.md) | wsparcie A1–A8 |
-| F-501 | Automated Testing | P0 | Planned | F-001, F-002, F-003 | [spec](F-501.md) | wsparcie A1–A8 |
+| F-501 | Automated Testing | P0 | In Progress | F-001, F-002, F-003 | [spec](F-501.md) | wsparcie A1–A8 |
 | F-502 | GitHub Actions CI | P1 | Planned | F-501 | [spec](F-502.md) | wsparcie A1–A8 |
 | F-503 | Deployment Readiness | P1 | Planned | F-502, F-101, F-201, F-301, F-305, F-206, F-401, F-403 | [spec](F-503.md) | wsparcie A1–A8 |
 

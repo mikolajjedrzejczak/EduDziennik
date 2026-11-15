@@ -10,11 +10,13 @@
         "dev": "vite",
         "build": "vite build",
         "lint": "eslint . --max-warnings=0",
-        "format": "prettier --write resources/ *.json *.ts *.js",
-        "format:check": "prettier --check resources/ *.json *.ts *.js",
+        "format": "prettier --write resources/ tests/Frontend/ tests/Browser/ tests/Fixtures/Forms/*.tsx *.json *.ts *.js",
+        "format:check": "prettier --check resources/ tests/Frontend/ tests/Browser/ tests/Fixtures/Forms/*.tsx *.json *.ts *.js",
         "typecheck": "tsc --noEmit",
         "test": "vitest run",
-        "test:e2e:forms": "playwright test"
+        "test:e2e:forms": "playwright test",
+        "test:unit": "vitest run",
+        "test:e2e": "playwright test"
     },
     "dependencies": {
         "@inertiajs/react": "^3.11.0",

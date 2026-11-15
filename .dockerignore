@@ -1,3 +1,6 @@
 **
 !docker/
 !docker/**
+!package.json
+!package-lock.json
+!.npmrc

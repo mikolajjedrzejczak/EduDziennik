@@ -4,6 +4,9 @@ namespace Tests;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Carbon;
+use Tests\Support\TestClock;
+use Tests\Support\TestDatabase;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -11,9 +14,7 @@ abstract class TestCase extends BaseTestCase
     {
         $app = parent::createApplication();
         // Runs before RefreshDatabase's setUpTraits can migrate or reset a schema.
-        if (config('database.default') !== 'mariadb' || $app->make('db')->connection()->getDatabaseName() !== 'edudziennik_test') {
-            throw new \RuntimeException('Testy wymagają odizolowanej bazy MariaDB edudziennik_test.');
-        }
+        TestDatabase::assertSafe($app->environment(), config('database.default'), $app->make('db')->connection()->getConfig());
 
         return $app;
     }
@@ -24,5 +25,6 @@ abstract class TestCase extends BaseTestCase
 
         // Feature tests must not depend on a prior `npm run build`.
         $this->withoutVite();
+        $this->travelTo(Carbon::parse(TestClock::NOW));
     }
 }

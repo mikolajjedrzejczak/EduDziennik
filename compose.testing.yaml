@@ -1,0 +1,17 @@
+# Optional test runner; regular development images stay unchanged.
+services:
+  browser:
+    build:
+      context: .
+      dockerfile: docker/testing/Dockerfile
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+    volumes:
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+      - node_modules:/var/www/html/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    command: [npm, run, test:e2e]

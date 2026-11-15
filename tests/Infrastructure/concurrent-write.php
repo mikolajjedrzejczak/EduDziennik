@@ -6,15 +6,17 @@ use App\Services\Grades\GradeService;
 use App\Services\School\EnrollmentService;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Tests\Support\TestClock;
+use Tests\Support\TestDatabase;
 
 require __DIR__.'/../../vendor/autoload.php';
 $app = require __DIR__.'/../../bootstrap/app.php';
 $app->make(Kernel::class)->bootstrap();
-if (! $app->environment('testing') || config('database.default') !== 'mariadb' || DB::connection()->getDatabaseName() !== 'edudziennik_test') {
-    throw new RuntimeException('Worker wymaga odizolowanej bazy testowej MariaDB.');
-}
+TestDatabase::assertSafe($app->environment(), config('database.default'), DB::connection()->getConfig());
+Carbon::setTestNow(TestClock::NOW);
 // NOWAIT proves the parent holds the actual serializing lock before it commits.
 $table = ($argv[1] ?? '') === 'enroll' ? 'users' : 'terms';
 $id = $table === 'users' ? (int) $argv[2] : Assessment::findOrFail((int) $argv[4])->term_id;
