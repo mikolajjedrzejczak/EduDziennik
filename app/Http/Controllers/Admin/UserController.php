@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UserFilterRequest;
 use App\Models\SchoolClass;
 use App\Models\StudentEnrollment;
+use App\Models\Subject;
 use App\Models\TeacherAssignment;
 use App\Models\Term;
 use App\Models\User;
+use App\Services\Users\UserService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,7 +20,7 @@ use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/** F-302: admin account list and read-only detail. Mutations belong to F-303..F-305. */
+/** F-302 list/detail; F-303 creation. Editing and deletion belong to F-304/F-305. */
 class UserController extends Controller
 {
     /** Per-relation cap on the detail page (REQUESTS_RESPONSES: relacje max100). */
@@ -25,6 +28,8 @@ class UserController extends Controller
 
     /** Option dictionaries are capped (admin MVP: max 500 per dictionary). */
     private const OPTION_LIMIT = 500;
+
+    public function __construct(private readonly UserService $users) {}
 
     public function index(UserFilterRequest $request): Response|RedirectResponse
     {
@@ -55,6 +60,29 @@ class UserController extends Controller
             ],
             'options' => $this->options(),
         ]);
+    }
+
+    public function create(): Response
+    {
+        Gate::authorize('create', User::class);
+
+        return Inertia::render('admin/users/create', ['user' => null, 'options' => $this->formOptions()]);
+    }
+
+    public function store(StoreUserRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        $user = $this->users->create(
+            $request->user()->id,
+            [
+                'first_name' => $data['first_name'], 'last_name' => $data['last_name'], 'email' => $data['email'],
+                'password' => $data['password'], 'role' => $data['role'], 'status' => $data['status'],
+            ],
+            $data['enrollment'] ?? null,
+            $data['assignments'] ?? [],
+        );
+
+        return redirect()->route('admin.users.show', $user)->with('success', 'Utworzono konto użytkownika.');
     }
 
     public function show(User $user): Response
@@ -231,5 +259,25 @@ class UserController extends Controller
     private function termOption(Term $term): array
     {
         return ['id' => (string) $term->id, 'label' => $term->academicYear->name.' · semestr '.$term->number];
+    }
+
+    /**
+     * Create-form dictionaries: only selectable (non-archived) records, capped; a larger dictionary fails loudly.
+     *
+     * @return array{roles: list<string>, classes: array<int, array<string, string>>, terms: array<int, array<string, string>>, subjects: array<int, array<string, string>>}
+     */
+    private function formOptions(): array
+    {
+        $classes = SchoolClass::with('academicYear')->orderByDesc('academic_year_id')->orderBy('name')->orderBy('id')->limit(self::OPTION_LIMIT + 1)->get();
+        $terms = Term::with('academicYear')->whereNull('closed_at')->orderByDesc('academic_year_id')->orderBy('number')->limit(self::OPTION_LIMIT + 1)->get();
+        $subjects = Subject::orderBy('name')->orderBy('id')->limit(self::OPTION_LIMIT + 1)->get();
+        abort_if(max($classes->count(), $terms->count(), $subjects->count()) > self::OPTION_LIMIT, 503);
+
+        return [
+            'roles' => ['student', 'teacher', 'admin'],
+            'classes' => $classes->map(fn (SchoolClass $c) => $this->classOption($c) + ['academicYearId' => (string) $c->academic_year_id])->all(),
+            'terms' => $terms->map(fn (Term $t) => $this->termOption($t) + ['academicYearId' => (string) $t->academic_year_id])->all(),
+            'subjects' => $subjects->map(fn (Subject $s) => ['id' => (string) $s->id, 'label' => $s->name])->all(),
+        ];
     }
 }

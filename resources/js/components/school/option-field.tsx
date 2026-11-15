@@ -16,6 +16,7 @@ export function OptionField({
     onChange,
     error,
     optional = false,
+    noneLabel = 'Wszystkie',
 }: {
     id: string;
     label: string;
@@ -24,6 +25,8 @@ export function OptionField({
     onChange: (value: string) => void;
     error?: string;
     optional?: boolean;
+    /** Label of the empty choice when `optional` (filters say "Wszystkie", forms "Bez klasy"). */
+    noneLabel?: string;
 }) {
     return (
         <FormField id={id} label={label} error={error}>
@@ -39,7 +42,7 @@ export function OptionField({
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="_none" disabled={!optional}>
-                            {optional ? 'Wszystkie' : 'Wybierz…'}
+                            {optional ? noneLabel : 'Wybierz…'}
                         </SelectItem>
                         {options.map((option) => (
                             <SelectItem key={option.id} value={option.id}>

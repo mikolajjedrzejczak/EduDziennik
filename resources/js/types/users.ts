@@ -62,3 +62,11 @@ export type UserDetailProps = {
     assignments: AssignmentDTO[];
     relationTotals: { enrollments: number; assignments: number };
 };
+
+/** F-303 create form (UserFormProps): subjects are a server allowlist, `user` is null on create. */
+export type UserFormOptions = UserListOptions & { subjects: Option[] };
+
+export type UserFormProps = {
+    user: UserDTO | null;
+    options: UserFormOptions;
+};
