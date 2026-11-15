@@ -1,3 +1,4 @@
+import type * as Inertia from '@inertiajs/react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -6,7 +7,8 @@ import ShowUser from '@/pages/admin/users/show';
 import type { UserDetailProps, UserListProps, UserRowDTO } from '@/types/users';
 
 const get = vi.fn();
-vi.mock('@inertiajs/react', () => ({
+vi.mock('@inertiajs/react', async (importOriginal) => ({
+    ...(await importOriginal<typeof Inertia>()),
     Head: () => null,
     Link: ({
         children,
@@ -17,7 +19,9 @@ vi.mock('@inertiajs/react', () => ({
             {children}
         </a>
     ),
-    usePage: () => ({ props: { errors: {}, flash: {} } }),
+    usePage: () => ({
+        props: { errors: {}, flash: {}, auth: { user: { id: '999' } } },
+    }),
     router: { get: (...args: unknown[]) => get(...args) },
 }));
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\DeleteUserRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Http\Requests\Admin\UserFilterRequest;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/** F-302 list/detail, F-303 creation, F-304 account editing. */
+/** F-302 list/detail, F-303 creation, F-304 editing, F-305 logical deletion. */
 class UserController extends Controller
 {
     /** Per-relation cap on the detail page (REQUESTS_RESPONSES: relacje max100). */
@@ -115,6 +116,13 @@ class UserController extends Controller
         }
 
         return redirect()->route('admin.users.show', $updated)->with('success', 'Zapisano zmiany użytkownika.');
+    }
+
+    public function destroy(DeleteUserRequest $request, User $user): RedirectResponse
+    {
+        $this->users->delete($request->user()->id, $user->id, $request->validated('confirmation_last_name'));
+
+        return redirect()->route('admin.users.index')->with('success', 'Usunięto konto użytkownika. Oceny i historia zmian zostały zachowane.');
     }
 
     public function show(User $user): Response

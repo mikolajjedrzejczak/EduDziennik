@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronRight, Eye, ListFilter, Search } from 'lucide-react';
 import { useId, useState } from 'react';
+import { DeleteUserDialog } from '@/components/admin/delete-user-dialog';
 import { RoleBadge, StatusBadge } from '@/components/admin/user-badges';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { OptionField } from '@/components/school/option-field';
@@ -98,7 +99,11 @@ export default function Users({ users, filters, options }: UserListProps) {
                     </p>
                 </header>
                 <ErrorSummary
-                    errors={errors}
+                    errors={Object.fromEntries(
+                        Object.entries(errors).filter(
+                            ([field]) => field !== 'confirmation_last_name',
+                        ),
+                    )}
                     fields={{}}
                     title="Sprawdź wybrane filtry"
                 />
@@ -235,16 +240,21 @@ export default function Users({ users, filters, options }: UserListProps) {
                                                     )}
                                                 </td>
                                                 <td className="px-3 py-2 text-right">
-                                                    <Link
-                                                        href={`/admin/users/${user.id}`}
-                                                        aria-label={`Szczegóły: ${fullName(user)}`}
-                                                        className="inline-flex size-11 items-center justify-center rounded-md text-text-secondary outline-none hover:bg-surface-secondary focus-visible:ring-[3px] focus-visible:ring-focus"
-                                                    >
-                                                        <Eye
-                                                            className="size-4"
-                                                            aria-hidden="true"
+                                                    <div className="flex justify-end">
+                                                        <Link
+                                                            href={`/admin/users/${user.id}`}
+                                                            aria-label={`Szczegóły: ${fullName(user)}`}
+                                                            className="inline-flex size-11 items-center justify-center rounded-md text-text-secondary outline-none hover:bg-surface-secondary focus-visible:ring-[3px] focus-visible:ring-focus"
+                                                        >
+                                                            <Eye
+                                                                className="size-4"
+                                                                aria-hidden="true"
+                                                            />
+                                                        </Link>
+                                                        <DeleteUserDialog
+                                                            user={user}
                                                         />
-                                                    </Link>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -253,11 +263,14 @@ export default function Users({ users, filters, options }: UserListProps) {
                             </div>
                             <ul className="divide-y divide-border rounded-lg border border-border bg-surface md:hidden">
                                 {users.data.map((user) => (
-                                    <li key={user.id}>
+                                    <li
+                                        key={user.id}
+                                        className="flex items-center pr-2"
+                                    >
                                         <Link
                                             href={`/admin/users/${user.id}`}
                                             aria-label={`Szczegóły: ${fullName(user)}`}
-                                            className="flex min-h-16 items-center gap-3 px-4 py-3 outline-none focus-visible:ring-[3px] focus-visible:ring-focus focus-visible:ring-inset"
+                                            className="flex min-h-16 min-w-0 flex-1 items-center gap-3 px-4 py-3 outline-none focus-visible:ring-[3px] focus-visible:ring-focus focus-visible:ring-inset"
                                         >
                                             <Avatar text={initials(user)} />
                                             <span className="min-w-0 flex-1">
@@ -284,6 +297,7 @@ export default function Users({ users, filters, options }: UserListProps) {
                                                 aria-hidden="true"
                                             />
                                         </Link>
+                                        <DeleteUserDialog user={user} />
                                     </li>
                                 ))}
                             </ul>
