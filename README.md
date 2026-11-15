@@ -2,7 +2,7 @@
 
 Elektroniczny dziennik ocen: uczeń, nauczyciel i administrator. Dokumentacja w języku polskim; kod i identyfikatory po angielsku.
 
-**Stan 2026-11-15: szkielet F-001 i środowisko Docker F-002.** Jedna aplikacja Laravel 13 + Inertia 3 + React 19, bez funkcji dziennika. Docelowy schemat i migracje techniczne należą do F-003, CI do F-502.
+**Stan 2026-11-15: F-001, F-002 oraz fundament bazy F-003 do przeglądu.** Jedna aplikacja Laravel 13 + Inertia 3 + React 19. Model czasowy, konfiguracja operatorska i fixture są zaimplementowane; ekrany dziennika i CI pozostają w kolejnych funkcjach.
 
 Uruchomienie bez lokalnego PHP, Composer, Node i MariaDB — wymagany działający Docker z Compose v2+:
 
@@ -12,7 +12,7 @@ cp .env.example .env
 ./scripts/bootstrap.sh
 ```
 
-Bootstrap nie wykonuje migracji ani seedów. Health: `http://localhost:8080/up`, Vite: `http://localhost:5173`. Strony korzystające z sesji/cache DB wymagają migracji przygotowanych w F-003. Procedura, polecenia QA, konflikty portów i test trwałości: [Docker](docs/infrastructure/DOCKER.md). Dowody kontroli: [F-001](docs/features/F-001.md#22-raport-realizacji-2026-11-15), [F-002](docs/features/F-002.md#22-raport-realizacji-2026-11-15).
+Bootstrap nie wykonuje migracji ani seedów. Health: `http://localhost:8080/up`, Vite: `http://localhost:5173`. Po bootstrapie uruchom `docker compose exec app php artisan migrate`. Konfiguracja lat i seed demonstracyjny: [procedura F-003](docs/database/SEEDING.md). Procedura, polecenia QA, konflikty portów i test trwałości: [Docker](docs/infrastructure/DOCKER.md). Dowody kontroli: [F-001](docs/features/F-001.md#22-raport-realizacji-2026-11-15), [F-002](docs/features/F-002.md#22-raport-realizacji-2026-11-15).
 
 ## Od czego zacząć
 
@@ -22,7 +22,7 @@ Bootstrap nie wykonuje migracji ani seedów. Health: `http://localhost:8080/up`,
 4. [Indeks funkcji](docs/features/FEATURE_INDEX.md) i [roadmapa](docs/product/ROADMAP.md).
 5. [Mapa ekranów Figmy](docs/design/SCREEN_MAP.md).
 
-Kolejny etap: [F-003](docs/features/F-003.md), docelowa baza danych.
+Weryfikacja fundamentu: [F-003](docs/features/F-003.md). Testy backendu wymagają dedykowanej bazy `edudziennik_test`; [utworzenie i polecenia](docs/database/SEEDING.md#testy-mariadb).
 
 ## Mapa dokumentacji
 

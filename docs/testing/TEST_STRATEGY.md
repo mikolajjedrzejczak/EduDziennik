@@ -12,6 +12,8 @@ FACT F-402: istnieją już testy startera i technicznego wzorca formularzy oraz 
 | Komponenty | RTL + Vitest | Form errors, pending, focus, dialog, empty/error |
 | Cały system | Playwright | Scenariusze ról i odmowy, responsywność, reload URL |
 
+FACT F-003: PHPUnit korzysta teraz z MariaDB i stałej izolowanej bazy `edudziennik_test` (wymuszenie w phpunit.xml, kontrola rozwiązanego połączenia w createApplication **przed** RefreshDatabase). Jednorazowy provisioner i instrukcja: [SEEDING](../database/SEEDING.md#testy-mariadb). Dodano testy migracji/rollback, FK/CHECK, JSON audytu, spójnych factories, fixture i SQL średnich, temporalnych scopes, odmów zapisu i atomowości audytu. Dwa osobne procesy z barierą NOWAIT testują konkurencyjne enrollmenty i zamknięcie termu przed oczekującym zapisem. Wynik lokalny: 115 testów / 379 asercji; [raport F-003](../features/F-003.md#22-raport-realizacji-2026-11-15). Pełna macierz HTTP i scenariusze administratorów/wersji w dwóch procesach pozostają w kolejnych funkcjach.
+
 ## Krytyczne scenariusze backendu
 
 1. Login/logout/inactive/deleted, regenerate session, CSRF,429, password change unieważniający inne sesje.

@@ -1,0 +1,29 @@
+{
+    "years": [
+        {
+            "name": "2026/2027",
+            "starts_on": "2026-09-01",
+            "ends_on": "2027-08-31",
+            "terms": [
+                {
+                    "number": 1,
+                    "starts_on": "2026-09-01",
+                    "ends_on": "2027-01-31"
+                },
+                {
+                    "number": 2,
+                    "starts_on": "2027-02-01",
+                    "ends_on": "2027-08-31"
+                }
+            ]
+        }
+    ],
+    "categories": [
+        {
+            "name": "Quiz",
+            "default_weight": 2,
+            "is_active": true
+        }
+    ],
+    "close_term_ids": []
+}
