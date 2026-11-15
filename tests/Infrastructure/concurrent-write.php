@@ -18,7 +18,7 @@ $app->make(Kernel::class)->bootstrap();
 TestDatabase::assertSafe($app->environment(), config('database.default'), DB::connection()->getConfig());
 Carbon::setTestNow(TestClock::NOW);
 // NOWAIT proves the parent holds the actual serializing lock before it commits.
-$table = ($argv[1] ?? '') === 'enroll' ? 'users' : 'terms';
+$table = in_array($argv[1] ?? '', ['enroll', 'transfer'], true) ? 'users' : 'terms';
 $id = $table === 'users' ? (int) $argv[2] : Assessment::findOrFail((int) $argv[4])->term_id;
 DB::beginTransaction();
 try {
@@ -36,6 +36,8 @@ fflush(STDOUT);
 try {
     if (($argv[1] ?? '') === 'enroll') {
         app(EnrollmentService::class)->enroll((int) $argv[2], (int) $argv[3], '2026-10-01');
+    } elseif (($argv[1] ?? '') === 'transfer') {
+        app(EnrollmentService::class)->enroll((int) $argv[2], (int) $argv[3], '2026-11-15', null, (int) $argv[4]);
     } elseif (($argv[1] ?? '') === 'grade') {
         app(GradeService::class)->create((int) $argv[2], (int) $argv[3], (int) $argv[4], ['value' => 4]);
     } else {

@@ -97,3 +97,9 @@ Powyższe ID są odczytane; działanie wszystkich interakcji prototypowych nie b
 - **Tryb serii23:2099**, Dark37:379/37:530/37:793 i alternatywy nawigacji40:*/41:* nie są P0/P1.
 
 Luki nie blokują modeli i backendu. Nie wolno oznaczyć pełnej zgodności z Figmą dla adaptacji bez jej odrębnego przeglądu. Figma nie została automatycznie rozszerzona w ramach zadania dokumentacyjnego.
+
+## Adaptacja F-306 (2026-11-15)
+
+FACT: odczytano design context wraz ze zrzutami 20:2220 i 24:1180. Wdrożenie zachowuje tokeny, Public Sans, listę klas i układ dwóch paneli na desktopie. Panel przydziałów zastępuje panel członkostw zgodnie z zakresem F-306; pola wychowawcy/liczby uczniów nie są dodawane do ClassDTO ani fikcyjnie wyświetlane. Zakładki F-307/F-308 pojawią się wraz z ich trasami. Formularze create/rename/archive/enroll/dates/transfer korzystają ze wspólnych pól i Radix Dialog; to adaptacja bez dedykowanych ramek.
+
+DECISION: tablet ma panel uczniów pod listą, rail 72px; mobile zachowuje istniejącą powłokę F-007, listę oraz formularze z przewijaniem i dolną nawigacją. Filtry roku/archiwum, paginacja oraz panel członkostw stanowią adaptację wymagań domenowych. Nie deklarujemy pełnej zgodności ekranów z referencją przydziałów. Przegląd adaptacji przez właściciela projektu pozostaje warunkiem wizualnego odbioru; nie ma osobnej ramki tablet klas w SCREEN_MAP.
