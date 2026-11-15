@@ -36,7 +36,7 @@ export default function Login({ errors = noErrors, retryAfter }: LoginProps) {
                 className="flex flex-1 flex-col gap-5 md:flex-none"
                 onSubmit={(event) => {
                     event.preventDefault();
-                    if (form.processing) return;
+                    if (form.processing || !navigator.onLine) return;
                     form.post(store.url(), {
                         onFinish: () => form.reset('password'),
                     });
