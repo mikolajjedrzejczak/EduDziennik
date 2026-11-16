@@ -1,3 +1,5 @@
+import { useFilterState } from '@/hooks/use-filter-state';
+import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { useId, useState } from 'react';
@@ -36,11 +38,15 @@ function FilterForm({
     filters,
     options,
 }: Pick<GradeListProps, 'filters' | 'options'>) {
-    const [termId, setTermId] = useState(filters.termId ?? '');
-    const [categoryId, setCategoryId] = useState(filters.categoryId ?? '');
-    const [q, setQ] = useState(filters.q);
-    const [dateFrom, setDateFrom] = useState(filters.dateFrom ?? '');
-    const [dateTo, setDateTo] = useState(filters.dateTo ?? '');
+    const [termId, setTermId] = useFilterState(filters.termId ?? '');
+    const [categoryId, setCategoryId] = useFilterState(
+        filters.categoryId ?? '',
+    );
+    const [sort, setSort] = useFilterState<string>(filters.sort);
+    const [direction, setDirection] = useFilterState<string>(filters.direction);
+    const [q, setQ] = useFilterState(filters.q);
+    const [dateFrom, setDateFrom] = useFilterState(filters.dateFrom ?? '');
+    const [dateTo, setDateTo] = useFilterState(filters.dateTo ?? '');
     const [open, setOpen] = useState(false);
     const panelId = useId();
     const active = [
@@ -51,10 +57,10 @@ function FilterForm({
     ].filter(Boolean).length;
 
     return (
-        <form
+        <SearchFilterForm
             role="search"
             aria-label="Filtry ocen"
-            className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(2,minmax(0,1fr))_minmax(0,1.2fr)_repeat(2,minmax(0,0.8fr))_auto] xl:items-end"
+            className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 xl:items-end"
             onSubmit={(event) => {
                 event.preventDefault();
                 router.get(
@@ -70,9 +76,11 @@ function FilterForm({
                         q: q.trim() || null,
                         date_from: dateFrom || null,
                         date_to: dateTo || null,
+                        sort,
+                        direction,
                         page: null,
                     }),
-                    { preserveScroll: true, replace: true },
+                    { preserveScroll: true, replace: false },
                 );
             }}
         >
@@ -146,11 +154,32 @@ function FilterForm({
                         onChange={(event) => setDateTo(event.target.value)}
                     />
                 </div>
+                <OptionField
+                    id="grades-sort"
+                    label="Sortowanie"
+                    value={sort}
+                    onChange={setSort}
+                    options={[
+                        { id: 'graded_on', label: 'Data' },
+                        { id: 'value', label: 'Ocena' },
+                        { id: 'weight', label: 'Waga' },
+                    ]}
+                />
+                <OptionField
+                    id="grades-direction"
+                    label="Kierunek"
+                    value={direction}
+                    onChange={setDirection}
+                    options={[
+                        { id: 'asc', label: 'Rosnąco' },
+                        { id: 'desc', label: 'Malejąco' },
+                    ]}
+                />
             </div>
             <Button type="submit" className="w-full md:w-auto">
                 Filtruj
             </Button>
-        </form>
+        </SearchFilterForm>
     );
 }
 

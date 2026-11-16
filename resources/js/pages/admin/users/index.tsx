@@ -1,3 +1,5 @@
+import { useFilterState } from '@/hooks/use-filter-state';
+import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronRight, Eye, ListFilter, Search } from 'lucide-react';
 import { useId, useState } from 'react';
@@ -108,7 +110,6 @@ export default function Users({ users, filters, options }: UserListProps) {
                     title="Sprawdź wybrane filtry"
                 />
                 <UserFilterForm
-                    key={JSON.stringify(params(filters))}
                     filters={filters}
                     options={options}
                     activeFilters={activeFilters}
@@ -332,13 +333,15 @@ function UserFilterForm({
     activeFilters: number;
     onPending: (pending: boolean) => void;
 }) {
-    const [q, setQ] = useState(filters.q);
-    const [role, setRole] = useState<string>(filters.role ?? '');
-    const [status, setStatus] = useState<string>(filters.status ?? '');
+    const [sort, setSort] = useFilterState<string>(filters.sort);
+    const [direction, setDirection] = useFilterState<string>(filters.direction);
+    const [q, setQ] = useFilterState(filters.q);
+    const [role, setRole] = useFilterState<string>(filters.role ?? '');
+    const [status, setStatus] = useFilterState<string>(filters.status ?? '');
     const [schoolClassId, setSchoolClassId] = useState(
         filters.schoolClassId ?? '',
     );
-    const [termId, setTermId] = useState(filters.termId ?? '');
+    const [termId, setTermId] = useFilterState(filters.termId ?? '');
     const [open, setOpen] = useState(false);
     const [pending, setPending] = useState(false);
     const panelId = useId();
@@ -355,7 +358,7 @@ function UserFilterForm({
     }
 
     return (
-        <form
+        <SearchFilterForm
             role="search"
             aria-label="Filtry użytkowników"
             onSubmit={(event) => {
@@ -363,6 +366,8 @@ function UserFilterForm({
                 router.get(
                     '/admin/users',
                     {
+                        sort,
+                        direction,
                         q: q.trim() || undefined,
                         role: role || undefined,
                         status: status || undefined,
@@ -376,6 +381,8 @@ function UserFilterForm({
                                 : filters.perPage,
                     },
                     {
+                        preserveState: true,
+                        preserveScroll: true,
                         onStart: () => {
                             setPending(true);
                             onPending(true);
@@ -463,7 +470,29 @@ function UserFilterForm({
                         options={terms}
                     />
                 )}
+                <OptionField
+                    id="filter-sort"
+                    label="Sortowanie"
+                    value={sort}
+                    onChange={setSort}
+                    options={[
+                        { id: 'last_name', label: 'Nazwisko' },
+                        { id: 'email', label: 'E-mail' },
+                        { id: 'role', label: 'Rola' },
+                        { id: 'created_at', label: 'Data utworzenia' },
+                    ]}
+                />
+                <OptionField
+                    id="filter-direction"
+                    label="Kierunek"
+                    value={direction}
+                    onChange={setDirection}
+                    options={[
+                        { id: 'asc', label: 'Rosnąco' },
+                        { id: 'desc', label: 'Malejąco' },
+                    ]}
+                />
             </div>
-        </form>
+        </SearchFilterForm>
     );
 }

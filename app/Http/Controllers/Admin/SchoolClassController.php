@@ -13,6 +13,7 @@ use App\Models\StudentEnrollment;
 use App\Models\Term;
 use App\Models\User;
 use App\Services\School\SchoolClassService;
+use App\Support\ListFilters;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
@@ -32,7 +33,7 @@ class SchoolClassController extends Controller
             ->when($yearId, fn ($q) => $q->where('academic_year_id', $yearId));
         $selected = isset($data['selected_class_id']) ? (clone $query)->findOrFail((int) $data['selected_class_id']) : null;
         $direction = $data['direction'] ?? 'asc';
-        $classes = $query->when(isset($data['q']) && $data['q'] !== '', fn ($q) => $q->where('name', 'like', '%'.addcslashes($data['q'], '%_\\').'%'))
+        $classes = $query->when(isset($data['q']) && $data['q'] !== '', fn ($q) => $q->where('name', 'like', ListFilters::contains($data['q'])))
             ->orderBy('name', $direction)->orderBy('id', $direction)->paginate((int) ($data['per_page'] ?? 10))->withQueryString();
         $enrollments = $selected ? StudentEnrollment::visibleTo($request->user())->where('school_class_id', $selected->id)->with(['student', 'schoolClass'])
             ->orderBy('starts_on', 'desc')->orderBy('id', 'desc')->paginate(10, ['*'], 'enrollment_page')->withQueryString() : null;

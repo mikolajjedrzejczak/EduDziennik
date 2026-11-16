@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\SubjectFilterRequest;
 use App\Http\Requests\Admin\UpdateSubjectRequest;
 use App\Models\Subject;
 use App\Services\School\SubjectService;
+use App\Support\ListFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -27,7 +28,7 @@ class SubjectController extends Controller
             $query->onlyTrashed();
         }
         if ($filters['q'] !== '') {
-            $like = '%'.addcslashes($filters['q'], '\\%_').'%';
+            $like = ListFilters::contains($filters['q']);
             $query->where('name', 'like', $like);
         }
         $query->orderBy('name', $filters['direction'])->orderBy('id');

@@ -1,3 +1,5 @@
+import { useFilterState } from '@/hooks/use-filter-state';
+import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -28,9 +30,9 @@ export default function Gradebook({
     const errors = backgroundOnly ? {} : pageErrors;
     const role = auth.user.role;
     const base = `/${role}/gradebooks/${context.assignmentId}`;
-    const [q, setQ] = useState(filters.q);
-    const [perPage, setPerPage] = useState(String(filters.perPage));
-    const [direction, setDirection] = useState(filters.direction);
+    const [q, setQ] = useFilterState(filters.q);
+    const [perPage, setPerPage] = useFilterState(String(filters.perPage));
+    const [direction, setDirection] = useFilterState(filters.direction);
     const [action, setAction] = useState<
         'create' | GradebookProps['assessments']['data'][number] | null
     >(null);
@@ -97,7 +99,7 @@ export default function Gradebook({
                     fields={{ q: { id: 'roster-q', label: 'Nazwisko ucznia' } }}
                     title="Sprawdź wybrane filtry"
                 />
-                <form
+                <SearchFilterForm
                     role="search"
                     aria-label="Filtr uczniów"
                     className="grid grid-cols-2 items-end gap-3 md:flex md:flex-wrap"
@@ -111,7 +113,11 @@ export default function Gradebook({
                                 direction,
                                 sort: 'last_name',
                             },
-                            { replace: true, preserveScroll: true },
+                            {
+                                preserveState: true,
+                                replace: false,
+                                preserveScroll: true,
+                            },
                         );
                     }}
                 >
@@ -158,7 +164,7 @@ export default function Gradebook({
                             Wyczyść filtry
                         </Link>
                     )}
-                </form>
+                </SearchFilterForm>
                 <section
                     aria-label="Dziennik ocen"
                     aria-busy={loading}

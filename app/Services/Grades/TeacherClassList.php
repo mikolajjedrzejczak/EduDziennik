@@ -6,6 +6,7 @@ use App\Models\SchoolClass;
 use App\Models\TeacherAssignment;
 use App\Models\Term;
 use App\Models\User;
+use App\Support\ListFilters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -32,7 +33,7 @@ class TeacherClassList
      */
     public function assignments(User $actor, ?int $termId, string $search, string $direction): Builder
     {
-        $like = '%'.addcslashes($search, '\\%_').'%';
+        $like = ListFilters::contains($search);
 
         return TeacherAssignment::visibleTo($actor)->where('term_id', $termId)
             ->with(['teacher', 'schoolClass.academicYear', 'subject', 'term.academicYear'])

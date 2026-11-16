@@ -100,7 +100,7 @@ describe('teacher class selection', () => {
                 sort: 'name',
                 direction: 'asc',
             },
-            expect.objectContaining({ replace: true }),
+            expect.objectContaining({ replace: false }),
         );
     });
     it('distinguishes missing assignments, no current term, and no search results', () => {

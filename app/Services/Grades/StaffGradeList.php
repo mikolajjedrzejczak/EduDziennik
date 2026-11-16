@@ -9,6 +9,7 @@ use App\Models\StudentEnrollment;
 use App\Models\Subject;
 use App\Models\Term;
 use App\Models\User;
+use App\Support\ListFilters;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -47,7 +48,7 @@ class StaffGradeList
             ->when(isset($data['student_id']), fn ($q) => $q->whereHas('enrollment', fn ($e) => $e->where('student_id', $data['student_id'])))
             ->when(isset($data['date_from']), fn ($q) => $q->where('grades.graded_on', '>=', $data['date_from']))
             ->when(isset($data['date_to']), fn ($q) => $q->where('grades.graded_on', '<=', $data['date_to']))
-            ->when(trim($data['q'] ?? '') !== '', fn ($q) => $q->where('grades.topic', 'like', '%'.addcslashes(trim($data['q']), '\\%_').'%'));
+            ->when(trim($data['q'] ?? '') !== '', fn ($q) => $q->where('grades.topic', 'like', ListFilters::contains(trim($data['q']))));
         $summary = app(GradeSummary::class)->aggregate(clone $query);
         $page = $query->with(['assessment.subject', 'assessment.term.academicYear', 'assessment.schoolClass', 'category', 'issuer', 'enrollment.student'])
             ->orderBy('grades.'.($data['sort'] ?? 'graded_on'), $data['direction'] ?? 'desc')->orderBy('grades.id', $data['direction'] ?? 'desc')

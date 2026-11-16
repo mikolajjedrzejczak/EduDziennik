@@ -4,6 +4,7 @@ namespace App\Http\Requests\Teacher;
 
 use App\Models\TeacherAssignment;
 use App\Services\Grades\TeacherClassList;
+use App\Support\ListFilters;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -21,10 +22,7 @@ class ClassFilterRequest extends FormRequest
     {
         return [
             'term_id' => ['bail', 'nullable', 'integer', Rule::in(app(TeacherClassList::class)->terms($this->user())->pluck('id')->all())],
-            'q' => ['nullable', 'string', 'max:100'],
-            'page' => ['nullable', 'integer', 'min:1', 'max:100000'],
-            'per_page' => ['nullable', 'integer', 'in:10,25,50'],
-            'sort' => ['nullable', 'in:name'], 'direction' => ['nullable', 'in:asc,desc'],
+            ...ListFilters::rules(['name']),
         ];
     }
 

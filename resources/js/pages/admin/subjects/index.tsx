@@ -1,3 +1,5 @@
+import { useFilterState } from '@/hooks/use-filter-state';
+import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, router } from '@inertiajs/react';
 import { Archive, Pencil, Plus, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -69,7 +71,7 @@ export default function SubjectsIndex({
         openerRef.current = document.activeElement as HTMLElement | null;
         setModal(next);
     };
-    const [search, setSearch] = useState(filters.q ?? '');
+    const [search, setSearch] = useFilterState(filters.q ?? '');
     const close = () => setModal(null);
     const filtered = Boolean(filters.q);
 
@@ -79,7 +81,7 @@ export default function SubjectsIndex({
                 query: query(filters, { page: 1, ...overrides }),
             }),
             {},
-            { preserveScroll: true, preserveState: true, replace: true },
+            { preserveScroll: true, preserveState: true, replace: false },
         );
 
     const rowActions = (subject: SubjectDTO) =>
@@ -148,7 +150,7 @@ export default function SubjectsIndex({
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center">
-                    <form
+                    <SearchFilterForm
                         role="search"
                         aria-label="Wyszukiwanie przedmiotów"
                         className="flex-1"
@@ -177,7 +179,7 @@ export default function SubjectsIndex({
                                 }
                             />
                         </div>
-                    </form>
+                    </SearchFilterForm>
                     <div
                         role="group"
                         aria-label="Status przedmiotów"

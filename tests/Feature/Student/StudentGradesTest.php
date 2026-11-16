@@ -61,6 +61,26 @@ class StudentGradesTest extends TestCase
         ]);
     }
 
+    public function test_combined_literal_search_is_scoped_and_summary_survives_pages(): void
+    {
+        for ($i = 0; $i < 11; $i++) {
+            $this->grade(4, 2, ['topic' => 'Żółć%_ test', 'graded_on' => '2026-10-10']);
+        }
+        $this->grade(1, 5, ['topic' => 'ŻółćXX test']);
+        $other = StudentEnrollment::factory()->create(['school_class_id' => $this->class->id]);
+        $this->grade(1, 5, ['topic' => 'Żółć%_ test'], [], $other);
+        $filters = ['q' => ' Żółć%_ ', 'subject_id' => $this->math->id, 'category_id' => $this->quiz->id,
+            'date_from' => '2026-10-01', 'date_to' => '2026-10-31', 'sort' => 'value', 'direction' => 'desc'];
+        foreach ([1 => 10, 2 => 1] as $page => $count) {
+            $this->actingAs($this->student)->get(route('student.grades.index', [...$filters, 'page' => $page]))
+                ->assertOk()->assertInertia(fn (Assert $p) => $p->has('grades.data', $count)
+                ->where('grades.meta.total', 11)->where('summary.count', 11)->where('summary.average', '4.00')
+                ->where('filters.q', 'Żółć%_'));
+        }
+        $this->get(route('student.grades.index', [...$filters, 'sort' => 'value desc; DROP TABLE grades']))
+            ->assertStatus(303)->assertSessionHasErrors('sort');
+    }
+
     public function test_student_sees_only_own_grades_with_allowlisted_props(): void
     {
         $this->grade(4, 2, ['topic' => 'Ciągi']);
