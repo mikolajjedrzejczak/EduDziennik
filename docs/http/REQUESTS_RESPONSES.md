@@ -318,3 +318,10 @@ FACT: `TeacherDashboardProps` zwraca trzy liczniki BR-03, `assignments` (maksyma
 FACT: DashboardFilterRequest obsługuje student i teacher przez właściwy scoped katalog termów. Teacher może wybrać tylko term własnego niecofniętego przydziału. Domyślny term obejmuje dzisiaj Europe/Warsaw; brak takiego termu daje term=null, zera i puste listy, z możliwością jawnego wyboru dostępnego semestru. student_id/student_enrollment_id są zabronione, inne nieznane parametry nie wpływają na zakres. Walidacja przekierowuje303 do oczyszczonego pulpitu właściwej roli, także przy partial reload.
 
 DECISION: podgląd ocen jest odczytem z autoryzowanego scope i ma wszystkie `can` ustawione false; link prowadzi do szczegółów ponownie obliczających uprawnienia. GradePresenter pomija nieużywane w podglądzie kontrole mutacji, co usuwa zapytania per ocena. DTO nadal używa wspólnej allowlisty GradeDTO.
+
+
+## Realizacja F-301 — pulpit administratora
+
+FACT: `DashboardFilterRequest` obsługuje admin przez UserPolicy i katalog wszystkich skonfigurowanych termów (SchoolClassPolicy), niezależnie od przydziałów. `term_id` jest opcjonalny, nullable, integer i musi należeć do katalogu. Domyślny term obejmuje dziś Europe/Warsaw; brak takiego termu →term=null, classCount=0 i recentAudits=[], przy zachowaniu globalnych userCounts/inactiveCount/subjectCount. Błędne filtry →303 do oczyszczonego admin.dashboard z session errors; student_id/student_enrollment_id zabronione. Pozostałe parametry nie zmieniają odczytu.
+
+FACT: `userCounts` liczy wszystkie nieusunięte konta według roli, w tym nieaktywne; `inactiveCount` to ich nieaktywny podzbiór. `classCount` liczy nieusunięte klasy roku wybranego termu, `subjectCount` cały nieusunięty słownik szkoły. `recentAudits` to maksymalnie pięć AuditDTO wybranego termu (`occurred_at DESC, id DESC`), również dla soft-deleted ocen i kontekstów. Używa wspólnego `AuditPresenter` z historią F-104 i wdrożonego rozszerzenia AuditDTO o subject/student/gradeUrl; nie serializuje dowolnych pól JSON ani modeli użytkowników.

@@ -14,15 +14,12 @@ use App\Models\User;
 use App\Services\Authorization\GradeAccess;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class GradeHistory
 {
-    private const SNAPSHOT_KEYS = ['schema_version', 'id', 'student_enrollment_id', 'student_id', 'assessment_id', 'school_class_id', 'subject_id', 'term_id', 'category_id', 'value', 'weight', 'topic', 'comment', 'graded_on', 'issued_by', 'version', 'deleted_at'];
-
     /** @return array<string, array<int, array{id: string, label: string}>> */
     public function options(User $actor, ?int $enrollmentId = null): array
     {
@@ -88,16 +85,7 @@ class GradeHistory
 
         return Inertia::render('shared/history/index', [
             'audits' => [
-                'data' => $page->map(fn (GradeAudit $audit) => [
-                    'id' => (string) $audit->id, 'gradeId' => (string) $audit->grade_id,
-                    'actor' => ['id' => (string) $audit->actor_id, 'label' => $audit->actor->name],
-                    'action' => $audit->action, 'occurredAt' => $audit->occurred_at->toIso8601String(),
-                    'oldValues' => $audit->old_values === null ? null : Arr::only($audit->old_values, self::SNAPSHOT_KEYS),
-                    'newValues' => Arr::only($audit->new_values, self::SNAPSHOT_KEYS), 'reason' => $audit->reason,
-                    'subject' => ['id' => (string) $audit->grade->assessment->subject_id, 'label' => $audit->grade->assessment->subject->name],
-                    'student' => ['id' => (string) $audit->grade->enrollment->student_id, 'label' => $audit->grade->enrollment->student->name],
-                    'gradeUrl' => route($actor->role.'.grades.show', $audit->grade_id, absolute: false),
-                ])->all(),
+                'data' => $page->map(fn (GradeAudit $audit) => app(AuditPresenter::class)->toArray($audit, $actor))->all(),
                 'meta' => ['currentPage' => $page->currentPage(), 'lastPage' => $page->lastPage(), 'perPage' => $page->perPage(), 'total' => $page->total()],
                 'links' => [
                     ['label' => 'Poprzednia', 'url' => $page->previousPageUrl(), 'active' => false],

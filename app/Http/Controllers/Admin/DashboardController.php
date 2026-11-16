@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DashboardFilterRequest;
+use App\Services\Statistics\AdminDashboard;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/** Empty role dashboard shell (F-007); data panels arrive with the role's dashboard feature. */
 class DashboardController extends Controller
 {
-    public function index(): Response
+    public function index(DashboardFilterRequest $request, AdminDashboard $dashboard): Response
     {
-        return Inertia::render('admin/dashboard');
+        $termId = $request->validated('term_id');
+
+        return Inertia::render('admin/dashboard', $dashboard->props($request->user(), $termId === null ? null : (int) $termId));
     }
 }

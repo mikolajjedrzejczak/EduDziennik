@@ -3,9 +3,11 @@
 namespace App\Http\Requests;
 
 use App\Models\Grade;
+use App\Models\User;
 use App\Services\Authorization\RecordAccess;
 use App\Services\Grades\StudentGradeList;
 use App\Services\Grades\TeacherClassList;
+use App\Services\Statistics\AdminDashboard;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -17,14 +19,22 @@ class DashboardFilterRequest extends FormRequest
     {
         $actor = $this->user();
 
-        return $actor !== null && RecordAccess::active($actor) && in_array($actor->role, ['student', 'teacher'], true) && $actor->can('viewAny', Grade::class);
+        return $actor !== null && RecordAccess::active($actor) && match ($actor->role) {
+            'admin' => $actor->can('viewAny', User::class),
+            'student', 'teacher' => $actor->can('viewAny', Grade::class),
+            default => false,
+        };
     }
 
     /** @return array<string, list<mixed>> */
     public function rules(): array
     {
         return [
-            'term_id' => ['bail', 'nullable', 'integer', Rule::in(app($this->user()->role === 'teacher' ? TeacherClassList::class : StudentGradeList::class)->terms($this->user())->pluck('id')->all())],
+            'term_id' => ['bail', 'nullable', 'integer', Rule::in(app(match ($this->user()->role) {
+                'admin' => AdminDashboard::class,
+                'teacher' => TeacherClassList::class,
+                default => StudentGradeList::class,
+            })->terms($this->user())->pluck('id')->all())],
             'student_id' => ['prohibited'],
             'student_enrollment_id' => ['prohibited'],
         ];
