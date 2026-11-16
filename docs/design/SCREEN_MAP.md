@@ -130,3 +130,8 @@ VERIFIED F-206: zrzuty potwierdzenia320/390/1024/1440 oraz walidacji390/1024 odc
 ### F-101 — pulpit ucznia
 
 VERIFIED: odczytano design context/rendery14:2,21:2,38:8813 i porównano zrzuty implementacji390/1024/1440 (dodatkowo320). Zachowano powłokę F-007 i semantyczne tokeny. Adaptacja kontraktu: wiersz przedmiotu ma licznik zamiast wszystkich ocen/nauczyciela; brak banera audytu; jawny selector semestru; mobile pokazuje cztery wskaźniki2×2 i ostatnie oceny pod przedmiotami. Przywitanie bez fikcyjnej daty makiety. Szczegóły i status odbioru adaptacji: F-101 §22; pełnej zgodności pikselowej nie deklarujemy.
+
+
+### F-401 — profil i hasło
+
+FACT: odczytano context i rendery14:996/21:856. Dwa panele desktop, pionowy formularz mobile/tablet. Edytowalne imię/nazwisko i formularz hasła na mobile realizują kontrakt zamiast odczytu danych/nawigacji z makiety. Reguła12–128 zastępuje10 znaków z referencji. Bez listy sesji, wychowawcy i ostatniego logowania spoza ProfileProps. Zachowano tokeny i powłokę F-007; tablet nie ma dedykowanej ramki profilu. Adaptacja do odbioru właściciela; szczegóły i wyniki kontroli w F-401 §22.

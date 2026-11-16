@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Middleware\EnsureActiveAccount;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\HandleAppearance;
@@ -13,6 +14,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
@@ -36,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             EnsureActiveAccount::class,
+            AuthenticateSession::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
@@ -43,6 +46,16 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
+            if ($response->getStatusCode() === 429 && $request->routeIs('profile.password.update')) {
+                $retryAfter = (int) $response->headers->get('Retry-After', '60');
+
+                $limited = app(ProfileController::class)->edit($request)->toResponse($request);
+                $limited->setStatusCode(429);
+                $limited->headers->set('Retry-After', (string) $retryAfter);
+
+                return $limited;
+            }
+
             if (in_array($response->getStatusCode(), [419, 429], true)) {
                 $retryAfter = (int) $response->headers->get('Retry-After', '0');
                 $errorResponse = Inertia::render('auth/login', [

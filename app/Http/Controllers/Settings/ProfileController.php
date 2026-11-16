@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Http\Requests\Settings\UpdateProfileRequest;
+use App\Services\Users\ProfileService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -20,25 +21,30 @@ class ProfileController extends Controller
         Gate::authorize('viewProfile', $request->user());
 
         return Inertia::render('settings/profile', [
-            'status' => $request->session()->get('status'),
+            'passwordRateLimited' => $request->routeIs('profile.password.update'),
+            'user' => [
+                'id' => (string) $request->user()->id,
+                'firstName' => $request->user()->first_name,
+                'lastName' => $request->user()->last_name,
+                'name' => $request->user()->name,
+                'email' => $request->user()->email,
+                'role' => $request->user()->role,
+            ],
         ]);
     }
 
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(UpdateProfileRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        app(ProfileService::class)->update($request->user()->id, [
+            'first_name' => $request->validated('first_name'),
+            'last_name' => $request->validated('last_name'),
+        ]);
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
+        $request->user()->refresh();
 
-        $request->user()->save();
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
-
-        return to_route('profile.edit');
+        return to_route('profile.edit')->with('success', 'Dane profilu zostały zapisane.');
     }
 }

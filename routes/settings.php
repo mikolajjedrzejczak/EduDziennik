@@ -1,21 +1,22 @@
 <?php
 
 use App\Http\Controllers\Settings\ProfileController;
-use App\Http\Controllers\Settings\SecurityController;
+use App\Http\Controllers\Settings\ProfilePasswordController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
-    Route::redirect('settings', '/settings/profile');
+    Route::redirect('settings', '/profile');
 
-    Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('settings/profile', fn () => to_route('profile.edit'));
 
-    Route::get('settings/security', [SecurityController::class, 'edit'])
-        ->name('security.edit');
+    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    Route::put('settings/password', [SecurityController::class, 'update'])
-        ->middleware('throttle:6,1')
-        ->name('user-password.update');
+    Route::redirect('settings/security', '/profile')->name('security.edit');
+
+    Route::put('profile/password', [ProfilePasswordController::class, 'update'])
+        ->middleware('throttle:profile-password')
+        ->name('profile.password.update');
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
 });
