@@ -20,7 +20,8 @@ export type NavigationIcon =
     | 'subjects'
     | 'assignments'
     | 'users'
-    | 'grades';
+    | 'grades'
+    | 'history';
 
 /** Built by the server (NavigationService); the client only renders it. */
 export type NavigationItem = {
@@ -29,6 +30,7 @@ export type NavigationItem = {
     shortLabel: string;
     href: string;
     icon: NavigationIcon;
+    active?: boolean;
 };
 
 export type Navigation = {

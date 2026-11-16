@@ -101,3 +101,7 @@ FACT F-305: `admin.users.destroy` jest zarejestrowana pod `auth`/`role:admin`, z
 
 
 FACT F-103: trzy trasy `student.grades.show`, `teacher.grades.show`, `admin.grades.show` są wdrożone, mają `withTrashed`, `whereNumber(grade)` i middleware właściwej roli; GradeDetailRequest autoryzuje GradePolicy.view przed odczytem. Strona `shared/grades/show` korzysta z GradeDetailProps. `historyUrl` prowadzi tymczasowo do sekcji szczegółów `#grade-history` z paginacją `history_page`; osobne trasy historii pozostają w F-104. Szczegóły usuniętej oceny są tylko do odczytu.
+
+### Integracja F-104
+
+FACT: zarejestrowano wszystkie sześć tras historii z tabeli: ogólna `/student|teacher|admin/history` i konkretnej oceny `/student|teacher|admin/grades/{grade}/history`. Każda używa `auth`, odpowiedniego `role`, `HistoryFilterRequest` i `GradeAuditPolicy.viewAny`; szczegół dodatkowo `GradePolicy.viewHistory` i jawne `withTrashed`. Obcy rekord/selektor → 404. Wspólna strona `shared/history/index`; logika odczytu w `GradeHistory` i istniejącym `GradeAccess`.

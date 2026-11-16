@@ -35,7 +35,7 @@ class GradeDetail
             'grade' => $this->presenter->toArray($grade, $actor),
             'summary' => [...$summary, 'scopeLabel' => $a->subject->name.' · Semestr '.($a->term->number === 1 ? 'I' : 'II').' ('.$a->term->academicYear->name.')'],
             'averageWithoutGrade' => $without['average'],
-            'historyUrl' => $url.'#grade-history',
+            'historyUrl' => route($actor->role.'.grades.history', $grade, absolute: false),
             'backUrl' => $actor->role === 'student'
                 ? route('student.grades.index', ['term_id' => $a->term_id, 'subject_id' => $a->subject_id], absolute: false)
                 : route($actor->role.'.dashboard', absolute: false),

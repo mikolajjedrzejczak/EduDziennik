@@ -17,7 +17,7 @@ export function MobileNavigation({ navigation }: { navigation: Navigation }) {
             <ul className="flex">
                 {items.map((item) => {
                     const Icon = mobileIcons[item.icon];
-                    const active = isCurrentUrl(item.href);
+                    const active = item.active ?? isCurrentUrl(item.href);
 
                     return (
                         <li key={item.key} className="min-w-0 flex-1">

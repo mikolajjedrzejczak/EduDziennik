@@ -52,8 +52,10 @@ for (const width of [390, 1024, 1440, 320]) {
         });
         await historyLink.focus();
         await page.keyboard.press('Enter');
-        await expect(page).toHaveURL(/#grade-history$/);
-        await expect(page.locator('#grade-history')).toBeFocused();
+        await expect(page).toHaveURL(/\/grades\/\d+\/history$/);
+        await expect(
+            page.getByRole('region', { name: 'Historia ocen' }),
+        ).toBeVisible();
         expect(
             await page.evaluate(
                 () => document.documentElement.scrollWidth <= innerWidth,
