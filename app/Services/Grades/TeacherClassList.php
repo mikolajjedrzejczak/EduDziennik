@@ -57,7 +57,7 @@ class TeacherClassList
             'teacher' => ['id' => (string) $assignment->teacher_id, 'label' => $assignment->teacher->name],
             'schoolClass' => ['id' => (string) $assignment->school_class_id, 'label' => $assignment->schoolClass->name.' · '.$assignment->schoolClass->academicYear->name],
             'subject' => ['id' => (string) $assignment->subject_id, 'label' => $assignment->subject->name],
-            'term' => $this->termOption($assignment->term), 'revokedAt' => null,
+            'term' => $this->termOption($assignment->term), 'revokedAt' => $assignment->revoked_at?->toIso8601String(),
         ];
     }
 }

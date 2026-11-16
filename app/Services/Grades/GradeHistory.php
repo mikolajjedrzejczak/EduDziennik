@@ -6,7 +6,9 @@ use App\Models\Assessment;
 use App\Models\Grade;
 use App\Models\GradeAudit;
 use App\Models\GradeCategory;
+use App\Models\StudentEnrollment;
 use App\Models\Subject;
+use App\Models\TeacherAssignment;
 use App\Models\Term;
 use App\Models\User;
 use App\Services\Authorization\GradeAccess;
@@ -22,7 +24,7 @@ class GradeHistory
     private const SNAPSHOT_KEYS = ['schema_version', 'id', 'student_enrollment_id', 'student_id', 'assessment_id', 'school_class_id', 'subject_id', 'term_id', 'category_id', 'value', 'weight', 'topic', 'comment', 'graded_on', 'issued_by', 'version', 'deleted_at'];
 
     /** @return array<string, array<int, array{id: string, label: string}>> */
-    public function options(User $actor): array
+    public function options(User $actor, ?int $enrollmentId = null): array
     {
         $assessments = Grade::withTrashed()->visibleTo($actor)->select('assessment_id');
         $context = Assessment::withTrashed()->whereIn('id', $assessments);
@@ -31,6 +33,13 @@ class GradeHistory
         $categoryIds = GradeAudit::visibleTo($actor)->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(new_values, '$.category_id'))")
             ->union(GradeAudit::visibleTo($actor)->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(old_values, '$.category_id'))"));
         $categories = GradeCategory::whereIn('id', $categoryIds)->orderBy('name')->limit(501)->get();
+        $enrollment = $enrollmentId === null ? null : StudentEnrollment::visibleTo($actor)->find($enrollmentId);
+        if ($actor->role !== 'student' && $enrollment !== null) {
+            $assignments = TeacherAssignment::visibleTo($actor)->where('school_class_id', $enrollment->school_class_id)
+                ->whereHas('term', fn ($t) => $t->whereDate('ends_on', '>=', $enrollment->starts_on)->whereDate('starts_on', '<=', $enrollment->ends_on ?? $enrollment->schoolClass->academicYear->ends_on));
+            $terms = $terms->merge(Term::with('academicYear')->whereIn('id', (clone $assignments)->select('term_id'))->limit(501)->get())->unique('id')->values();
+            $subjects = $subjects->merge(Subject::withTrashed()->whereIn('id', (clone $assignments)->select('subject_id'))->limit(501)->get())->unique('id')->values();
+        }
         abort_if($terms->count() > 500 || $subjects->count() > 500 || $categories->count() > 500, 503);
 
         return [
@@ -95,7 +104,7 @@ class GradeHistory
                     ['label' => 'Następna', 'url' => $page->nextPageUrl(), 'active' => false],
                 ],
             ],
-            'filters' => $filters, 'options' => $this->options($actor),
+            'filters' => $filters, 'options' => $this->options($actor, isset($filters['studentEnrollmentId']) ? (int) $filters['studentEnrollmentId'] : null),
             'grade' => $grade ? app(GradePresenter::class)->toArray($grade, $actor) : null,
             'indexUrl' => $url,
             'historyUrl' => route($actor->role.'.history.index', absolute: false),

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Grade;
 use App\Models\GradeAudit;
+use App\Models\StudentEnrollment;
 use App\Services\Grades\GradeHistory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,6 +28,12 @@ class HistoryFilterRequest extends FormRequest
             }
             $value = $this->input($input);
             if (is_scalar($value) && ctype_digit((string) $value)) {
+                if ($input === 'student_enrollment_id') {
+                    abort_if($grade instanceof Grade && (int) $value !== $grade->student_enrollment_id, 404);
+                    abort_unless(StudentEnrollment::visibleTo($this->user())->whereKey($value)->exists(), 404);
+
+                    continue;
+                }
                 $query = Grade::withTrashed()->visibleTo($this->user())->where($column, $value);
                 if ($grade instanceof Grade) {
                     $query->whereKey($grade->id);
@@ -41,7 +48,7 @@ class HistoryFilterRequest extends FormRequest
     /** @return array<string, list<mixed>> */
     public function rules(): array
     {
-        $options = app(GradeHistory::class)->options($this->user());
+        $options = app(GradeHistory::class)->options($this->user(), $this->user()->role !== 'student' && is_scalar($this->input('student_enrollment_id')) && ctype_digit((string) $this->input('student_enrollment_id')) ? (int) $this->input('student_enrollment_id') : null);
 
         return [
             'grade_id' => ['nullable', 'integer', 'min:1'],

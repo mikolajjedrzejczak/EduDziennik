@@ -21,6 +21,21 @@ Route::middleware(['auth'])->group(function () {
     }
     Route::get('teacher/classes', [Teacher\GradebookController::class, 'index'])->middleware('role:teacher')->name('teacher.gradebooks.index');
     Route::get('teacher/gradebooks/{assignment}', [Teacher\GradebookController::class, 'show'])->whereNumber('assignment')->middleware('role:teacher')->name('teacher.gradebooks.show');
+    foreach (['teacher' => Teacher\GradebookController::class, 'admin' => Admin\GradebookController::class] as $role => $controller) {
+        Route::middleware('role:'.$role)->prefix($role)->name($role.'.')->group(function () use ($role, $controller) {
+            if ($role === 'admin') {
+                Route::get('gradebooks', [$controller, 'index'])->name('gradebooks.index');
+                Route::get('gradebooks/{assignment}', [$controller, 'show'])->whereNumber('assignment')->name('gradebooks.show');
+            }
+            $namespace = $role === 'teacher' ? Teacher\StudentController::class : Admin\StudentController::class;
+            Route::get('gradebooks/{assignment}/students/{enrollment}', [$namespace, 'show'])->whereNumber(['assignment', 'enrollment'])->name('students.show');
+            $assessments = $role === 'teacher' ? Teacher\AssessmentController::class : Admin\AssessmentController::class;
+            Route::post('gradebooks/{assignment}/assessments', [$assessments, 'store'])->whereNumber('assignment')->name('assessments.store');
+            Route::delete('assessments/{assessment}', [$assessments, 'destroy'])->whereNumber('assessment')->name('assessments.destroy');
+            $grades = $role === 'teacher' ? Teacher\GradeController::class : Admin\GradeController::class;
+            Route::get('grades', [$grades, 'index'])->name('grades.index');
+        });
+    }
     Route::get('teacher', [Teacher\DashboardController::class, 'index'])->middleware('role:teacher')->name('teacher.dashboard');
     Route::get('admin', [Admin\DashboardController::class, 'index'])->middleware('role:admin')->name('admin.dashboard');
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {

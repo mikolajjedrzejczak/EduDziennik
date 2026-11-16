@@ -98,7 +98,7 @@ interface GradeContext {
 }
 interface StudentSummary { id: Id; enrollmentId: Id; name: string; historical: boolean }
 interface AssessmentDTO {
-  id: Id; topic: string; category: Option; defaultWeight: number; gradedOn: ISODate;
+  id: Id; topic: string; category: Option; defaultWeight: number; gradedOn: ISODate; canDelete: boolean;
 }
 interface GradeDTO {
   id: Id; student: StudentSummary; assessmentId: Id; context: GradeContext;
@@ -154,9 +154,10 @@ interface ClassListProps extends SharedProps { assignments: Page<AssignmentDTO>;
 interface GradebookRow { student: StudentSummary; grades: GradeDTO[]; deletedAssessmentIds: Id[]; summary: GradeSummary }
 interface GradebookProps extends SharedProps {
   context: GradeContext; assessments: Page<AssessmentDTO>; students: Page<GradebookRow>;
-  filters: Filters; categories: Option[];
+  filters: Filters; categories: Option[]; canCreateAssessment: boolean;
 }
-interface StudentDetailProps extends SharedProps { student: StudentSummary; context: GradeContext; grades: Page<GradeDTO>; summary: GradeSummary; historyUrl: string }
+interface StudentHistoryPreview { id: Id; action: 'create' | 'update' | 'delete'; actor: Option; occurredAt: ISODateTime; oldValue: number | null; value: number; weight: number; reason: string | null; topic: string }
+interface StudentDetailProps extends SharedProps { student: StudentSummary; context: GradeContext; grades: Page<GradeDTO>; summary: GradeSummary; historyUrl: string; recentHistory: StudentHistoryPreview[] }
 interface GradeFormProps extends SharedProps {
   grade: GradeDTO | null; context: GradeContext; assessment: AssessmentDTO | null;
   students: StudentSummary[]; assessments: AssessmentDTO[]; categories: Option[];
@@ -279,3 +280,14 @@ FACT: `GradeDetailProps.historyUrl` prowadzi do kanonicznej trasy historii; skr�
 FACT: `ClassListProps` jest wdrożony dla `teacher.gradebooks.index`; współdzielony AssignmentDTO importowany jest z `types/assignments.ts`, typy stron z `types/gradebooks.ts`. Lista obejmuje tylko niecofnięte przypisania zalogowanego nauczyciela. `terms` to termy tych przypisań (również zamknięte); filters.termId jest null, jeżeli nie ma bieżącego termu ani jawnego wyboru. Null oznacza pustą listę wymagającą wyboru, a nie wszystkie okresy. Domyślny term zawiera dzisiejszy dzień Europe/Warsaw. `q` wyszukuje literalny fragment nazwy klasy lub przedmiotu. `sort=name` sortuje według nazwy klasy, potem ID przypisania. Label klasy zawiera rok, label termu oznacza zamknięcie. Teacher i pozostałe Option zawierają tylko id/label.
 
 FACT: podstawowy odczyt `teacher.gradebooks.show` używa GradebookProps i GradebookFilterRequest; class/subject/term wyłącznie z autoryzowanego assignment URL. Dodatkowe selektory kontekstu nie zmieniają zapytania. `q` zawęża nazwisko rosteru, nie oceny ani średnie. `assessment_page` i `page` są niezależne, błędne strony przekierowują do właściwych ostatnich stron. Kolumny po10, uczniowie domyślnie10 (per_page 10/25/50). GradeDTO zawiera dokładny context.assignmentId; średnie obejmują wszystkie nieusunięte oceny enrollmentu w kontekście, nie tylko stronę kolumn. To odczyt potrzebny do selekcji F-202, bez deklaracji ukończenia F-203.
+
+
+## Realizacja F-203 (2026-11-16)
+
+FACT: wdrożone trasy teacher/admin z zakresu F-203: dziennik, szczegóły enrollmentu, listy ocen oraz POST/DELETE assessments; `admin.gradebooks.index` korzysta z tego samego ClassListProps i odczytu przypisań co teacher. Pełny odczyt administratora nie wymaga własnego przypisania; URL dziennika nadal identyfikuje istniejący assignment (również cofnięty). Backend ponawia zakres i Policy rekordu; kontekst kolumny pochodzi wyłącznie z URL. Body class/subject/term/created_by nie jest kontraktem zapisu i jest ignorowane.
+
+FACT: GradebookProps dodaje `canCreateAssessment`, AssessmentDTO w dzienniku dodaje `canDelete`. Usunięte oceny pozostają oznaczone przez deletedAssessmentIds; nie są zerami ani nowymi slotami zapisu. Tworzenie kolumny nie tworzy grades ani audytów. DELETE wymaga confirmed; jakakolwiek ocena, również soft-deleted, blokuje usunięcie przez errors.assessment. Zamknięty term blokuje obie mutacje, także admina. AssessmentService ponawia te warunki pod blokadami.
+
+FACT: StudentDetailProps dodaje `recentHistory`: maksymalnie cztery wpisy `{ id, action, actor: Option, occurredAt, oldValue, value, weight, reason, topic }`, z tego samego enrollment+class+subject+term co strona. Lista ocen ma niezależną paginację, średnia obejmuje cały ten kontekst. `historyUrl` zachowuje term_id, subject_id, student_enrollment_id. F-104 przy jawnym, autoryzowanym enrollment obsługuje także pustą historię; opcje dodatkowo obejmują przecinające go dozwolone przypisania. Niezgodny enrollment w szczegółach konkretnej oceny nadal daje404. Bez adresów e-mail uczniów w props teacher/admin tego widoku.
+
+FACT: staff GradeListProps (`types/grades.ts`: StaffGradeListProps) ma grades/summary/filters/options. Opcje: terms, subjects, categories, enrollments oraz admin students/classes; wyłącznie id/label, limit500 i503 przy przekroczeniu. Opcje poza termami pochodzą z widocznych nieusuniętych ocen (wszystkie termy); filtrowanie nie rozszerza zakresu. Filters rozszerza filtr ucznia o studentEnrollmentId, studentId i schoolClassId; teacher nie może podać student_id ani school_class_id. Nieprawidłowy filtr →303 bez niego + errors. Średnia przed paginacją, scopeLabel nazywa aktywny zakres. Domyślny term obejmuje dzisiejszą datę; gdy go brak, użytkownik musi wybrać okres.

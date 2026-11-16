@@ -13,7 +13,7 @@ class ClassFilterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role === 'teacher' && $this->user()->can('viewAny', TeacherAssignment::class);
+        return in_array($this->user()?->role, ['teacher', 'admin'], true) && $this->user()->can('viewAny', TeacherAssignment::class);
     }
 
     /** @return array<string, list<mixed>> */
@@ -38,7 +38,7 @@ class ClassFilterRequest extends FormRequest
     {
         $clean = array_intersect_key($this->except(array_keys($validator->errors()->messages())), $this->rules());
         $exception = new ValidationException($validator);
-        $exception->response = redirect()->route('teacher.gradebooks.index', $clean, 303)->withErrors($validator->errors());
+        $exception->response = redirect()->route($this->user()->role.'.gradebooks.index', $clean, 303)->withErrors($validator->errors());
 
         throw $exception;
     }

@@ -25,7 +25,9 @@ vi.mock('@inertiajs/react', () => ({
             {children}
         </a>
     ),
-    usePage: () => ({ props: { errors: state.errors } }),
+    usePage: () => ({
+        props: { errors: state.errors, auth: { user: { role: 'teacher' } } },
+    }),
     router: { get: state.get, on: () => () => undefined },
 }));
 const base: ClassListProps = {

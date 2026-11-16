@@ -19,7 +19,6 @@ import { Label } from '@/components/ui/label';
 import { usePageLoading } from '@/hooks/use-page-loading';
 import type { ClassListProps } from '@/types/gradebooks';
 
-const url = '/teacher/classes';
 const fields = {
     term_id: { id: 'classes-term', label: 'Semestr' },
     q: { id: 'classes-q', label: 'Klasa lub przedmiot' },
@@ -34,7 +33,9 @@ export default function TeacherClasses({
     filters,
     terms,
 }: ClassListProps) {
-    const { errors } = usePage().props;
+    const { errors, auth } = usePage().props;
+    const role = auth.user.role;
+    const url = role === 'admin' ? '/admin/gradebooks' : '/teacher/classes';
     const loading = usePageLoading();
     const [q, setQ] = useState(filters.q);
     const [termId, setTermId] = useState(filters.termId ?? '');
@@ -51,14 +52,16 @@ export default function TeacherClasses({
 
     return (
         <>
-            <Head title="Moje klasy" />
+            <Head title={role === 'admin' ? 'Dzienniki klas' : 'Moje klasy'} />
             <div className="space-y-6 p-4 md:p-6 xl:px-10 xl:py-7">
                 <header>
                     <h1 className="text-2xl leading-8 font-semibold">
-                        Moje klasy
+                        {role === 'admin' ? 'Dzienniki klas' : 'Moje klasy'}
                     </h1>
                     <p className="mt-1 text-sm text-text-secondary">
-                        Klasy i przedmioty przypisane Ci przez administratora.
+                        {role === 'admin'
+                            ? 'Wybierz klasę, przedmiot i semestr dziennika.'
+                            : 'Klasy i przedmioty przypisane Ci przez administratora.'}
                     </p>
                 </header>
                 <ErrorSummary
@@ -237,7 +240,7 @@ export default function TeacherClasses({
                                                             asChild
                                                         >
                                                             <Link
-                                                                href={`/teacher/gradebooks/${a.id}`}
+                                                                href={`/${role}/gradebooks/${a.id}`}
                                                                 aria-label={`Otwórz dziennik: ${a.schoolClass.label}, ${a.subject.label}`}
                                                             >
                                                                 <Sheet aria-hidden="true" />
@@ -254,7 +257,7 @@ export default function TeacherClasses({
                                     {assignments.data.map((a) => (
                                         <li key={a.id}>
                                             <Link
-                                                href={`/teacher/gradebooks/${a.id}`}
+                                                href={`/${role}/gradebooks/${a.id}`}
                                                 className="flex min-h-24 items-center justify-between gap-3 p-4 outline-none focus-visible:ring-[3px] focus-visible:ring-focus focus-visible:ring-inset"
                                                 aria-label={`Otwórz dziennik: ${a.schoolClass.label}, ${a.subject.label}`}
                                             >

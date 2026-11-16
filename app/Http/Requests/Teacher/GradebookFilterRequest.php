@@ -43,7 +43,7 @@ class GradebookFilterRequest extends FormRequest
     {
         $clean = array_intersect_key($this->except(array_keys($validator->errors()->messages())), $this->rules());
         $exception = new ValidationException($validator);
-        $exception->response = redirect()->route('teacher.gradebooks.show', ['assignment' => $this->route('assignment'), ...$clean], 303)->withErrors($validator->errors());
+        $exception->response = redirect()->route($this->route()->getName(), [...$this->route()->parameters(), ...$clean], 303)->withErrors($validator->errors());
 
         throw $exception;
     }
