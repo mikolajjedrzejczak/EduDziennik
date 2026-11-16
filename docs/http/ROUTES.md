@@ -98,3 +98,6 @@ FACT: `admin.classes.index/store/update/destroy` i `admin.enrollments.store/upda
 FACT F-102: `student.grades.index` (`GET /student/grades`, `role:student`) jest zarejestrowana; teacher/admin dostają 403, gość redirect na login. Pozostałe trasy ocen (`show`, `history`, teacher/admin) zachowują status planowany.
 
 FACT F-305: `admin.users.destroy` jest zarejestrowana pod `auth`/`role:admin`, z `DeleteUserRequest` i `UserPolicy.delete`. Soft-deleted binding pozostaje wyłącznie dla show; ponowne DELETE daje 404. Kontroler deleguje do `UserService.delete`, sukces przekierowuje do `admin.users.index`.
+
+
+FACT F-103: trzy trasy `student.grades.show`, `teacher.grades.show`, `admin.grades.show` są wdrożone, mają `withTrashed`, `whereNumber(grade)` i middleware właściwej roli; GradeDetailRequest autoryzuje GradePolicy.view przed odczytem. Strona `shared/grades/show` korzysta z GradeDetailProps. `historyUrl` prowadzi tymczasowo do sekcji szczegółów `#grade-history` z paginacją `history_page`; osobne trasy historii pozostają w F-104. Szczegóły usuniętej oceny są tylko do odczytu.

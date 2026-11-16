@@ -2,9 +2,15 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property CarbonImmutable $occurred_at
+ * @property array<string, mixed>|null $old_values
+ * @property array<string, mixed> $new_values
+ */
 class GradeAudit extends DomainModel
 {
     public $timestamps = false;

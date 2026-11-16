@@ -248,3 +248,18 @@ DECISION: zwykły sukces → `admin.users.show` + flash `success`. Gdy admin zmi
 FACT: `DELETE /admin/users/{user}` przyjmuje wyłącznie `confirmation_last_name` (required/string/max 80, dokładnie bieżące nazwisko po trim). `DeleteUserRequest` autoryzuje `UserPolicy.delete`; usługa odczytuje i autoryzuje aktora ponownie oraz sprawdza nazwisko pod blokadą. Nie można usunąć siebie (403), obca rola daje 403, gość redirect login, nieistniejący/usunięty cel 404. Błędy nazwiska wracają przez redirect/errors, bez częściowego zapisu.
 
 FACT: `UserService.delete` współdzieli `domain_locks.admin_membership` z edycją; blokuje rekordy User w kolejności ID i chroni ostatniego aktywnego admina. Jedna transakcja ustawia `status=inactive`, `deleted_at`, rotuje remember token i usuwa sesje celu. Nie usuwa ocen, enrollmentów, assignmentów ani audytów, nie zwalnia e-maila. Sukces: redirect `admin.users.index` z `flash.success`. Brak nowych props, migracji i zależności. Dialog używa istniejącego `UserDTO`, nie wysyła nazwiska oczekiwanego jako zaufanego pola ani liczby ocen. Lista domyślnie pomija usuniętych, filtr `status=deleted` i istniejące show pozwalają odczytać archiwalne konto.
+
+
+## Integracja F-103 — szczegóły oceny
+
+FACT: GradeDetailProps rozszerza kontrakt bazowy o `averageWithoutGrade: Average`, `backUrl: string` i `history: Page<GradeHistoryEntry>`. `summary` to nieusunięte oceny konkretnego ucznia z przedmiotu w okresie (wszystkie enrollmenty), zawężone zakresem aktora. `averageWithoutGrade` pomija dodatkowo bieżący grade; dla usuniętego jest równe aktualnej średniej, a UI nie sugeruje wliczenia go do wyniku.
+
+```ts
+interface GradeHistoryEntry {
+  id: Id; action: 'create' | 'update' | 'delete'; actor: Option;
+  occurredAt: ISODateTime; oldValue: 1 | 2 | 3 | 4 | 5 | 6 | null;
+  value: 1 | 2 | 3 | 4 | 5 | 6; weight: number; reason: string | null;
+}
+```
+
+FACT: `historyUrl = /{role}/grades/{grade}#grade-history` do czasu F-104; sekcja szczegółów ma stronicowany odczyt audytów, 10 wpisów, sort `occurred_at DESC, id DESC`. `history_page` jest liczbą 1..100000, błąd → 303 do czystego URL szczegółów + errors; nadmiarowa strona pokazuje ostatnią. Parametry nie zmieniają ucznia ani kontekstu. F-104 nadal odpowiada za ogólną historię, kanoniczne trasy historii, filtry i pełne snapshoty. `can` na szczegółach pochodzi z Policy; dla trashed update/delete są false, viewHistory pozostaje true przy dostępie do rekordu. Lista F-102 nadal ma `can` false; jej chip prowadzi do szczegółów.

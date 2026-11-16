@@ -60,10 +60,12 @@ export function StudentGradeList({
     grades,
     filters,
     showSubject,
+    gradeUrl,
 }: {
     grades: GradeDTO[];
     filters: GradeFilters;
     showSubject: boolean;
+    gradeUrl: (id: string) => string;
 }) {
     return (
         <>
@@ -106,6 +108,7 @@ export function StudentGradeList({
                                 <td className="px-3 py-2">
                                     <GradeChip
                                         value={grade.value}
+                                        href={gradeUrl(grade.id)}
                                         differsFromAssessment={
                                             grade.differsFromAssessment
                                         }
@@ -141,6 +144,7 @@ export function StudentGradeList({
                     >
                         <GradeChip
                             value={grade.value}
+                            href={gradeUrl(grade.id)}
                             differsFromAssessment={grade.differsFromAssessment}
                         />
                         <div className="min-w-0 flex-1">

@@ -81,3 +81,23 @@ export type GradeListProps = {
     filters: GradeFilters;
     options: GradeOptions;
 };
+
+export type GradeHistoryEntry = {
+    id: string;
+    action: 'create' | 'update' | 'delete';
+    actor: Option;
+    occurredAt: string;
+    oldValue: GradeValue | null;
+    value: GradeValue;
+    weight: number;
+    reason: string | null;
+};
+
+export type GradeDetailProps = {
+    grade: GradeDTO;
+    summary: GradeSummary;
+    averageWithoutGrade: Average;
+    historyUrl: string;
+    backUrl: string;
+    history: Page<GradeHistoryEntry>;
+};
