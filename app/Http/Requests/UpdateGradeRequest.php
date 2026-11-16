@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Grade;
 use App\Models\GradeCategory;
 use App\Services\Grades\GradeFormContext;
 use Illuminate\Support\Facades\Gate;
@@ -11,6 +12,7 @@ class UpdateGradeRequest extends MutationRequest
 {
     public function authorize(): bool
     {
+        /** @var Grade $grade */
         $grade = $this->route('grade');
         Gate::authorize('view', $grade);
         app(GradeFormContext::class)->resolve($this->user(), $this->input('assignment_id'), $grade->assessment_id, $grade->student_enrollment_id);
@@ -19,8 +21,10 @@ class UpdateGradeRequest extends MutationRequest
         return true;
     }
 
+    /** @return array<string, mixed> */
     public function rules(): array
     {
+        /** @var Grade $grade */
         $grade = $this->route('grade');
         $term = $grade->assessment->term;
         $enrollment = $grade->enrollment;

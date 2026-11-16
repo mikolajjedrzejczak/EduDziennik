@@ -130,7 +130,7 @@ class StudentDashboardTest extends TestCase
     {
         $foreignTerm = Term::factory()->create();
         foreach (['term_id' => $foreignTerm->id, 'student_id' => 999, 'student_enrollment_id' => 999] as $key => $value) {
-            $this->actingAs($this->student)->get(route('student.dashboard', [$key => $value]), ['X-Inertia' => 'true', 'X-Inertia-Version' => app(HandleInertiaRequests::class)->version(request()), 'X-Inertia-Partial-Component' => 'student/dashboard', 'X-Inertia-Partial-Data' => 'summary'])
+            $this->actingAs($this->student)->get(route('student.dashboard', [$key => $value]), ['X-Inertia' => 'true', 'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(request()), 'X-Inertia-Partial-Component' => 'student/dashboard', 'X-Inertia-Partial-Data' => 'summary'])
                 ->assertStatus(303)->assertRedirect(route('student.dashboard'))->assertSessionHasErrors($key);
         }
     }

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Assessment;
 use App\Models\GradeCategory;
+use App\Models\TeacherAssignment;
 use App\Services\Authorization\GradeAccess;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -12,7 +13,9 @@ class StoreAssessmentRequest extends MutationRequest
 {
     public function authorize(): bool
     {
-        $a = app(GradeAccess::class)->assignment($this->user(), $this->route('assignment')->id);
+        /** @var TeacherAssignment $assignment */
+        $assignment = $this->route('assignment');
+        $a = app(GradeAccess::class)->assignment($this->user(), $assignment->id);
         if (! $this->user()->can('create', [Assessment::class, $a->schoolClass, $a->subject, $a->term])) {
             throw ValidationException::withMessages(['form' => 'Kontekst jest tylko do odczytu. Nie można dodać kolumny.']);
         }
@@ -20,9 +23,12 @@ class StoreAssessmentRequest extends MutationRequest
         return true;
     }
 
+    /** @return array<string, mixed> */
     public function rules(): array
     {
-        $term = $this->route('assignment')->term;
+        /** @var TeacherAssignment $assignment */
+        $assignment = $this->route('assignment');
+        $term = $assignment->term;
 
         return [
             'category_id' => ['required', 'integer', Rule::in(GradeCategory::where('is_active', true)->pluck('id')->all())],

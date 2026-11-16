@@ -28,11 +28,13 @@ class StaffGradeList
     {
         $query = Grade::visibleTo($actor);
 
-        return match ($field) {
+        $ids = match ($field) {
             'subject_id', 'school_class_id' => $query->join('assessments', 'assessments.id', '=', 'grades.assessment_id')->distinct()->pluck('assessments.'.$field)->all(),
             'student_id' => $query->join('student_enrollments', 'student_enrollments.id', '=', 'grades.student_enrollment_id')->distinct()->pluck('student_enrollments.student_id')->all(),
             default => $query->distinct()->pluck('grades.'.$field)->all(),
         };
+
+        return array_values(array_map(intval(...), $ids));
     }
 
     /** @param array<string, mixed> $data */

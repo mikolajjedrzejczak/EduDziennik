@@ -117,7 +117,7 @@ class AdminDashboardTest extends TestCase
     {
         foreach (['term_id' => 999999, 'student_id' => 1, 'student_enrollment_id' => 1] as $key => $value) {
             $this->actingAs($this->admin)->get(route('admin.dashboard', [$key => $value]), [
-                'X-Inertia' => 'true', 'X-Inertia-Version' => app(HandleInertiaRequests::class)->version(request()),
+                'X-Inertia' => 'true', 'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(request()),
                 'X-Inertia-Partial-Component' => 'admin/dashboard', 'X-Inertia-Partial-Data' => 'recentAudits',
             ])->assertStatus(303)->assertRedirect(route('admin.dashboard'))->assertSessionHasErrors($key);
         }

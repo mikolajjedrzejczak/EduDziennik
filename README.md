@@ -2,7 +2,7 @@
 
 Elektroniczny dziennik ocen: uczeń, nauczyciel i administrator. Dokumentacja w języku polskim; kod i identyfikatory po angielsku.
 
-**Stan 2026-11-15: F-001, F-002, fundament bazy F-003 oraz harness testów F-501 do przeglądu.** Jedna aplikacja Laravel 13 + Inertia 3 + React 19. Model czasowy, konfiguracja operatorska i fixture są zaimplementowane; ekrany dziennika i CI pozostają w kolejnych funkcjach.
+**Stan 2026-11-15: F-001, F-002, fundament bazy F-003 oraz harness testów F-501 do przeglądu.** Jedna aplikacja Laravel 13 + Inertia 3 + React 19. Model czasowy, konfiguracja operatorska i fixture są zaimplementowane; ekrany dziennika pozostają w kolejnych funkcjach. Workflow CI (F-502) jest w `.github/workflows/ci.yml`; [opis](docs/infrastructure/CI_CD.md).
 
 Uruchomienie bez lokalnego PHP, Composer, Node i MariaDB — wymagany działający Docker z Compose v2+:
 

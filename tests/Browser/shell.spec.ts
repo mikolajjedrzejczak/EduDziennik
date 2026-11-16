@@ -5,7 +5,7 @@ import { expect, test } from './fixtures';
 const roles = [
     { role: 'student', path: '/student', h1: 'Dzień dobry, Jan' },
     { role: 'teacher', path: '/teacher', h1: 'Dzień dobry, Anna' },
-    { role: 'admin', path: '/admin', h1: 'Pulpit administratora' },
+    { role: 'admin', path: '/admin', h1: 'Panel administracyjny' },
 ] as const;
 const viewports = [
     { width: 390, height: 844, nav: 'Nawigacja mobilna' },
@@ -137,7 +137,7 @@ test('keyboard reaches skip link, navigation and logout in order; 390px bar yiel
 
     await page.setViewportSize({ width: 390, height: 500 });
     await page.getByRole('link', { name: 'Profil' }).click();
-    await expect(page).toHaveURL(/\/settings\/profile$/);
+    await expect(page).toHaveURL(/\/profile$/);
     await expect(
         page.getByRole('navigation', { name: 'Nawigacja mobilna' }),
     ).toBeVisible();

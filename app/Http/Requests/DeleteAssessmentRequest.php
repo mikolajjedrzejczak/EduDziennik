@@ -13,6 +13,7 @@ class DeleteAssessmentRequest extends MutationRequest
         return true;
     }
 
+    /** @return array<string, mixed> */
     public function rules(): array
     {
         return ['confirmed' => ['required', 'accepted']];
