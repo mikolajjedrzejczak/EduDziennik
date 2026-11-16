@@ -125,3 +125,8 @@ VERIFIED: odczytano design context i render 18:1741,23:2215,18:3707 przez Figma 
 FACT: przez Figma MCP odczytano design context i rendery18:2282,23:2312,18:3278. Potwierdzenie używa Radix Dialog: desktop440px z szarym footerem, mobile bottom sheet z destrukcyjną akcją nad Anuluj. Pokazuje zapisaną ocenę, ucznia i przedmiot oraz osobny wymagany powód usunięcia (rozszerzenie kontraktu względem uproszczonej ramki). Nie wylicza przyszłej średniej w React. Konflikt jest błędem w dialogu z jawnym odświeżeniem;500 pozostaje na kanonicznej stronie shared/error, nie jest przedstawiany jako konflikt wersji. Tablet1024 i admin pozostają adaptacjami do odbioru właściciela, bez dedykowanych ramek.
 
 VERIFIED F-206: zrzuty potwierdzenia320/390/1024/1440 oraz walidacji390/1024 odczytano po Playwright; zachowany układ dialog/bottom sheet, wrap i dostępne akcje. Wymagane pole powodu zwiększa wysokość względem referencji. Nie deklarujemy zgodności dedykowanego admina/tabletu ani pełnego odbioru wizualnego bez przeglądu właściciela.
+
+
+### F-101 — pulpit ucznia
+
+VERIFIED: odczytano design context/rendery14:2,21:2,38:8813 i porównano zrzuty implementacji390/1024/1440 (dodatkowo320). Zachowano powłokę F-007 i semantyczne tokeny. Adaptacja kontraktu: wiersz przedmiotu ma licznik zamiast wszystkich ocen/nauczyciela; brak banera audytu; jawny selector semestru; mobile pokazuje cztery wskaźniki2×2 i ostatnie oceny pod przedmiotami. Przywitanie bez fikcyjnej daty makiety. Szczegóły i status odbioru adaptacji: F-101 §22; pełnej zgodności pikselowej nie deklarujemy.
