@@ -72,10 +72,10 @@ export default function ShowGrade({
                         </h1>
                         {grade.can.viewHistory && (
                             <Button asChild variant="secondary">
-                                <a href={historyUrl}>
+                                <Link href={historyUrl}>
                                     <History aria-hidden="true" /> Historia tej
                                     oceny
-                                </a>
+                                </Link>
                             </Button>
                         )}
                     </div>

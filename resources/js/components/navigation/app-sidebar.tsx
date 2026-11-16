@@ -22,7 +22,7 @@ function SidebarLink({
 }) {
     const { isCurrentUrl } = useCurrentUrl();
     const Icon = sidebarIcons[item.icon];
-    const active = isCurrentUrl(item.href);
+    const active = item.active ?? isCurrentUrl(item.href);
 
     return (
         <Link

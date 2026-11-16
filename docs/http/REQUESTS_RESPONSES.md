@@ -263,3 +263,13 @@ interface GradeHistoryEntry {
 ```
 
 FACT: `historyUrl = /{role}/grades/{grade}#grade-history` do czasu F-104; sekcja szczegółów ma stronicowany odczyt audytów, 10 wpisów, sort `occurred_at DESC, id DESC`. `history_page` jest liczbą 1..100000, błąd → 303 do czystego URL szczegółów + errors; nadmiarowa strona pokazuje ostatnią. Parametry nie zmieniają ucznia ani kontekstu. F-104 nadal odpowiada za ogólną historię, kanoniczne trasy historii, filtry i pełne snapshoty. `can` na szczegółach pochodzi z Policy; dla trashed update/delete są false, viewHistory pozostaje true przy dostępie do rekordu. Lista F-102 nadal ma `can` false; jej chip prowadzi do szczegółów.
+
+## Integracja F-104 — historia ocen
+
+FACT: sześć tras `student|teacher|admin.history.index` i `student|teacher|admin.grades.history` renderuje `shared/history/index`. `HistoryProps` dodaje `indexUrl` (aktualna trasa filtrów) i `historyUrl` (historia ogólna roli). `AuditDTO` rozszerzono o `subject: Option`, `student: Option` i `gradeUrl`; bez e-maili ani modeli kont. Snapshoty v1 są projekcją jawnej allowlisty 17 pól, nigdy dowolnym JSON. UI pokazuje ocenę/wagę, autora, powód i rozwijane porównanie wszystkich zmienialnych pól, wersji i usunięcia.
+
+FACT: `filters`: `gradeId, studentEnrollmentId, termId, subjectId, action, dateFrom, dateTo` jako string|null, `page` i `perPage` jako liczby (10/25/50, domyślnie 10). Brak termu oznacza wszystkie dostępne semestry, bez automatycznego wyboru. Daty filtrują czas zdarzenia: początek dnia Warsaw w UTC włącznie, początek dnia po `date_to` wyłącznie, również przy zmianie czasu. Stała kolejność `occurred_at DESC, id DESC`. Paginacja zachowuje wyłącznie zatwierdzone filtry, strona poza zakresem → 303 na ostatnią stronę.
+
+FACT: `grade_id` i nauczycielski/administratorski `student_enrollment_id` muszą wskazywać widoczną ocenę/enrollment z oceną; cudzy selektor i niezgodność z rekordem URL → 404. Student nie wybiera właściciela (`student_id` i `student_enrollment_id` prohibited). Wadliwa składnia, action, daty, per_page, niedostępne term/subject → 303 na tę samą trasę bez query + session errors. Autoryzacja rekordu poprzedza walidację filtrów. Nieznane parametry nie są używane ani propagowane. Opcje obejmują autoryzowane oceny z `withTrashed`, kategorie także z obu snapshotów historii; limit 500 na słownik, przekroczenie → 503.
+
+FACT: `GradeDetailProps.historyUrl` prowadzi do kanonicznej trasy historii; skrócona historia F-103 pozostaje na szczegółach. `NavigationService` dodaje każdej roli „Historia zmian” (`icon: history`, `active` obliczane z nazwy trasy dla listy i historii konkretnej oceny). Nie dodano tras mutacji audytu, migracji ani zależności.

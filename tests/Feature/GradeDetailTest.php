@@ -41,7 +41,7 @@ class GradeDetailTest extends TestCase
         $response->assertInertia(fn (Assert $p) => $p->component('shared/grades/show')
             ->where('grade.topic', 'Funkcja liniowa')->where('grade.comment', '<script>tekst</script>')
             ->where('summary.average', '4.50')->where('summary.count', 2)->where('averageWithoutGrade', '3.00')
-            ->where('historyUrl', route('student.grades.show', $g, absolute: false).'#grade-history')
+            ->where('historyUrl', route('student.grades.history', $g, absolute: false))
             ->where('grade.issuedBy', ['id' => (string) $g->issued_by, 'label' => $g->issuer->name])
             ->missing('grade.student.email')->missing('grade.issuer')->missing('history.data.0.old_values')
             ->where('grade.can', ['update' => false, 'delete' => false, 'viewHistory' => true]));

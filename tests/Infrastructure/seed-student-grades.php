@@ -15,11 +15,14 @@ if (! $app->environment('testing') || config('database.connections.mariadb.datab
     fwrite(STDERR, "Refusing to seed outside edudziennik_test.\n");
     exit(1);
 }
-if (($argv[1] ?? '') === 'detail-ids') {
+if (in_array($argv[1] ?? '', ['detail-ids', 'history-ids'], true)) {
     $query = Grade::withTrashed()->whereHas('enrollment.student', fn ($q) => $q->where('email', 'student7@example.test'));
     if (! (clone $query)->whereNotNull('deleted_at')->exists()) {
         // F-103 needs an archived own grade; create its audit through the domain service.
         $grade = (clone $query)->whereNull('deleted_at')->firstOrFail();
+        if (($argv[1] ?? '') === 'history-ids') {
+            $grade = app(GradeService::class)->update($grade->issued_by, $grade->id, $grade->version, 'Fixture: korekta punktów', ['value' => $grade->value === 5 ? 4 : 5, 'comment' => 'Po korekcie']);
+        }
         app(GradeService::class)->delete($grade->issued_by, $grade->id, $grade->version, 'Fixture: błędny wpis');
     }
     echo json_encode(['active' => (clone $query)->whereNull('deleted_at')->value('id'), 'deleted' => (clone $query)->whereNotNull('deleted_at')->value('id')]);

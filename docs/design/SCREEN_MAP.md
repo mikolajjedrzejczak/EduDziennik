@@ -105,3 +105,9 @@ Luki nie blokują modeli i backendu. Nie wolno oznaczyć pełnej zgodności z Fi
 FACT: odczytano design context wraz ze zrzutami 20:2220 i 24:1180. Wdrożenie zachowuje tokeny, Public Sans, listę klas i układ dwóch paneli na desktopie. Panel przydziałów zastępuje panel członkostw zgodnie z zakresem F-306; pola wychowawcy/liczby uczniów nie są dodawane do ClassDTO ani fikcyjnie wyświetlane. Zakładki F-307/F-308 pojawią się wraz z ich trasami. Formularze create/rename/archive/enroll/dates/transfer korzystają ze wspólnych pól i Radix Dialog; to adaptacja bez dedykowanych ramek.
 
 DECISION: tablet ma panel uczniów pod listą, rail 72px; mobile zachowuje istniejącą powłokę F-007, listę oraz formularze z przewijaniem i dolną nawigacją. Filtry roku/archiwum, paginacja oraz panel członkostw stanowią adaptację wymagań domenowych. Nie deklarujemy pełnej zgodności ekranów z referencją przydziałów. Przegląd adaptacji przez właściciela projektu pozostaje warunkiem wizualnego odbioru; nie ma osobnej ramki tablet klas w SCREEN_MAP.
+
+## Adaptacja F-104 (2026-11-16)
+
+FACT: odczytano przez Figma MCP design context i render 14:604, 21:473, 21:616 oraz 18:3707. Wspólna historia używa tabeli desktop/tablet, listy mobile, semantycznych tokenów i mobilnego dolnego panelu filtrów z Radix Dialog. Desktop ma dodatkowy wymagany filtr semestru i jawne zatwierdzanie filtrów; kontrakt action jest pojedynczym selectem, a nie wielokrotnym wyborem z makiety. Pełne porównanie snapshotów jest rozwijane pod wpisem. Mobile zachowuje istniejącą powłokę F-007 i listę chronologiczną bez fikcyjnych grup dat z przykładowych danych.
+
+DECISION: teacher/admin korzystają z tej samej strony z zakresem T/pełnym i etykietą ucznia przy wpisie; nagłówek konkretnej oceny pokazuje ucznia, przedmiot, okres i stan usunięcia. Brak dedykowanej ramki admina oraz tablet historii; warianty są adaptacją wymagającą odbioru właściciela, nie deklaracją pełnej zgodności z Figmą.

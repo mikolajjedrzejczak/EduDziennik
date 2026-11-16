@@ -24,7 +24,7 @@ class NavigationService
     }
 
     /**
-     * @return array{primary: list<array<string, string>>, secondary: list<array<string, string>>}|null
+     * @return array{primary: list<array<string, string|bool>>, secondary: list<array<string, string|bool>>}|null
      */
     public function for(?User $user): ?array
     {
@@ -45,6 +45,8 @@ class NavigationService
             $primary[] = ['key' => 'assignments', 'label' => 'Przydziały', 'shortLabel' => 'Przydziały', 'href' => route('admin.assignments.index', absolute: false), 'icon' => 'assignments'];
             $primary[] = ['key' => 'users', 'label' => 'Użytkownicy', 'shortLabel' => 'Konta', 'href' => route('admin.users.index', absolute: false), 'icon' => 'users'];
         }
+
+        $primary[] = ['key' => 'history', 'label' => 'Historia zmian', 'shortLabel' => 'Historia', 'href' => route($user->role.'.history.index', absolute: false), 'icon' => 'history', 'active' => request()->routeIs($user->role.'.history.index', $user->role.'.grades.history')];
 
         return [
             'primary' => $primary,
