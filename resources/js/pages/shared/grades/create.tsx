@@ -64,21 +64,23 @@ export default function CreateGrade(props: GradeFormProps) {
                         document.querySelectorAll<HTMLAnchorElement>(
                             'a[aria-label]',
                         );
-                    const original = Array.from(links).find(
-                        (a) =>
+                    const original = Array.from(links).find((a) => {
+                        const query = new URL(a.href).searchParams;
+                        return (
                             a.getClientRects().length > 0 &&
-                            a.href.includes(
-                                `student_enrollment_id=${selectedEnrollmentId}&assessment_id=${assessment?.id}`,
-                            ),
-                    );
-                    original?.focus();
+                            query.get('student_enrollment_id') ===
+                                selectedEnrollmentId &&
+                            query.get('assessment_id') === assessment?.id
+                        );
+                    });
+                    (original ?? document.getElementById('roster-q'))?.focus();
                 },
             },
         );
     }
     return (
         <>
-            <Gradebook {...props.background} />
+            <Gradebook {...props.background} backgroundOnly />
             <Head title="Wystaw ocenę" />
             <DialogPrimitive.Root
                 open

@@ -108,7 +108,7 @@ class GradeCreationTest extends TestCase
         }
         $this->assignment->term->update(['closed_at' => now()]);
         foreach ([$this->assignment->teacher, User::factory()->admin()->create()] as $actor) {
-            $this->actingAs($actor)->post(route($actor->role.'.grades.store'), $this->input)->assertForbidden();
+            $this->actingAs($actor)->post(route($actor->role.'.grades.store'), $this->input)->assertSessionHasErrors('form');
         }
         $this->assessment->delete();
         $this->post(route('admin.grades.store'), $this->input)->assertNotFound();

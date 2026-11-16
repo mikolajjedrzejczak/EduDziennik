@@ -23,6 +23,9 @@ class GradeCreationController extends Controller
         $actor = $request->user();
         [$assignment, $assessment, $enrollment] = $resolver->resolve($actor, $request->validated('assignment_id'), $request->validated('assessment_id'), $request->validated('student_enrollment_id'));
         $cancel = route($actor->role.'.gradebooks.show', $assignment);
+        if ($assignment->term->closed_at !== null) {
+            return redirect($cancel, 303)->withErrors(['form' => 'Semestr jest zamknięty. Nie można wystawić oceny.']);
+        }
         $students = $access->enrollments($actor, $assignment)->when($enrollment, fn ($q) => $q->whereKey($enrollment->id))->with('student')->orderBy('id')->limit(51)->get();
         $assessments = $access->assessments($actor, $assignment)->when($assessment, fn ($q) => $q->whereKey($assessment->id))->with('category')->orderBy('graded_on')->orderBy('id')->limit(51)->get();
         if ($students->count() > 50 || $assessments->count() > 50) {

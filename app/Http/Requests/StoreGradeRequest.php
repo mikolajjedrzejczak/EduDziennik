@@ -43,7 +43,12 @@ class StoreGradeRequest extends MutationRequest
             if ($validator->errors()->isNotEmpty()) {
                 return;
             }
-            [, $assessment, $enrollment] = app(GradeFormContext::class)->resolve($this->user(), $this->input('assignment_id'), $this->input('assessment_id'), $this->input('student_enrollment_id'));
+            [$assignment, $assessment, $enrollment] = app(GradeFormContext::class)->resolve($this->user(), $this->input('assignment_id'), $this->input('assessment_id'), $this->input('student_enrollment_id'));
+            if ($assignment->term->closed_at !== null) {
+                $validator->errors()->add('form', 'Semestr jest zamknięty. Nie można wystawić oceny.');
+
+                return;
+            }
             Gate::authorize('create', [Grade::class, $assessment, $enrollment, $this->input('graded_on')]);
         }];
     }

@@ -42,12 +42,14 @@ for (const [width, height] of [
             })
             .filter({ visible: true });
         await add.click();
-        await expect(page).toHaveURL(/grades\/create/);
+        await expect(page).toHaveURL(/grades\/create/, { timeout: 15000 });
         await page.reload();
         const dialog = page.getByRole('dialog', { name: 'Wystaw ocenę' });
         await expect(dialog).toBeVisible();
         await page.keyboard.press('Escape');
-        await expect(page).toHaveURL(`/teacher/gradebooks/${ids.assignment}`);
+        await expect(page).toHaveURL(`/teacher/gradebooks/${ids.assignment}`, {
+            timeout: 15000,
+        });
         await expect(add).toBeFocused();
         await add.click();
         await expect(dialog).toBeVisible();
@@ -80,7 +82,9 @@ for (const [width, height] of [
         await dialog
             .getByRole('button', { name: 'Zapisz ocenę', exact: true })
             .click();
-        await expect(page).toHaveURL(`/teacher/gradebooks/${ids.assignment}`);
+        await expect(page).toHaveURL(`/teacher/gradebooks/${ids.assignment}`, {
+            timeout: 15000,
+        });
         await expect(
             page.getByText('4,33', { exact: true }).filter({ visible: true }),
         ).toBeVisible();

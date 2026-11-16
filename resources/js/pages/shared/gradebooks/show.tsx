@@ -22,8 +22,10 @@ export default function Gradebook({
     filters,
     categories,
     canCreateAssessment,
-}: GradebookProps) {
-    const { errors, auth, flash } = usePage().props;
+    backgroundOnly = false,
+}: GradebookProps & { backgroundOnly?: boolean }) {
+    const { errors: pageErrors, auth, flash } = usePage().props;
+    const errors = backgroundOnly ? {} : pageErrors;
     const role = auth.user.role;
     const base = `/${role}/gradebooks/${context.assignmentId}`;
     const [q, setQ] = useState(filters.q);
