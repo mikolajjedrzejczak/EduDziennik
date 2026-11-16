@@ -80,7 +80,18 @@ for (const [width, height] of [
             page.getByRole('heading', { name: 'Brak ocen', exact: true }),
         ).toBeVisible();
         seed('empty');
-        await page.goto('/teacher');
+        // Reseeding rotates the password hash; AuthenticateSession ends the old session.
+        await page.goto('/login');
+        await page
+            .getByLabel('Adres e-mail')
+            .fill('teacher-classes@example.test');
+        await page
+            .getByLabel('Hasło', { exact: true })
+            .fill('Playwright-classes-1');
+        await page
+            .getByRole('button', { name: 'Zaloguj się', exact: true })
+            .click();
+        await expect(page).toHaveURL(/\/teacher$/);
         await expect(
             page.getByRole('heading', { name: 'Brak przypisań', exact: true }),
         ).toBeVisible();

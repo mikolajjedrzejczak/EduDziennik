@@ -1,6 +1,6 @@
 # CI/CD — projekt procesu
 
-PLANNED F-502/F-503. Brak repo GitHub, workflow, hostingu i wykonanego runu. Nie dodano pozornego cd.yml. F-001 definiuje skrypty, F-002 obrazy, F-501 test harness; F-502 automatyzację.
+FACT F-502: workflow [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) jest zaimplementowany (jobs: changes, docs, frontend, backend, e2e, required-check), skrypty pomocnicze w `scripts/ci/`. Jego jedyny przebieg na GitHub (próbny PR) jest opisany w [raporcie F-502](../features/F-502.md#22-raport-realizacji); do czasu zapisu URL runu nie deklarować działania na GitHub. PLANNED F-503: CD; hosting jest nieznany, nie dodano pozornego cd.yml. F-001 definiuje skrypty, F-002 obrazy, F-501 test harness; F-502 automatyzację.
 
 ## Jednolity interfejs poleceń
 
@@ -26,6 +26,18 @@ Trigger pull_request i push do domyślnej gałęzi; concurrency per branch, anul
 3. **backend**: PHP 8.3, Composer 2, rozszerzenia jak Docker; MariaDB 11.4 health, baza edudziennik_test; install/validate/platform-check/Pint; losowy APP_KEY; migrate --force na test DB, seed kontrolowanych fixture; PHPUnit z konfiguracją phpunit.xml wymuszającą testową bazę. Testy constraints i transakcji na MariaDB, nie SQLite.
 4. **E2E** po buildzie: Nginx/PHP-FPM/MariaDB i produkcyjne assety tego samego SHA, bez HMR; osobna resetowalna baza E2E. Playwright z przeglądarką Chromium i zależnościami systemowymi. `/up` gotowe przed testami. Scenariusze login3 role, IDOR, create/edit/delete grade i historia, CRUD users; desktop 1440/mobile 390, tablet smoke1024. Na zmianę wyłącznie docs nie uruchamia się.
 5. **required-check** zawsze po pozostałych (`always`): sprawdza, że wymagane dla danej kategorii jobs zakończyły się sukcesem. Skipped E2E dla docs dozwolone, skipped przy zmianie kodu nie. Dzięki temu branch protection nie oczekuje pominiętego workflow.
+
+FACT F-502 — odchylenia i decyzje implementacyjne:
+
+- Akcje przypięte do SHA (komentarz z tagiem): checkout v7.0.1, setup-node v7.1.0, cache v6.0.0, upload-artifact v7.0.2, download-artifact v8.0.2, setup-php 2.40.0. Aktualizacja SHA jest zmianą workflow i uruchamia pełne checks.
+- Kategoria zmiany (`scripts/ci/classify-changes.sh`): docs-only to wyłącznie pliki `*.md` poza `tests/`, `.github/` i `scripts/`. Brak bazy diffu (nowa gałąź) lub błąd diffu = `code`.
+- Job `docs` = `scripts/ci/check-docs.mjs` (bez zależności): lokalne linki i kotwice Markdown, komplet specyfikacji względem FEATURE_INDEX, unikalność metod/URL i nazw tras w ROUTES.md, brak cykli zależności.
+- `required-check` (`scripts/ci/require-jobs.sh`) wymaga success dla changes i docs; dla `code` także frontend, backend, e2e; dla `docs` frontend/backend/e2e muszą być `skipped`. Cancelled/failure/missing zawsze kończą się błędem. Jako required status w branch protection wskazać tylko `required-check`.
+- MariaDB 11.4 (ten sam digest co `compose.yaml`) to service w jobach backend i e2e (osobne instancje, więc baza E2E jest resetowana na każdy run). Efemeryczny root bez hasła na runnerze (`MARIADB_ALLOW_EMPTY_ROOT_PASSWORD`), brak sekretów; baza `edudziennik_test` wymuszana przez phpunit.xml.
+- Backend: `.env` kopiowany z `.env.example` (bez sekretów; wymagany przez testy), losowy `APP_KEY` na run, `migrate --force` na pustej bazie jako osobny krok, potem `composer test`. Seed demo nie jest uruchamiany: testy tworzą własne fixture.
+- E2E używa istniejącego harnessu F-501 (`php -S` + `tests/Infrastructure/browser-server.php`, zbudowane assety z artefaktu `frontend-build` tego samego SHA, bez HMR dla projektów shell/classes/build). PLANNED: wariant Nginx/PHP-FPM z pełnym obrazem produkcyjnym.
+- Fork PR: trigger `pull_request` bez sekretów; workflow nie używa żadnych. Cache: `composer.lock`/`package-lock.json` w kluczu, `composer validate --strict` i `npm ci` kończą job przy rozjechanym lockfile.
+- Artefakty raportów (`test-results/`, `playwright-report/`) są wysyłane także po błędzie, retencja 7 dni.
 
 Nie uzależniać danych testowych od produkcyjnych sekretów. Trace/screenshot tylko fikcyjnych danych; ograniczona retencja artefaktów CI (ASSUMPTION7dni). Zmiana workflow/lockfile uruchamia pełne checks.
 
