@@ -8,6 +8,7 @@ use App\Models\SchoolClass;
 use App\Models\StudentEnrollment;
 use App\Models\Term;
 use App\Models\User;
+use App\Services\Grades\GradeService;
 use App\Services\School\AssignmentService;
 use App\Services\School\CalendarService;
 use App\Services\School\EnrollmentService;
@@ -43,6 +44,31 @@ class ConcurrentWriteTest extends TestCase
         $this->assertTrue($process->waitUntil(fn ($type, $output) => str_contains($output, 'contended')));
 
         return $process;
+    }
+
+    public function test_two_grade_corrections_with_same_version_commit_only_one_audit(): void
+    {
+        $grade = Grade::whereHas('assessment', fn ($q) => $q->where('topic', 'Fixture 1'))->firstOrFail();
+        $teacher = User::where('email', 'teacher1@example.test')->firstOrFail();
+        $before = $grade->audits()->count();
+        DB::beginTransaction();
+        $worker = null;
+        try {
+            Term::whereKey($grade->assessment->term_id)->lockForUpdate()->firstOrFail();
+            $worker = $this->worker(['grade-update', $teacher->id, $grade->id, $grade->assessment_id]);
+            app(GradeService::class)->update($teacher->id, $grade->id, 1, 'Pierwsza korekta', ['value' => 2]);
+            DB::commit();
+            $this->assertSame(0, $worker->wait(), $worker->getErrorOutput());
+            $this->assertStringContainsString('rejected', $worker->getOutput());
+            $this->assertSame(2, $grade->fresh()->value);
+            $this->assertSame(2, $grade->fresh()->version);
+            $this->assertSame($before + 1, $grade->audits()->count());
+        } finally {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            $worker?->stop();
+        }
     }
 
     public function test_concurrent_enrollment_is_rejected_after_first_membership_commits(): void

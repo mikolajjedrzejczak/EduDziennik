@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, expect, it, vi } from 'vitest';
 import CreateGrade from '@/pages/shared/grades/create';
+import EditGrade from '@/pages/shared/grades/edit';
+import type { GradeDTO } from '@/types/grades';
 import type { GradeFormProps } from '@/types/gradebooks';
 
 const state = vi.hoisted(() => ({
@@ -10,7 +12,7 @@ const state = vi.hoisted(() => ({
     post: vi.fn(),
     get: vi.fn(),
 }));
-vi.mock('@/pages/shared/gradebooks/show', () => ({ default: () => null }));
+vi.mock('@/components/gradebook/gradebook', () => ({ default: () => null }));
 vi.mock('@inertiajs/react', async () => {
     const React = await import('react');
     return {
@@ -28,7 +30,7 @@ vi.mock('@inertiajs/react', async () => {
                             ? { ...current, [key]: value }
                             : key,
                     ),
-                post: (url: string, options: unknown) =>
+                submit: (_method: string, url: string, options: unknown) =>
                     state.post(url, data, options),
             };
         },
@@ -111,4 +113,60 @@ it('disables pending submission and presents the empty context', () => {
         'Brak uczniów, kolumn',
     );
     expect(screen.getByRole('button', { name: 'Zapisz ocenę' })).toBeDisabled();
+});
+
+it('keeps edited fields and original version after conflict and offers explicit reload', async () => {
+    const user = userEvent.setup();
+    const grade: GradeDTO = {
+        id: '9',
+        student: props.students[0],
+        assessmentId: assessment.id,
+        context: props.context,
+        value: 3,
+        weight: 4,
+        category: assessment.category,
+        topic: 'Indywidualny temat',
+        comment: 'Poprzedni komentarz',
+        gradedOn: '2026-10-02',
+        issuedBy: { id: '10', label: 'Nauczyciel' },
+        createdAt: '',
+        updatedAt: '',
+        deletedAt: null,
+        version: 7,
+        differsFromAssessment: true,
+        can: { update: true, delete: true, viewHistory: true },
+    };
+    const editProps = { ...props, grade, submitUrl: '/teacher/grades/9' };
+    const { rerender } = render(<EditGrade {...editProps} />);
+    expect(screen.getByLabelText('Uczeń')).toBeDisabled();
+    expect(screen.getByLabelText('Temat')).toHaveValue('Indywidualny temat');
+    await user.click(screen.getByRole('radio', { name: /^5$/ }));
+    await user.type(screen.getByLabelText(/Powód zmiany/), 'Korekta punktacji');
+    await user.clear(screen.getByLabelText('Temat'));
+    await user.type(screen.getByLabelText('Temat'), 'Moja korekta');
+    await user.click(screen.getByRole('button', { name: 'Zapisz zmiany' }));
+    expect(state.post.mock.calls[0][1]).toMatchObject({
+        version: 7,
+        value: '5',
+        weight: '4',
+        topic: 'Moja korekta',
+        reason: 'Korekta punktacji',
+    });
+    state.errors = { conflict: 'Ocena została zmieniona. Odśwież dane.' };
+    rerender(<EditGrade {...editProps} />);
+    expect(screen.getByRole('alert')).toHaveFocus();
+    expect(screen.getByLabelText('Temat')).toHaveValue('Moja korekta');
+    expect(screen.getByLabelText(/Powód zmiany/)).toHaveValue(
+        'Korekta punktacji',
+    );
+    expect(screen.getByRole('radio', { name: /^5$/ })).toBeChecked();
+    expect(state.post).toHaveBeenCalledTimes(1);
+    await user.click(
+        screen.getByRole('button', { name: /Wczytaj aktualną ocenę/ }),
+    );
+    expect(state.get).toHaveBeenCalledWith(
+        expect.any(String),
+        {},
+        { preserveState: false },
+    );
 });

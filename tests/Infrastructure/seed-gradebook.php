@@ -36,4 +36,4 @@ foreach (range(1, 12) as $i) {
         Grade::factory()->create(['assessment_id' => $header->id, 'student_enrollment_id' => $enrollments->first()->id, 'value' => $value, 'weight' => $weight, 'category_id' => $category->id, 'topic' => $header->topic, 'graded_on' => '2026-10-01', 'issued_by' => $teacher->id]);
     }
 }
-echo json_encode(['assignment' => $assignment->id, 'enrollment' => $enrollments->first()->id]);
+echo json_encode(['assignment' => $assignment->id, 'enrollment' => $enrollments->first()->id, 'grade' => Grade::where('topic', 'Kolumna 4')->value('id')]);

@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, History, MessageSquare } from 'lucide-react';
+import { ArrowLeft, History, MessageSquare, Pencil } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { LoadingState } from '@/components/states/loading-state';
@@ -40,7 +40,7 @@ export default function ShowGrade({
     backUrl,
     history,
 }: GradeDetailProps) {
-    const { errors } = usePage().props;
+    const { errors, auth } = usePage().props;
     const loading = usePageLoading();
     const title = `${grade.category.label}: ${grade.topic}`;
     return (
@@ -70,6 +70,16 @@ export default function ShowGrade({
                         <h1 className="min-w-0 text-lg font-semibold wrap-anywhere md:text-2xl md:leading-8">
                             {title}
                         </h1>
+                        {grade.can.update && (
+                            <Button asChild variant="secondary">
+                                <Link
+                                    id="edit-grade-link"
+                                    href={`/${auth.user.role}/grades/${grade.id}/edit`}
+                                >
+                                    <Pencil aria-hidden="true" /> Edytuj ocenę
+                                </Link>
+                            </Button>
+                        )}
                         {grade.can.viewHistory && (
                             <Button asChild variant="secondary">
                                 <Link href={historyUrl}>

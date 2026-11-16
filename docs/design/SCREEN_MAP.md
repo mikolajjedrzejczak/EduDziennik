@@ -115,3 +115,7 @@ DECISION: teacher/admin korzystają z tej samej strony z zakresem T/pełnym i et
 ## Adaptacja F-202 (2026-11-16)
 
 VERIFIED: przez Figma MCP odczytano design context i render 17:352 oraz 23:199. Wdrożono tabelę desktop/tablet, listę mobilną i dokładny wybór assignment. Kontrakt nie obejmuje wychowawcy, godzin/poziomu, liczników ani ostatniej oceny: zamiast tych pól pokazujemy rok klasy i semestr. Wyszukiwanie obejmuje klasę/przedmiot; filtr semestru, per_page i zatwierdzanie filtrów wynikają z kontraktu, nie z makiety. Tablet1024 jest adaptacją bez dedykowanej ramki F-202. Zachowano istniejącą powłokę F-007. Zrzuty390/1024/1440 porównano z referencjami; Playwright dodatkowo320. Właścicielski odbiór adaptacji pozostaje otwarty. Podstawowy odczyt `shared/gradebooks/show` umożliwia działający wybór, lecz projekt pełnego dziennika i jego odbiór należą do F-203. Szczegóły: F-202 §22.
+
+### F-205 — formularz korekty
+
+VERIFIED: odczytano design context i render 18:1741,23:2215,18:3707 przez Figma MCP. Współdzielony GradeForm obsługuje create/edit. Desktop480px drawer; mobile pełny przewijany panel z wszystkimi polami kontraktu, rozszerzający uproszczoną ramkę23:2215. Informacja o historii zastępuje podgląd nowej średniej, której klient nie oblicza. Usuwanie pozostaje osobną funkcją F-206. Tablet1024 i admin są adaptacjami wymagającymi odbioru właściciela; brak dedykowanych ramek.

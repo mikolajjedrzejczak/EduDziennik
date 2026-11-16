@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\GradeCreationController;
+use App\Http\Controllers\GradeEditingController;
 use App\Http\Requests\GradeDetailRequest;
 use App\Http\Requests\GradeFilterRequest;
 use App\Models\Grade;
@@ -12,7 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class GradeController extends GradeCreationController
+class GradeController extends GradeEditingController
 {
     public function index(GradeFilterRequest $request, StaffGradeList $list): Response|RedirectResponse
     {
