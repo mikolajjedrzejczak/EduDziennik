@@ -214,6 +214,6 @@ class SubjectManagementTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->where('navigation.primary.2.key', 'subjects')
                 ->where('navigation.primary.2.href', route('admin.subjects.index', absolute: false)));
         $this->actingAs(User::factory()->teacher()->create())->get(route('teacher.dashboard'))
-            ->assertInertia(fn (Assert $page) => $page->has('navigation.primary', 2)->where('navigation.primary.1.href', '/teacher/history'));
+            ->assertInertia(fn (Assert $page) => $page->has('navigation.primary', 3)->where('navigation.primary.1.href', '/teacher/classes')->where('navigation.primary.2.href', '/teacher/history'));
     }
 }
