@@ -23,7 +23,7 @@ Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja doda
 | F-204 | Grade Creation | P0 | Planned | F-203, F-402 | [spec](F-204.md) | A1 |
 | F-205 | Grade Editing | P0 | Planned | F-204 | [spec](F-205.md) | A1 |
 | F-206 | Grade Deletion | P0 | Planned | F-205 | [spec](F-206.md) | A1 |
-| F-301 | Administrator Dashboard | P1 | Planned | F-007, F-302, F-306, F-307, F-308, F-104 | [spec](F-301.md) | A2/A3 |
+| F-301 | Administrator Dashboard | P1 | Implementacja do przeglądu | F-007, F-302, F-306, F-307, F-308, F-104 | [spec](F-301.md) | A2/A3 |
 | F-302 | User List | P0 | Implementacja do przeglądu | F-007, F-402 | [spec](F-302.md) | A4 |
 | F-303 | User Creation | P0 | Implementacja do przeglądu | F-302, F-306, F-308, F-402 | [spec](F-303.md) | A4 |
 | F-304 | User Editing | P0 | Planned | F-303 | [spec](F-304.md) | A4 |

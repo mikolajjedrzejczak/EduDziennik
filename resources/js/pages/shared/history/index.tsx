@@ -2,7 +2,8 @@ import { Fragment } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { AuditValue, SnapshotDetails } from '@/components/history/audit-values';
-import { HistoryFilters, actionLabels } from '@/components/history/filters';
+import { AuditActionBadge } from '@/components/history/audit-action';
+import { HistoryFilters } from '@/components/history/filters';
 import { Pagination } from '@/components/pagination';
 import { EmptyState } from '@/components/states/empty-state';
 import { LoadingState } from '@/components/states/loading-state';
@@ -10,22 +11,6 @@ import { usePageLoading } from '@/hooks/use-page-loading';
 import { useViewport } from '@/hooks/use-viewport';
 import { formatDateTime } from '@/lib/users';
 import type { AuditDTO, HistoryProps } from '@/types/history';
-
-function Action({ action }: Pick<AuditDTO, 'action'>) {
-    const tone =
-        action === 'create'
-            ? 'bg-success-bg text-success'
-            : action === 'delete'
-              ? 'bg-error-bg text-error'
-              : 'bg-primary-subtle text-primary';
-    return (
-        <span
-            className={`inline-block rounded px-2 py-1 text-xs font-medium ${tone}`}
-        >
-            {actionLabels[action]}
-        </span>
-    );
-}
 
 export default function History({
     audits,
@@ -120,7 +105,9 @@ export default function History({
                             {audits.data.map((audit) => (
                                 <li key={audit.id} className="space-y-2 p-4">
                                     <div className="flex flex-wrap items-center justify-between gap-2">
-                                        <Action action={audit.action} />
+                                        <AuditActionBadge
+                                            action={audit.action}
+                                        />
                                         <span className="flex items-center gap-2">
                                             <AuditValue
                                                 snapshot={audit.oldValues}
@@ -189,7 +176,7 @@ export default function History({
                                                     {topic(audit)}
                                                 </td>
                                                 <td className="px-3 py-3">
-                                                    <Action
+                                                    <AuditActionBadge
                                                         action={audit.action}
                                                     />
                                                 </td>
