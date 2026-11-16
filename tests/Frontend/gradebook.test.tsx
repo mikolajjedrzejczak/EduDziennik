@@ -86,6 +86,7 @@ const props: GradebookProps = {
                 student: grade.student,
                 grades: [grade],
                 deletedAssessmentIds: ['11'],
+                creatableAssessmentIds: ['12'],
                 summary: {
                     average: '4.00',
                     count: 1,

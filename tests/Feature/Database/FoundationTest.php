@@ -135,7 +135,8 @@ class FoundationTest extends TestCase
         $this->assertCount(2, $archived->audits);
         $this->assertNotNull($archived->audits->last()->new_values['deleted_at']);
         $this->expectException(QueryException::class);
-        app(GradeService::class)->create($this->actor()->id, $grade->student_enrollment_id, $grade->assessment_id, ['value' => 6]);
+        // The service reports duplicates as validation; the DB still reserves archived cells.
+        DB::table('grades')->insert(collect($archived->getAttributes())->except('id')->all());
     }
 
     public function test_foreign_keys_restrict_physical_deletion_and_update(): void

@@ -6,6 +6,7 @@ import { AssessmentDialog } from '@/components/gradebook/assessment-dialog';
 import { Roster } from '@/components/gradebook/roster';
 import { Pagination } from '@/components/pagination';
 import { EmptyState } from '@/components/states/empty-state';
+import { SuccessNotice } from '@/components/states/success-notice';
 import { LoadingState } from '@/components/states/loading-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,7 @@ export default function Gradebook({
     categories,
     canCreateAssessment,
 }: GradebookProps) {
-    const { errors, auth } = usePage().props;
+    const { errors, auth, flash } = usePage().props;
     const role = auth.user.role;
     const base = `/${role}/gradebooks/${context.assignmentId}`;
     const [q, setQ] = useState(filters.q);
@@ -78,6 +79,9 @@ export default function Gradebook({
                         </Button>
                     )}
                 </header>
+                {flash?.success && (
+                    <SuccessNotice>{flash.success}</SuccessNotice>
+                )}
                 {context.closed && (
                     <p
                         role="status"
@@ -179,6 +183,9 @@ export default function Gradebook({
                                 studentUrl={(id) => `${base}/students/${id}`}
                                 gradeUrl={(id) => `/${role}/grades/${id}`}
                                 onDelete={openAction}
+                                createUrl={(enrollment, assessment) =>
+                                    `/${role}/grades/create?assignment_id=${context.assignmentId}&student_enrollment_id=${enrollment}&assessment_id=${assessment}`
+                                }
                             />
                             <Pagination
                                 meta={students.meta}

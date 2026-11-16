@@ -27,6 +27,9 @@ class GradeService
             ]);
             $this->checkDates($enrollment, $term, $data);
             Gate::forUser($actor)->authorize('create', [Grade::class, $assessment, $enrollment, $data['graded_on']]);
+            if (Grade::withTrashed()->where('student_enrollment_id', $enrollment->id)->where('assessment_id', $assessment->id)->exists()) {
+                throw ValidationException::withMessages(['form' => 'Ta komórka ma już ocenę lub historię. Wybierz inną komórkę.']);
+            }
             $grade = Grade::create([...$data, 'student_enrollment_id' => $enrollment->id, 'assessment_id' => $assessment->id, 'issued_by' => $actor->id, 'version' => 1]);
             $this->audit($grade, $actor, 'create', null, null);
 

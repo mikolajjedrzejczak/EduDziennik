@@ -151,7 +151,7 @@ interface GradeListProps extends SharedProps { grades: Page<GradeDTO>; summary: 
 interface GradeDetailProps extends SharedProps { grade: GradeDTO; summary: GradeSummary; historyUrl: string }
 interface HistoryProps extends SharedProps { audits: Page<AuditDTO>; filters: Filters; options: GradeOptions; grade: GradeDTO | null }
 interface ClassListProps extends SharedProps { assignments: Page<AssignmentDTO>; filters: Filters; terms: Option[] }
-interface GradebookRow { student: StudentSummary; grades: GradeDTO[]; deletedAssessmentIds: Id[]; summary: GradeSummary }
+interface GradebookRow { student: StudentSummary; grades: GradeDTO[]; deletedAssessmentIds: Id[]; creatableAssessmentIds: Id[]; summary: GradeSummary }
 interface GradebookProps extends SharedProps {
   context: GradeContext; assessments: Page<AssessmentDTO>; students: Page<GradebookRow>;
   filters: Filters; categories: Option[]; canCreateAssessment: boolean;
@@ -160,6 +160,7 @@ interface StudentHistoryPreview { id: Id; action: 'create' | 'update' | 'delete'
 interface StudentDetailProps extends SharedProps { student: StudentSummary; context: GradeContext; grades: Page<GradeDTO>; summary: GradeSummary; historyUrl: string; recentHistory: StudentHistoryPreview[] }
 interface GradeFormProps extends SharedProps {
   grade: GradeDTO | null; context: GradeContext; assessment: AssessmentDTO | null;
+  selectedEnrollmentId: Id | null;
   students: StudentSummary[]; assessments: AssessmentDTO[]; categories: Option[];
   background: GradebookProps; submitUrl: string; cancelUrl: string;
 }
@@ -291,3 +292,9 @@ FACT: GradebookProps dodaje `canCreateAssessment`, AssessmentDTO w dzienniku dod
 FACT: StudentDetailProps dodaje `recentHistory`: maksymalnie cztery wpisy `{ id, action, actor: Option, occurredAt, oldValue, value, weight, reason, topic }`, z tego samego enrollment+class+subject+term co strona. Lista ocen ma niezależną paginację, średnia obejmuje cały ten kontekst. `historyUrl` zachowuje term_id, subject_id, student_enrollment_id. F-104 przy jawnym, autoryzowanym enrollment obsługuje także pustą historię; opcje dodatkowo obejmują przecinające go dozwolone przypisania. Niezgodny enrollment w szczegółach konkretnej oceny nadal daje404. Bez adresów e-mail uczniów w props teacher/admin tego widoku.
 
 FACT: staff GradeListProps (`types/grades.ts`: StaffGradeListProps) ma grades/summary/filters/options. Opcje: terms, subjects, categories, enrollments oraz admin students/classes; wyłącznie id/label, limit500 i503 przy przekroczeniu. Opcje poza termami pochodzą z widocznych nieusuniętych ocen (wszystkie termy); filtrowanie nie rozszerza zakresu. Filters rozszerza filtr ucznia o studentEnrollmentId, studentId i schoolClassId; teacher nie może podać student_id ani school_class_id. Nieprawidłowy filtr →303 bez niego + errors. Średnia przed paginacją, scopeLabel nazywa aktywny zakres. Domyślny term obejmuje dzisiejszą datę; gdy go brak, użytkownik musi wybrać okres.
+
+### Integracja F-204 (2026-11-16)
+
+FACT: `GET role.grades.create` przyjmuje `assignment_id` oraz opcjonalnie `assessment_id` i `student_enrollment_id`; oba ID są sprawdzane w dokładnym kontekście assignmentu. `selectedEnrollmentId` wskazuje wybranego ucznia. Każda lista opcji ma limit 50; przekroczenie kieruje do dziennika z prośbą o wybranie pustej komórki, bez cichego obcięcia. `creatableAssessmentIds` na wierszu zawiera wyłącznie puste komórki dopuszczone przez GradePolicy; usuniętej oceny nie można ponownie wystawić. Te wskazówki nie zastępują autoryzacji POST.
+
+FACT: POST mapuje wyłącznie pola oceny z allowlisty; serwis bierze autora z sesji i ponownie sprawdza T/W w transakcji. Zajęta komórka, także po soft delete, zwraca błąd `form`, bez drugiej oceny ani audytu. Sukces: 303 do autoryzowanego `role.gradebooks.show` i flash „Ocena została zapisana.”. Formularz nie ponawia POST automatycznie. Parametry pojedynczej oceny nie zmieniają assessmentu.

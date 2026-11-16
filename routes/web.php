@@ -34,6 +34,8 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('assessments/{assessment}', [$assessments, 'destroy'])->whereNumber('assessment')->name('assessments.destroy');
             $grades = $role === 'teacher' ? Teacher\GradeController::class : Admin\GradeController::class;
             Route::get('grades', [$grades, 'index'])->name('grades.index');
+            Route::get('grades/create', [$grades, 'create'])->name('grades.create');
+            Route::post('grades', [$grades, 'store'])->name('grades.store');
         });
     }
     Route::get('teacher', [Teacher\DashboardController::class, 'index'])->middleware('role:teacher')->name('teacher.dashboard');
