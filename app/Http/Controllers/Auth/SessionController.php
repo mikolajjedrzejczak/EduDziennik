@@ -23,6 +23,7 @@ class SessionController extends Controller
         $login->authenticate($request->validated('email'), $request->validated('password'), $request->ip() ?? '');
         $request->session()->regenerate();
         $request->session()->forget('url.intended');
+        $request->session()->put('password_hash_web', Auth::guard('web')->hashPasswordForCookie($request->user()->getAuthPassword()));
 
         return to_route('dashboard');
     }
