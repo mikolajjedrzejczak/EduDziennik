@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 
 const roles = [
-    { role: 'student', path: '/student', h1: 'Pulpit ucznia' },
+    { role: 'student', path: '/student', h1: 'Dzień dobry, Jan' },
     { role: 'teacher', path: '/teacher', h1: 'Pulpit nauczyciela' },
     { role: 'admin', path: '/admin', h1: 'Pulpit administratora' },
 ] as const;
@@ -114,7 +114,7 @@ test('keyboard reaches skip link, navigation and logout in order; 390px bar yiel
     await page.setViewportSize({ width: 1440, height: 900 });
     await login(page, 'student');
     await expect(
-        page.getByRole('heading', { level: 1, name: 'Pulpit ucznia' }),
+        page.getByRole('heading', { level: 1, name: 'Dzień dobry, Jan' }),
     ).toBeVisible();
     await page.keyboard.press('Tab');
     await expect(
@@ -124,6 +124,10 @@ test('keyboard reaches skip link, navigation and logout in order; 390px bar yiel
     await expect(page.getByRole('link', { name: 'Pulpit' })).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: 'Moje oceny' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(
+        page.getByRole('link', { name: 'Historia zmian' }),
+    ).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(
         page.getByRole('link', { name: 'Profil i hasło' }),

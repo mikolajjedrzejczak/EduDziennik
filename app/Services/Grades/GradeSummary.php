@@ -47,4 +47,26 @@ class GradeSummary
             'average' => $row->average === null ? null : (string) $row->average, 'count' => (int) $row->count,
         ]])->all();
     }
+
+    /**
+     * BR-03: highest first using the unrounded ratio, then name/id for ties.
+     *
+     * @param  Builder<Grade>  $grades
+     * @return list<array{subject: array{id: string, label: string}, average: string|null, count: int}>
+     */
+    public function rankedSubjects(Builder $grades): array
+    {
+        return array_values($grades->toBase()
+            ->join('assessments', 'assessments.id', '=', 'grades.assessment_id')
+            ->join('subjects', 'subjects.id', '=', 'assessments.subject_id')
+            ->groupBy('subjects.id', 'subjects.name')
+            ->selectRaw('subjects.id, subjects.name, '.self::AVERAGE_SQL.' AS average, COUNT(*) AS count')
+            ->orderByRaw('SUM(grades.value * grades.weight) / NULLIF(SUM(grades.weight), 0) DESC')
+            ->orderBy('subjects.name')->orderBy('subjects.id')->get()
+            ->map(fn ($row) => [
+                'subject' => ['id' => (string) $row->id, 'label' => (string) $row->name],
+                'average' => $row->average === null ? null : (string) $row->average,
+                'count' => (int) $row->count,
+            ])->all());
+    }
 }

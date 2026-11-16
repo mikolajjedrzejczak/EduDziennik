@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DashboardFilterRequest;
+use App\Services\Statistics\StudentDashboard;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/** Empty role dashboard shell (F-007); data panels arrive with the role's dashboard feature. */
 class DashboardController extends Controller
 {
-    public function index(): Response
+    public function index(DashboardFilterRequest $request, StudentDashboard $dashboard): Response
     {
-        return Inertia::render('student/dashboard');
+        $termId = $request->validated('term_id');
+
+        return Inertia::render('student/dashboard', $dashboard->props($request->user(), $termId === null ? null : (int) $termId));
     }
 }
