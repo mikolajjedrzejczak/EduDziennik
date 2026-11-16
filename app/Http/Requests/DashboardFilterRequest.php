@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Grade;
 use App\Services\Authorization\RecordAccess;
 use App\Services\Grades\StudentGradeList;
+use App\Services\Grades\TeacherClassList;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -14,16 +15,16 @@ class DashboardFilterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $student = $this->user();
+        $actor = $this->user();
 
-        return $student !== null && RecordAccess::active($student) && $student->role === 'student' && $student->can('viewAny', Grade::class);
+        return $actor !== null && RecordAccess::active($actor) && in_array($actor->role, ['student', 'teacher'], true) && $actor->can('viewAny', Grade::class);
     }
 
     /** @return array<string, list<mixed>> */
     public function rules(): array
     {
         return [
-            'term_id' => ['bail', 'nullable', 'integer', Rule::in(app(StudentGradeList::class)->terms($this->user())->pluck('id')->all())],
+            'term_id' => ['bail', 'nullable', 'integer', Rule::in(app($this->user()->role === 'teacher' ? TeacherClassList::class : StudentGradeList::class)->terms($this->user())->pluck('id')->all())],
             'student_id' => ['prohibited'],
             'student_enrollment_id' => ['prohibited'],
         ];
@@ -39,7 +40,7 @@ class DashboardFilterRequest extends FormRequest
     {
         $clean = array_intersect_key($this->except(array_keys($validator->errors()->messages())), array_flip(array_keys($this->rules())));
         $exception = new ValidationException($validator);
-        $exception->response = redirect()->to(route('student.dashboard', $clean), 303)->withErrors($validator->errors());
+        $exception->response = redirect()->to(route($this->user()->role.'.dashboard', $clean), 303)->withErrors($validator->errors());
 
         throw $exception;
     }
