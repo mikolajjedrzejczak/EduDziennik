@@ -19,6 +19,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get($role.'/history', [$controller, 'index'])->middleware('role:'.$role)->name($role.'.history.index');
         Route::get($role.'/grades/{grade}/history', [$controller, 'show'])->withTrashed()->whereNumber('grade')->middleware('role:'.$role)->name($role.'.grades.history');
     }
+    Route::get('teacher/classes', [Teacher\GradebookController::class, 'index'])->middleware('role:teacher')->name('teacher.gradebooks.index');
+    Route::get('teacher/gradebooks/{assignment}', [Teacher\GradebookController::class, 'show'])->whereNumber('assignment')->middleware('role:teacher')->name('teacher.gradebooks.show');
     Route::get('teacher', [Teacher\DashboardController::class, 'index'])->middleware('role:teacher')->name('teacher.dashboard');
     Route::get('admin', [Admin\DashboardController::class, 'index'])->middleware('role:admin')->name('admin.dashboard');
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {

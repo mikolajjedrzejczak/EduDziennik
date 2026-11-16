@@ -229,6 +229,6 @@ class StudentGradesTest extends TestCase
         $this->actingAs($this->student)->get(route('student.dashboard'))
             ->assertInertia(fn (Assert $p) => $p->where('navigation.primary.1.href', '/student/grades'));
         $this->actingAs(User::factory()->teacher()->create())->get(route('teacher.dashboard'))
-            ->assertInertia(fn (Assert $p) => $p->has('navigation.primary', 2)->where('navigation.primary.1.href', '/teacher/history'));
+            ->assertInertia(fn (Assert $p) => $p->has('navigation.primary', 3)->where('navigation.primary.1.href', '/teacher/classes')->where('navigation.primary.2.href', '/teacher/history'));
     }
 }

@@ -69,7 +69,7 @@ class DashboardTest extends TestCase
                 ->has('navigation.primary', match ($role) {
                     'admin' => 6,
                     'student' => 3,
-                    default => 2,
+                    default => 3,
                 })
                 ->where('navigation.secondary.0.href', route('profile.edit', absolute: false))
                 ->has('navigation.secondary', 1));

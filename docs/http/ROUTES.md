@@ -105,3 +105,5 @@ FACT F-103: trzy trasy `student.grades.show`, `teacher.grades.show`, `admin.grad
 ### Integracja F-104
 
 FACT: zarejestrowano wszystkie sześć tras historii z tabeli: ogólna `/student|teacher|admin/history` i konkretnej oceny `/student|teacher|admin/grades/{grade}/history`. Każda używa `auth`, odpowiedniego `role`, `HistoryFilterRequest` i `GradeAuditPolicy.viewAny`; szczegół dodatkowo `GradePolicy.viewHistory` i jawne `withTrashed`. Obcy rekord/selektor → 404. Wspólna strona `shared/history/index`; logika odczytu w `GradeHistory` i istniejącym `GradeAccess`.
+
+FACT F-202 (2026-11-16): działają `teacher.gradebooks.index` oraz podstawowy, autoryzowany odczyt `teacher.gradebooks.show` zgodnie z URL powyżej. Druga trasa jest punktem wejścia po wyborze przypisania; pełne F-203, student show i mutacje assessments pozostają kolejnym zakresem.
