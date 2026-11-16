@@ -1,5 +1,6 @@
+import { useFilterState } from '@/hooks/use-filter-state';
+import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { StaffGradeList } from '@/components/grades/staff-grade-list';
 import { Pagination } from '@/components/pagination';
@@ -22,7 +23,7 @@ export default function Grades({
     const { auth, errors } = usePage().props;
     const base = `/${auth.user.role}/grades`;
     const loading = usePageLoading();
-    const [data, setData] = useState({
+    const [data, setData] = useFilterState({
         term_id: filters.termId ?? '',
         subject_id: filters.subjectId ?? '',
         category_id: filters.categoryId ?? '',
@@ -58,7 +59,7 @@ export default function Grades({
                     fields={{}}
                     title="Sprawdź wybrane filtry"
                 />
-                <form
+                <SearchFilterForm
                     role="search"
                     aria-label="Filtry ocen"
                     className="grid gap-3 md:grid-cols-3 xl:grid-cols-4"
@@ -72,7 +73,11 @@ export default function Grades({
                                     value || null,
                                 ]),
                             ),
-                            { replace: true, preserveScroll: true },
+                            {
+                                preserveState: true,
+                                replace: false,
+                                preserveScroll: true,
+                            },
                         );
                     }}
                 >
@@ -172,7 +177,7 @@ export default function Grades({
                             Wyczyść filtry
                         </Link>
                     </div>
-                </form>
+                </SearchFilterForm>
                 <div className="rounded-lg border border-border bg-surface p-4">
                     <p className="font-semibold">
                         Średnia: {formatAverage(summary.average)} ·{' '}

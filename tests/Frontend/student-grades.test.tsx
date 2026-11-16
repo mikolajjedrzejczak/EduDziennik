@@ -199,7 +199,7 @@ describe('student grades', () => {
         render(<StudentGrades {...props([grade()])} />);
         await user.type(screen.getByLabelText('Temat oceny'), ' liniowa ');
         await user.click(screen.getByRole('button', { name: 'Filtruj' }));
-        const [url, query] = get.mock.calls[0] as [
+        const [url, query] = get.mock.calls.at(-1) as [
             string,
             Record<string, unknown>,
         ];

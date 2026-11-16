@@ -1,3 +1,5 @@
+import { useFilterState } from '@/hooks/use-filter-state';
+import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowDown,
@@ -7,7 +9,6 @@ import {
     Search,
     Sheet,
 } from 'lucide-react';
-import { useState } from 'react';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { Pagination } from '@/components/pagination';
 import { OptionField } from '@/components/school/option-field';
@@ -37,9 +38,9 @@ export default function TeacherClasses({
     const role = auth.user.role;
     const url = role === 'admin' ? '/admin/gradebooks' : '/teacher/classes';
     const loading = usePageLoading();
-    const [q, setQ] = useState(filters.q);
-    const [termId, setTermId] = useState(filters.termId ?? '');
-    const [perPage, setPerPage] = useState(String(filters.perPage));
+    const [q, setQ] = useFilterState(filters.q);
+    const [termId, setTermId] = useFilterState(filters.termId ?? '');
+    const [perPage, setPerPage] = useFilterState(String(filters.perPage));
     const query = {
         term_id: termId || null,
         q: q.trim() || null,
@@ -70,14 +71,15 @@ export default function TeacherClasses({
                     title="Sprawdź wybrane filtry"
                 />
                 {terms.length > 0 && (
-                    <form
+                    <SearchFilterForm
                         role="search"
                         aria-label="Filtry klas"
                         className="grid gap-3 md:grid-cols-2 md:items-end xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_10rem_auto] xl:items-end"
                         onSubmit={(event) => {
                             event.preventDefault();
                             router.get(url, query, {
-                                replace: true,
+                                preserveState: true,
+                                replace: false,
                                 preserveScroll: true,
                             });
                         }}
@@ -125,7 +127,7 @@ export default function TeacherClasses({
                         <Button type="submit" disabled={loading}>
                             Filtruj
                         </Button>
-                    </form>
+                    </SearchFilterForm>
                 )}
                 <section
                     id="class-list"

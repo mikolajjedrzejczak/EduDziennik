@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Models\SchoolClass;
 use App\Models\User;
 use App\Services\Authorization\RecordAccess;
+use App\Support\ListFilters;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -31,17 +32,13 @@ class UserFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'q' => ['nullable', 'string', 'max:100'],
+            ...ListFilters::rules(self::SORTS),
             'role' => ['nullable', Rule::in(['student', 'teacher', 'admin'])],
             'status' => ['nullable', Rule::in(['active', 'inactive', 'deleted'])],
             'school_class_id' => ['bail', 'nullable', 'integer', 'min:1', 'required_with:term_id', Rule::exists('school_classes', 'id')],
             'term_id' => ['bail', 'nullable', 'integer', 'min:1', 'required_with:school_class_id', Rule::exists('terms', 'id')->where(
                 fn ($terms) => $terms->whereIn('academic_year_id', SchoolClass::withTrashed()->whereKey((int) $this->input('school_class_id'))->select('academic_year_id')),
             )],
-            'page' => ['nullable', 'integer', 'min:1', 'max:100000'],
-            'per_page' => ['nullable', 'integer', Rule::in(self::PER_PAGE)],
-            'sort' => ['nullable', Rule::in(self::SORTS)],
-            'direction' => ['nullable', Rule::in(['asc', 'desc'])],
         ];
     }
 

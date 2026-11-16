@@ -6,6 +6,7 @@ use App\Models\Grade;
 use App\Services\Authorization\RecordAccess;
 use App\Services\Grades\StaffGradeList;
 use App\Services\Grades\StudentGradeList;
+use App\Support\ListFilters;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -37,35 +38,27 @@ class GradeFilterRequest extends FormRequest
             $actor = $this->user();
 
             return [
+                ...ListFilters::rules(self::SORTS),
                 'term_id' => ['nullable', 'integer', Rule::in($list->terms($actor)->pluck('id')->all())],
                 'subject_id' => ['nullable', 'integer', Rule::in($list->ids($actor, 'subject_id'))],
                 'category_id' => ['nullable', 'integer', Rule::in($list->ids($actor, 'category_id'))],
                 'student_enrollment_id' => ['nullable', 'integer', Rule::in($list->ids($actor, 'student_enrollment_id'))],
                 'student_id' => $actor->role === 'admin' ? ['nullable', 'integer', Rule::in($list->ids($actor, 'student_id'))] : ['prohibited'],
                 'school_class_id' => $actor->role === 'admin' ? ['nullable', 'integer', Rule::in($list->ids($actor, 'school_class_id'))] : ['prohibited'],
-                'q' => ['nullable', 'string', 'max:100'],
                 'date_from' => ['nullable', 'date_format:Y-m-d'],
                 'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
-                'page' => ['nullable', 'integer', 'min:1', 'max:100000'],
-                'per_page' => ['nullable', 'integer', Rule::in(self::PER_PAGE)],
-                'sort' => ['nullable', Rule::in(self::SORTS)],
-                'direction' => ['nullable', Rule::in(['asc', 'desc'])],
             ];
         }
         $list = app(StudentGradeList::class);
         $student = $this->user();
 
         return [
+            ...ListFilters::rules(self::SORTS),
             'term_id' => ['bail', 'nullable', 'integer', Rule::in($list->terms($student)->pluck('id')->all())],
             'subject_id' => ['bail', 'nullable', 'integer', Rule::in($list->subjectIds($student))],
             'category_id' => ['bail', 'nullable', 'integer', Rule::in($list->categoryIds($student))],
-            'q' => ['nullable', 'string', 'max:100'],
             'date_from' => ['nullable', 'date_format:Y-m-d'],
             'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
-            'page' => ['nullable', 'integer', 'min:1', 'max:100000'],
-            'per_page' => ['nullable', 'integer', Rule::in(self::PER_PAGE)],
-            'sort' => ['nullable', Rule::in(self::SORTS)],
-            'direction' => ['nullable', Rule::in(['asc', 'desc'])],
             // A student never selects another owner.
             'student_id' => ['prohibited'],
             'student_enrollment_id' => ['prohibited'],

@@ -9,6 +9,7 @@ use App\Models\StudentEnrollment;
 use App\Models\Subject;
 use App\Models\Term;
 use App\Models\User;
+use App\Support\ListFilters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -58,7 +59,7 @@ class StudentGradeList
      */
     public function grades(User $student, array $filters, bool $withSubject = true): Builder
     {
-        $like = $filters['q'] === '' ? null : '%'.addcslashes($filters['q'], '\\%_').'%';
+        $like = $filters['q'] === '' ? null : ListFilters::contains($filters['q']);
 
         return Grade::visibleTo($student)
             ->whereHas('assessment', fn ($a) => $a->where('term_id', $filters['termId'])

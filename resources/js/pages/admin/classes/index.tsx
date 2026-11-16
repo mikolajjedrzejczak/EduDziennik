@@ -1,3 +1,5 @@
+import { useFilterState } from '@/hooks/use-filter-state';
+import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronRight, Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -82,7 +84,6 @@ export default function Classes({
                     />
                 )}
                 <ClassFilters
-                    key={`${filters.q}:${filters.academicYearId}:${filters.archived}`}
                     filters={filters}
                     years={years}
                     onPendingChange={setPending}
@@ -351,22 +352,27 @@ function ClassFilters({
     years: ClassManagementProps['years'];
     onPendingChange: (pending: boolean) => void;
 }) {
-    const [q, setQ] = useState(filters.q);
-    const [year, setYear] = useState(filters.academicYearId ?? '');
-    const [archived, setArchived] = useState(filters.archived);
+    const [q, setQ] = useFilterState(filters.q);
+    const [year, setYear] = useFilterState(filters.academicYearId ?? '');
+    const [archived, setArchived] = useFilterState(filters.archived);
     const [pending, setPending] = useState(false);
     return (
-        <form
+        <SearchFilterForm
             onSubmit={(event) => {
                 event.preventDefault();
                 router.get(
                     '/admin/classes',
                     {
-                        q,
+                        sort: filters.sort,
+                        direction: filters.direction,
+                        per_page: filters.perPage,
+                        q: q.trim(),
                         academic_year_id: year || undefined,
                         archived: archived ? 1 : 0,
                     },
                     {
+                        preserveState: true,
+                        preserveScroll: true,
                         onStart: () => {
                             setPending(true);
                             onPendingChange(true);
@@ -420,6 +426,6 @@ function ClassFilters({
             >
                 Wyczyść
             </Link>
-        </form>
+        </SearchFilterForm>
     );
 }

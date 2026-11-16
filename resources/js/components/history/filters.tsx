@@ -1,3 +1,4 @@
+import { useFilterState } from '@/hooks/use-filter-state';
 import { router, usePage } from '@inertiajs/react';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { useState } from 'react';
@@ -25,11 +26,11 @@ export function HistoryFilters({
     const [open, setOpen] = useState(false);
     const mobile = useViewport() === 'mobile';
     const pending = usePageLoading();
-    const [term, setTerm] = useState(filters.termId ?? '');
-    const [subject, setSubject] = useState(filters.subjectId ?? '');
-    const [action, setAction] = useState(filters.action ?? '');
-    const [from, setFrom] = useState(filters.dateFrom ?? '');
-    const [to, setTo] = useState(filters.dateTo ?? '');
+    const [term, setTerm] = useFilterState(filters.termId ?? '');
+    const [subject, setSubject] = useFilterState(filters.subjectId ?? '');
+    const [action, setAction] = useFilterState(filters.action ?? '');
+    const [from, setFrom] = useFilterState(filters.dateFrom ?? '');
+    const [to, setTo] = useFilterState(filters.dateTo ?? '');
     const reset = () => {
         setTerm('');
         setSubject('');

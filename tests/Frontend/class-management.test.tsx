@@ -66,7 +66,14 @@ describe('class management', () => {
         await user.click(screen.getByRole('button', { name: 'Filtruj' }));
         expect(get).toHaveBeenCalledWith(
             '/admin/classes',
-            { q: '2A', academic_year_id: undefined, archived: 0 },
+            {
+                q: '2A',
+                academic_year_id: undefined,
+                archived: 0,
+                sort: 'name',
+                direction: 'asc',
+                per_page: 10,
+            },
             expect.any(Object),
         );
     });

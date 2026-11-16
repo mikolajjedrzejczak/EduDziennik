@@ -113,3 +113,32 @@ test('a student cannot select another owner through the URL', async ({
     const response = await page.goto('/admin');
     expect(response?.status()).toBe(403);
 });
+
+test('debounced search resets page and survives reload and Back/Forward', async ({
+    page,
+}) => {
+    await loginAsStudent(page);
+    await page.goto('/student/grades?sort=value&direction=asc');
+    await openFilters(page);
+    const search = page.getByLabel('Temat oceny');
+    await search.fill('Sprawdzian');
+    await expect(page).toHaveURL(/q=Sprawdzian/);
+    expect(new URL(page.url()).searchParams.get('page')).toBeNull();
+    expect(new URL(page.url()).searchParams.get('sort')).toBe('value');
+    const searched = page.url();
+    await page.reload();
+    await openFilters(page);
+    await expect(search).toHaveValue('Sprawdzian');
+    await search.fill('Nieistniejący temat');
+    await expect(page).toHaveURL(/q=Nieistniej/);
+    await expect(
+        page.getByRole('heading', { name: 'Brak wyników' }),
+    ).toBeVisible();
+    await page.goBack();
+    await expect(page).toHaveURL(searched);
+    await openFilters(page);
+    await expect(search).toHaveValue('Sprawdzian');
+    await page.goForward();
+    await openFilters(page);
+    await expect(search).toHaveValue('Nieistniejący temat');
+});

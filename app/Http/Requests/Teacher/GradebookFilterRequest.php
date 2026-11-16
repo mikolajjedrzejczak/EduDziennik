@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Teacher;
 
 use App\Models\TeacherAssignment;
+use App\Support\ListFilters;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
@@ -25,11 +26,8 @@ class GradebookFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'q' => ['nullable', 'string', 'max:100'],
-            'page' => ['nullable', 'integer', 'min:1', 'max:100000'],
+            ...ListFilters::rules(['last_name']),
             'assessment_page' => ['nullable', 'integer', 'min:1', 'max:100000'],
-            'per_page' => ['nullable', 'integer', 'in:10,25,50'],
-            'sort' => ['nullable', 'in:last_name'], 'direction' => ['nullable', 'in:asc,desc'],
         ];
     }
 

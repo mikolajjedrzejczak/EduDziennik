@@ -14,6 +14,7 @@ use App\Models\TeacherAssignment;
 use App\Models\Term;
 use App\Models\User;
 use App\Services\Users\UserService;
+use App\Support\ListFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -175,7 +176,7 @@ class UserController extends Controller
             $query->where('role', $filters['role']);
         }
         if ($filters['q'] !== '') {
-            $like = '%'.addcslashes($filters['q'], '\\%_').'%';
+            $like = ListFilters::contains($filters['q']);
             $query->where(fn (Builder $q) => $q->where('first_name', 'like', $like)
                 ->orWhere('last_name', 'like', $like)
                 ->orWhere('email', 'like', $like)

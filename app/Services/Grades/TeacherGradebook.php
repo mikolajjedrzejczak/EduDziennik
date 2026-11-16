@@ -9,6 +9,7 @@ use App\Models\StudentEnrollment;
 use App\Models\TeacherAssignment;
 use App\Models\User;
 use App\Services\Authorization\GradeAccess;
+use App\Support\ListFilters;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -34,7 +35,7 @@ class TeacherGradebook
         $assignment = $this->access->assignment($actor, $assignment->id);
         $direction = $data['direction'] ?? 'asc';
         $search = trim($data['q'] ?? '');
-        $like = '%'.addcslashes($search, '\\%_').'%';
+        $like = ListFilters::contains($search);
         $students = $this->access->enrollments($actor, $assignment)->with('student')
             ->when($search !== '', fn ($q) => $q->whereHas('student', fn ($s) => $s->where('last_name', 'like', $like)))
             ->orderBy(User::withTrashed()->select('last_name')->whereColumn('users.id', 'student_enrollments.student_id'), $direction)
