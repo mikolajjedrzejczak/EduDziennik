@@ -27,7 +27,7 @@ class GradePresenter
     }
 
     /** @return array<string, mixed> */
-    public function toArray(Grade $g, User $actor, bool $withHistory = true): array
+    public function toArray(Grade $g, User $actor, bool $withHistory = true, bool $readOnly = false): array
     {
         $a = $g->assessment;
         $student = $g->enrollment->student;
@@ -51,7 +51,7 @@ class GradePresenter
             'deletedAt' => $g->deleted_at?->toIso8601String(), 'version' => $g->version,
             'differsFromAssessment' => $g->weight !== $a->default_weight || $g->topic !== $a->topic
                 || $g->category_id !== $a->category_id || ! $g->graded_on->equalTo($a->graded_on),
-            'can' => ['update' => $actor->role !== 'student' && $actor->can('update', $g), 'delete' => $actor->role !== 'student' && $actor->can('delete', $g), 'viewHistory' => $withHistory && $actor->can('viewHistory', $g)],
+            'can' => ['update' => ! $readOnly && $actor->role !== 'student' && $actor->can('update', $g), 'delete' => ! $readOnly && $actor->role !== 'student' && $actor->can('delete', $g), 'viewHistory' => $withHistory && $actor->can('viewHistory', $g)],
         ];
     }
 }

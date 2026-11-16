@@ -4,7 +4,7 @@ import { expect, test } from './fixtures';
 
 const roles = [
     { role: 'student', path: '/student', h1: 'Dzień dobry, Jan' },
-    { role: 'teacher', path: '/teacher', h1: 'Pulpit nauczyciela' },
+    { role: 'teacher', path: '/teacher', h1: 'Dzień dobry, Anna' },
     { role: 'admin', path: '/admin', h1: 'Pulpit administratora' },
 ] as const;
 const viewports = [

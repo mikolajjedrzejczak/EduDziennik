@@ -141,7 +141,7 @@ interface StudentDashboardProps extends SharedProps {
 }
 interface TeacherDashboardProps extends SharedProps {
   term: Option | null; terms: Option[]; assignmentCount: number; ungradedCount: number;
-  atRiskCount: number; recentGrades: GradeDTO[];
+  atRiskCount: number; assignments: AssignmentDTO[]; recentGrades: GradeDTO[];
 }
 interface AdminDashboardProps extends SharedProps {
   term: Option | null; terms: Option[]; userCounts: Record<Role, number>; inactiveCount: number;
@@ -309,3 +309,12 @@ FACT F-206: `deleteUrl` jest przekazywane tylko do formularza edycji. DELETE uż
 FACT: `StudentDashboardProps` wdrożono w `types/dashboard.ts`, współdzieląc GradeDTO, GradeSummary i SubjectSummary. `subjects` zawiera przedmioty własnych nieusuniętych ocen termu w kolejności niezaokrąglonej średniej malejąco, potem nazwa/ID; pierwszy/ostatni element zasila najwyższą/najniższą średnią. `recentGrades` ma max5, sort graded_on desc/id desc. DashboardFilterRequest dopuszcza wyłącznie dostępny `term_id`, zabrania student_id/student_enrollment_id; nieznane pola nie zawężają ani nie poszerzają odczytu. Błędne filtry →303 do oczyszczonego pulpitu i session errors.
 
 DECISION: domyślny term pulpitu musi obejmować dzisiaj (Europe/Warsaw); brak bieżącego termu →term=null, puste subjects/recentGrades, average=null/count=0 i wybór z dostępnych terms. Jawny dostępny term_id pozwala odczytać inny semestr; semestr bez ocen daje null/0. Lista F-102 zachowuje dotychczasowy fallback, ale linki z pulpitu zawsze przekazują jego wybrany term.
+
+
+## Integracja F-201 — pulpit nauczyciela
+
+FACT: `TeacherDashboardProps` zwraca trzy liczniki BR-03, `assignments` (maksymalnie 5 niecofniętych przydziałów w kolejności nazwa klasy/ID) i `recentGrades` (maksymalnie 5, graded_on DESC, ID DESC). Pełna lista dzienników jest dostępna przez F-202; skrót otwiera dokładny assignment. Liczniki nie są ograniczone podglądem pięciu przydziałów ani ocen.
+
+FACT: DashboardFilterRequest obsługuje student i teacher przez właściwy scoped katalog termów. Teacher może wybrać tylko term własnego niecofniętego przydziału. Domyślny term obejmuje dzisiaj Europe/Warsaw; brak takiego termu daje term=null, zera i puste listy, z możliwością jawnego wyboru dostępnego semestru. student_id/student_enrollment_id są zabronione, inne nieznane parametry nie wpływają na zakres. Walidacja przekierowuje303 do oczyszczonego pulpitu właściwej roli, także przy partial reload.
+
+DECISION: podgląd ocen jest odczytem z autoryzowanego scope i ma wszystkie `can` ustawione false; link prowadzi do szczegółów ponownie obliczających uprawnienia. GradePresenter pomija nieużywane w podglądzie kontrole mutacji, co usuwa zapytania per ocena. DTO nadal używa wspólnej allowlisty GradeDTO.
