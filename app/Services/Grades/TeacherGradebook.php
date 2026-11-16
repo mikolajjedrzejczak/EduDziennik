@@ -21,6 +21,16 @@ class TeacherGradebook
     /** @param array<string, mixed> $data */
     public function render(User $actor, TeacherAssignment $assignment, array $data): Response|RedirectResponse
     {
+        $props = $this->props($actor, $assignment, $data);
+
+        return $props instanceof RedirectResponse ? $props : Inertia::render('shared/gradebooks/show', $props);
+    }
+
+    /** @param array<string, mixed> $data
+     * @return array<string, mixed>|RedirectResponse
+     */
+    public function props(User $actor, TeacherAssignment $assignment, array $data): array|RedirectResponse
+    {
         $assignment = $this->access->assignment($actor, $assignment->id);
         $direction = $data['direction'] ?? 'asc';
         $search = trim($data['q'] ?? '');
@@ -55,26 +65,27 @@ class TeacherGradebook
             ->whereIn('assessment_id', $assessments->getCollection()->pluck('id'))
             ->with(['assessment.subject', 'assessment.term.academicYear', 'assessment.schoolClass', 'category', 'issuer', 'enrollment.student'])->get();
 
-        return Inertia::render('shared/gradebooks/show', [
+        return [
             'context' => $context,
             'canCreateAssessment' => $actor->can('create', [Assessment::class, $assignment->schoolClass, $assignment->subject, $assignment->term]),
             'assessments' => $this->pages->present($assessments->appends($data), fn (Assessment $a) => [
                 'id' => (string) $a->id, 'topic' => $a->topic, 'category' => ['id' => (string) $a->category_id, 'label' => $a->category->name],
                 'defaultWeight' => $a->default_weight, 'gradedOn' => $a->graded_on->toDateString(), 'canDelete' => $actor->can('delete', $a),
             ]),
-            'students' => $this->pages->present($students->appends($data), function (StudentEnrollment $e) use ($actor, $visible, $base, $scope, $context) {
+            'students' => $this->pages->present($students->appends($data), function (StudentEnrollment $e) use ($actor, $visible, $base, $scope, $context, $assessments) {
                 $grades = $visible->where('student_enrollment_id', $e->id);
 
                 return [
                     'student' => ['id' => (string) $e->student_id, 'enrollmentId' => (string) $e->id, 'name' => $e->student->name,
                         'historical' => $e->ends_on !== null && $e->ends_on->toDateString() < now('Europe/Warsaw')->toDateString()],
                     'grades' => $grades->filter(fn (Grade $g) => ! $g->trashed())->map(fn (Grade $g) => [...$this->grades->toArray($g, $actor), 'context' => $context])->values()->all(),
+                    'creatableAssessmentIds' => $assessments->getCollection()->filter(fn (Assessment $a) => ! $grades->contains('assessment_id', $a->id) && $actor->can('create', [Grade::class, $a, $e]))->map(fn (Assessment $a) => (string) $a->id)->values()->all(),
                     'deletedAssessmentIds' => $grades->filter(fn (Grade $g) => $g->trashed())->map(fn (Grade $g) => (string) $g->assessment_id)->values()->all(),
                     'summary' => [...$this->summary->aggregate((clone $base)->where('student_enrollment_id', $e->id)), 'scopeLabel' => $scope],
                 ];
             }),
             'filters' => ['q' => $search, 'page' => $students->currentPage(), 'perPage' => $students->perPage(), 'assessmentPage' => $assessments->currentPage(), 'sort' => 'last_name', 'direction' => $direction],
             'categories' => GradeCategory::where('is_active', true)->orderBy('name')->get()->map(fn (GradeCategory $c) => ['id' => (string) $c->id, 'label' => $c->name]),
-        ]);
+        ];
     }
 }

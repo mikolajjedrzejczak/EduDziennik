@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import { GradeChip } from '@/components/grades/grade-chip';
 import { Button } from '@/components/ui/button';
@@ -10,10 +11,12 @@ function Cell({
     row,
     assessment,
     gradeUrl,
+    createUrl,
 }: {
     row: Row;
     assessment: Assessment;
     gradeUrl: (id: string) => string;
+    createUrl?: (enrollment: string, assessment: string) => string;
 }) {
     const grade = row.grades.find((g) => g.assessmentId === assessment.id);
     if (grade)
@@ -24,6 +27,19 @@ function Cell({
                 differsFromAssessment={grade.differsFromAssessment}
             />
         );
+    if (createUrl && row.creatableAssessmentIds?.includes(assessment.id)) {
+        return (
+            <Link
+                href={createUrl(row.student.enrollmentId, assessment.id)}
+                aria-label={`Wystaw ocenę: ${row.student.name}, ${assessment.topic}`}
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded text-text-secondary focus-visible:outline-2 focus-visible:outline-focus"
+            >
+                <span className="flex size-8 items-center justify-center rounded-md border border-dashed border-border-strong">
+                    <Plus className="size-4" aria-hidden="true" />
+                </span>
+            </Link>
+        );
+    }
     return (
         <span
             className="inline-flex min-h-11 min-w-11 items-center justify-center text-xs text-text-secondary"
@@ -44,9 +60,11 @@ export function Roster({
     studentUrl,
     gradeUrl,
     onDelete,
+    createUrl,
 }: Pick<GradebookProps, 'students' | 'assessments'> & {
     studentUrl: (id: string) => string;
     gradeUrl: (id: string) => string;
+    createUrl?: (enrollment: string, assessment: string) => string;
     onDelete: (assessment: Assessment) => void;
 }) {
     return (
@@ -133,6 +151,7 @@ export function Roster({
                                             row={row}
                                             assessment={a}
                                             gradeUrl={gradeUrl}
+                                            createUrl={createUrl}
                                         />
                                     </td>
                                 ))}
@@ -215,6 +234,7 @@ export function Roster({
                                             row={row}
                                             assessment={a}
                                             gradeUrl={gradeUrl}
+                                            createUrl={createUrl}
                                         />
                                     </span>
                                 ))}

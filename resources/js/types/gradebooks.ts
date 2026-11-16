@@ -29,6 +29,7 @@ export type GradebookProps = {
         student: GradeDTO['student'];
         grades: GradeDTO[];
         deletedAssessmentIds: string[];
+        creatableAssessmentIds: string[];
         summary: GradeSummary;
     }>;
     filters: Filters & { q: string; assessmentPage: number };
@@ -42,4 +43,17 @@ export type StudentDetailProps = {
     summary: GradeSummary;
     historyUrl: string;
     recentHistory: (GradeHistoryEntry & { topic: string })[];
+};
+
+export type GradeFormProps = {
+    grade: null;
+    context: GradeContext;
+    assessment: GradebookProps['assessments']['data'][number] | null;
+    selectedEnrollmentId: string | null;
+    students: GradeDTO['student'][];
+    assessments: GradebookProps['assessments']['data'];
+    categories: Option[];
+    background: GradebookProps;
+    submitUrl: string;
+    cancelUrl: string;
 };
