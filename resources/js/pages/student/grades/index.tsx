@@ -1,6 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Search, SlidersHorizontal } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { StudentGradeList } from '@/components/grades/student-grade-list';
 import { Pagination } from '@/components/pagination';
@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/states/empty-state';
 import { LoadingState } from '@/components/states/loading-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { usePageLoading } from '@/hooks/use-page-loading';
 import { Label } from '@/components/ui/label';
 import {
     GRADES_URL,
@@ -17,6 +18,7 @@ import {
     gradeHref,
     gradeQuery,
 } from '@/lib/grades';
+import { show } from '@/routes/student/grades';
 import type { GradeFilters, GradeListProps } from '@/types/grades';
 
 const errorFields = {
@@ -29,20 +31,6 @@ const errorFields = {
     student_id: { id: 'grades-term', label: 'Uczeń' },
     student_enrollment_id: { id: 'grades-term', label: 'Zapis ucznia' },
 };
-
-function usePageLoading() {
-    const [loading, setLoading] = useState(false);
-    useEffect(() => {
-        const off = [
-            router.on('start', () => setLoading(true)),
-            router.on('finish', () => setLoading(false)),
-        ];
-
-        return () => off.forEach((remove) => remove());
-    }, []);
-
-    return loading;
-}
 
 function FilterForm({
     filters,
@@ -325,6 +313,7 @@ export default function StudentGrades({
                             ) : (
                                 <>
                                     <StudentGradeList
+                                        gradeUrl={(id) => show.url(id)}
                                         grades={grades.data}
                                         filters={filters}
                                         showSubject={!filters.subjectId}

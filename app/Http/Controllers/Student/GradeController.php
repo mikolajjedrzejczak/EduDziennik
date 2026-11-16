@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GradeDetailRequest;
 use App\Http\Requests\GradeFilterRequest;
 use App\Models\Grade;
 use App\Models\GradeCategory;
 use App\Models\Subject;
 use App\Models\Term;
 use App\Models\User;
+use App\Services\Grades\GradeDetail;
+use App\Services\Grades\GradePresenter;
 use App\Services\Grades\GradeSummary;
 use App\Services\Grades\StudentGradeList;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -21,6 +24,11 @@ use Inertia\Response;
 class GradeController extends Controller
 {
     public function __construct(private readonly StudentGradeList $list, private readonly GradeSummary $summary) {}
+
+    public function show(GradeDetailRequest $request, Grade $grade, GradeDetail $detail): Response
+    {
+        return Inertia::render('shared/grades/show', $detail->props($request->user(), $grade, (int) $request->validated('history_page', 1)));
+    }
 
     public function index(GradeFilterRequest $request): Response|RedirectResponse
     {
@@ -47,7 +55,7 @@ class GradeController extends Controller
         $scoped = fn () => $this->list->grades($student, $filters);
         $direction = $filters['direction'];
         $page = $scoped()
-            ->with(['assessment.subject', 'assessment.term', 'assessment.schoolClass', 'category', 'issuer', 'enrollment'])
+            ->with(['assessment.subject', 'assessment.term', 'assessment.schoolClass', 'category', 'issuer', 'enrollment.student'])
             ->orderBy('grades.'.$filters['sort'], $direction)->orderBy('grades.id', $direction)
             ->paginate($filters['perPage'], page: $filters['page']);
         if ($page->isEmpty() && $filters['page'] > 1) {
@@ -127,8 +135,8 @@ class GradeController extends Controller
     }
 
     /**
-     * Explicit allowlist projection of GradeDTO; no model is serialized. `can` is all false:
-     * a student never mutates grades and the history route ships with F-104.
+     * Explicit allowlist projection of GradeDTO; no model is serialized. `can` is computed by Policy:
+     * a student never mutates grades; history is available within details.
      *
      * @param  LengthAwarePaginator<int, Grade>|null  $page
      * @return array<string, mixed>
@@ -146,37 +154,9 @@ class GradeController extends Controller
         $links[] = ['label' => 'Następna', 'url' => $page->currentPage() < $last ? $page->url($page->currentPage() + 1) : null, 'active' => false];
 
         return [
-            'data' => collect($page->items())->map(fn (Grade $g) => $this->dto($g, $student))->all(),
+            'data' => collect($page->items())->map(fn (Grade $g) => app(GradePresenter::class)->toArray($g, $student, withHistory: false))->all(),
             'meta' => ['currentPage' => $page->currentPage(), 'perPage' => $page->perPage(), 'total' => $page->total(), 'lastPage' => $last],
             'links' => $links,
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function dto(Grade $g, User $student): array
-    {
-        $a = $g->assessment;
-
-        return [
-            'id' => (string) $g->id,
-            'student' => ['id' => (string) $student->id, 'enrollmentId' => (string) $g->student_enrollment_id, 'name' => $student->name, 'historical' => $g->enrollment->ends_on !== null && $g->enrollment->ends_on->isPast()],
-            'assessmentId' => (string) $g->assessment_id,
-            'context' => [
-                'assignmentId' => null,
-                'schoolClass' => $this->option($a->schoolClass->id, $a->schoolClass->name),
-                'subject' => $this->option($a->subject->id, $a->subject->name),
-                'term' => $this->termOption($a->term),
-                'closed' => $a->term->closed_at !== null,
-            ],
-            'value' => $g->value, 'weight' => $g->weight,
-            'category' => $this->option($g->category->id, $g->category->name),
-            'topic' => $g->topic, 'comment' => $g->comment, 'gradedOn' => $g->graded_on->toDateString(),
-            'issuedBy' => $this->option($g->issuer->id, $g->issuer->name),
-            'createdAt' => $g->created_at?->toIso8601String(), 'updatedAt' => $g->updated_at?->toIso8601String(),
-            'deletedAt' => null, 'version' => $g->version,
-            'differsFromAssessment' => $g->weight !== $a->default_weight || $g->topic !== $a->topic
-                || $g->category_id !== $a->category_id || ! $g->graded_on->equalTo($a->graded_on),
-            'can' => ['update' => false, 'delete' => false, 'viewHistory' => false],
         ];
     }
 }

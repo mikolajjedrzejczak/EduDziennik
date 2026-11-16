@@ -124,8 +124,8 @@ describe('student grades', () => {
         expect(within(table).getAllByRole('row')).toHaveLength(3);
         expect(within(table).getAllByText('30.09.2026')).toHaveLength(2);
         expect(
-            within(table).getAllByText('Ocena 4', { exact: false }).length,
-        ).toBeGreaterThan(0);
+            within(table).getByRole('link', { name: 'Ocena 4' }),
+        ).toHaveAttribute('href', '/student/grades/1');
         // the average is shown as sent (comma), never recomputed on the client
         expect(screen.getByTestId('summary-average')).toHaveTextContent('4,43');
         expect(
