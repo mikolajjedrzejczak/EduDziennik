@@ -147,6 +147,55 @@ describe('F-007 application shell', () => {
         expect(screen.getByRole('button', { name: 'Wyloguj' })).toBeVisible();
     });
 
+    it('keeps four mobile destinations and returns focus from the extra pages menu', async () => {
+        mockViewport(390);
+        state.navigation = {
+            ...navigation,
+            primary: [
+                ...navigation.primary,
+                {
+                    key: 'classes',
+                    label: 'Moje klasy',
+                    shortLabel: 'Klasy',
+                    href: '/teacher/classes',
+                    icon: 'classes',
+                },
+                {
+                    key: 'gradebooks',
+                    label: 'Dziennik ocen',
+                    shortLabel: 'Dziennik',
+                    href: '/teacher/gradebooks',
+                    icon: 'grades',
+                },
+                {
+                    key: 'history',
+                    label: 'Historia zmian',
+                    shortLabel: 'Historia',
+                    href: '/teacher/history',
+                    icon: 'history',
+                },
+            ],
+        };
+        const events = userEvent.setup();
+        render(<AppShell>x</AppShell>);
+        const nav = screen.getByRole('navigation', {
+            name: 'Nawigacja mobilna',
+        });
+        expect(within(nav).getAllByRole('link')).toHaveLength(3);
+        const more = screen.getByRole('button', { name: 'Więcej stron' });
+        await events.click(more);
+        const dialog = screen.getByRole('dialog');
+        expect(
+            within(dialog).getByRole('link', { name: 'Historia zmian' }),
+        ).toHaveAttribute('href', '/teacher/history');
+        expect(
+            within(dialog).getByRole('link', { name: 'Profil i hasło' }),
+        ).toBeInTheDocument();
+        await events.keyboard('{Escape}');
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(more).toHaveFocus();
+    });
+
     it('steps the bottom bar aside while a text field has focus (keyboard)', async () => {
         mockViewport(390);
         render(

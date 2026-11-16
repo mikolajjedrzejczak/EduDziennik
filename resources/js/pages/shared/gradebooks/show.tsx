@@ -1,15 +1,17 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { ErrorSummary } from '@/components/forms/error-summary';
-import { GradeChip } from '@/components/grades/grade-chip';
+import { AssessmentDialog } from '@/components/gradebook/assessment-dialog';
+import { Roster } from '@/components/gradebook/roster';
 import { Pagination } from '@/components/pagination';
 import { EmptyState } from '@/components/states/empty-state';
 import { LoadingState } from '@/components/states/loading-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { OptionField } from '@/components/school/option-field';
 import { usePageLoading } from '@/hooks/use-page-loading';
-import { formatAverage } from '@/lib/grades';
 import type { GradebookProps } from '@/types/gradebooks';
 
 export default function Gradebook({
@@ -17,9 +19,27 @@ export default function Gradebook({
     assessments,
     students,
     filters,
+    categories,
+    canCreateAssessment,
 }: GradebookProps) {
-    const { errors } = usePage().props;
+    const { errors, auth } = usePage().props;
+    const role = auth.user.role;
+    const base = `/${role}/gradebooks/${context.assignmentId}`;
     const [q, setQ] = useState(filters.q);
+    const [perPage, setPerPage] = useState(String(filters.perPage));
+    const [direction, setDirection] = useState(filters.direction);
+    const [action, setAction] = useState<
+        'create' | GradebookProps['assessments']['data'][number] | null
+    >(null);
+    const openerRef = useRef<HTMLElement | null>(null);
+    const createButtonRef = useRef<HTMLButtonElement>(null);
+    function openAction(value: typeof action) {
+        openerRef.current =
+            document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
+        setAction(value);
+    }
     const loading = usePageLoading();
     const title = `${context.schoolClass.label} · ${context.subject.label}`;
     return (
@@ -27,18 +47,36 @@ export default function Gradebook({
             <Head title={title} />
             <div className="min-w-0 space-y-5 p-4 md:p-6 xl:px-10 xl:py-7">
                 <Link
-                    href="/teacher/classes"
+                    href={
+                        role === 'teacher'
+                            ? '/teacher/classes'
+                            : '/admin/gradebooks'
+                    }
                     className="text-sm text-primary underline"
                 >
-                    Moje klasy
+                    {role === 'teacher' ? 'Moje klasy' : 'Dzienniki klas'}
                 </Link>
-                <header>
-                    <h1 className="text-2xl font-semibold wrap-anywhere">
-                        {title}
-                    </h1>
-                    <p className="mt-1 text-sm text-text-secondary">
-                        {context.term.label}
-                    </p>
+                <header className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p className="text-sm text-text-secondary">
+                            Dziennik ocen
+                        </p>
+                        <h1 className="text-2xl font-semibold wrap-anywhere">
+                            {title}
+                        </h1>
+                        <p className="mt-1 text-sm text-text-secondary">
+                            {context.term.label}
+                        </p>
+                    </div>
+                    {canCreateAssessment && (
+                        <Button
+                            ref={createButtonRef}
+                            onClick={() => openAction('create')}
+                        >
+                            <Plus aria-hidden="true" />
+                            Dodaj kolumnę
+                        </Button>
+                    )}
                 </header>
                 {context.closed && (
                     <p
@@ -56,29 +94,64 @@ export default function Gradebook({
                 <form
                     role="search"
                     aria-label="Filtr uczniów"
-                    className="flex flex-wrap items-end gap-3"
-                    onSubmit={(event) => {
-                        event.preventDefault();
+                    className="grid grid-cols-2 items-end gap-3 md:flex md:flex-wrap"
+                    onSubmit={(e) => {
+                        e.preventDefault();
                         router.get(
-                            `/teacher/gradebooks/${context.assignmentId}`,
-                            { q: q.trim() || null, per_page: filters.perPage },
+                            base,
+                            {
+                                q: q.trim() || null,
+                                per_page: perPage,
+                                direction,
+                                sort: 'last_name',
+                            },
                             { replace: true, preserveScroll: true },
                         );
                     }}
                 >
-                    <div className="grid min-w-0 flex-1 gap-1.5">
+                    <div className="col-span-2 grid min-w-0 flex-1 gap-1.5 md:col-span-1">
                         <Label htmlFor="roster-q">Nazwisko ucznia</Label>
                         <Input
                             id="roster-q"
                             type="search"
                             maxLength={100}
                             value={q}
-                            onChange={(event) => setQ(event.target.value)}
+                            onChange={(e) => setQ(e.target.value)}
                         />
                     </div>
+                    <OptionField
+                        id="roster-size"
+                        label="Liczba na stronie"
+                        value={perPage}
+                        options={[10, 25, 50].map((n) => ({
+                            id: String(n),
+                            label: String(n),
+                        }))}
+                        onChange={setPerPage}
+                    />
+                    <OptionField
+                        id="roster-sort"
+                        label="Kolejność nazwisk"
+                        value={direction}
+                        options={[
+                            { id: 'asc', label: 'A–Z' },
+                            { id: 'desc', label: 'Z–A' },
+                        ]}
+                        onChange={(v) =>
+                            setDirection(v === 'desc' ? 'desc' : 'asc')
+                        }
+                    />
                     <Button type="submit" disabled={loading}>
                         Filtruj
                     </Button>
+                    {filters.q && (
+                        <Link
+                            href={base}
+                            className="inline-flex min-h-11 items-center text-primary underline"
+                        >
+                            Wyczyść filtry
+                        </Link>
+                    )}
                 </form>
                 <section
                     aria-label="Dziennik ocen"
@@ -100,81 +173,13 @@ export default function Gradebook({
                                     Brak kolumn ocen w tym semestrze.
                                 </p>
                             )}
-                            <ul className="divide-y divide-border rounded-lg border border-border bg-surface">
-                                {students.data.map((row) => (
-                                    <li
-                                        key={row.student.enrollmentId}
-                                        className="space-y-3 p-4"
-                                    >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="min-w-0">
-                                                <h2 className="font-semibold wrap-anywhere">
-                                                    {row.student.name}
-                                                </h2>
-                                                {row.student.historical && (
-                                                    <p className="text-xs text-text-secondary">
-                                                        Członkostwo historyczne
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <p className="shrink-0 text-right">
-                                                <span className="block font-semibold tabular-nums">
-                                                    {formatAverage(
-                                                        row.summary.average,
-                                                    )}
-                                                </span>
-                                                <span className="block text-xs text-text-secondary">
-                                                    średnia ·{' '}
-                                                    {row.summary.count} ocen
-                                                </span>
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-wrap gap-3">
-                                            {assessments.data.map((a) => {
-                                                const grade = row.grades.find(
-                                                    (g) =>
-                                                        g.assessmentId === a.id,
-                                                );
-                                                return (
-                                                    <div
-                                                        key={a.id}
-                                                        className="w-32 min-w-0 rounded-md bg-surface-secondary p-2"
-                                                    >
-                                                        <p className="text-xs wrap-anywhere">
-                                                            {a.topic}
-                                                        </p>
-                                                        <p className="mb-2 text-xs text-text-secondary">
-                                                            {a.gradedOn} · waga{' '}
-                                                            {a.defaultWeight}
-                                                        </p>
-                                                        {grade ? (
-                                                            <Link
-                                                                href={`/teacher/grades/${grade.id}`}
-                                                                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-focus"
-                                                                aria-label={`${a.topic}: ocena ${grade.value}, ${row.student.name}`}
-                                                            >
-                                                                <GradeChip
-                                                                    value={
-                                                                        grade.value
-                                                                    }
-                                                                />
-                                                            </Link>
-                                                        ) : (
-                                                            <span className="text-xs text-text-secondary">
-                                                                {row.deletedAssessmentIds.includes(
-                                                                    a.id,
-                                                                )
-                                                                    ? 'Ocena usunięta'
-                                                                    : 'Brak oceny'}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                            <Roster
+                                students={students}
+                                assessments={assessments}
+                                studentUrl={(id) => `${base}/students/${id}`}
+                                gradeUrl={(id) => `/${role}/grades/${id}`}
+                                onDelete={openAction}
+                            />
                             <Pagination
                                 meta={students.meta}
                                 links={students.links}
@@ -193,7 +198,49 @@ export default function Gradebook({
                         </div>
                     )}
                 </section>
+                <p className="text-xs text-text-secondary">
+                    — Brak oceny · × Ocena usunięta · * Indywidualne parametry
+                    oceny. Średnia obejmuje wszystkie kolumny.
+                </p>
+                {canCreateAssessment && (
+                    <details className="md:hidden">
+                        <summary className="flex min-h-11 cursor-pointer items-center rounded text-sm font-medium text-primary underline focus-visible:outline-2 focus-visible:outline-focus">
+                            Zarządzanie kolumnami
+                        </summary>
+                        <div className="flex flex-wrap gap-2">
+                            {assessments.data
+                                .filter((a) => a.canDelete)
+                                .map((a) => (
+                                    <Button
+                                        key={a.id}
+                                        variant="secondary"
+                                        onClick={() => openAction(a)}
+                                    >
+                                        Usuń kolumnę {a.topic}
+                                    </Button>
+                                ))}
+                        </div>
+                    </details>
+                )}
             </div>
+            {action && (
+                <AssessmentDialog
+                    categories={categories}
+                    assessment={action === 'create' ? undefined : action}
+                    submitUrl={
+                        action === 'create'
+                            ? `${base}/assessments`
+                            : `/${role}/assessments/${action.id}`
+                    }
+                    onClose={() => setAction(null)}
+                    restoreFocus={() => {
+                        (openerRef.current?.isConnected
+                            ? openerRef.current
+                            : createButtonRef.current
+                        )?.focus();
+                    }}
+                />
+            )}
         </>
     );
 }

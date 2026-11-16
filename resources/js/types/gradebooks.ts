@@ -1,5 +1,10 @@
 import type { AssignmentDTO } from './assignments';
-import type { GradeContext, GradeDTO, GradeSummary } from './grades';
+import type {
+    GradeContext,
+    GradeDTO,
+    GradeHistoryEntry,
+    GradeSummary,
+} from './grades';
 import type { Filters, Page } from './pagination';
 import type { Option } from './school';
 
@@ -11,12 +16,14 @@ export type ClassListProps = {
 
 export type GradebookProps = {
     context: GradeContext;
+    canCreateAssessment: boolean;
     assessments: Page<{
         id: string;
         topic: string;
         category: Option;
         defaultWeight: number;
         gradedOn: string;
+        canDelete: boolean;
     }>;
     students: Page<{
         student: GradeDTO['student'];
@@ -26,4 +33,13 @@ export type GradebookProps = {
     }>;
     filters: Filters & { q: string; assessmentPage: number };
     categories: Option[];
+};
+
+export type StudentDetailProps = {
+    student: GradeDTO['student'];
+    context: GradeContext;
+    grades: Page<GradeDTO>;
+    summary: GradeSummary;
+    historyUrl: string;
+    recentHistory: (GradeHistoryEntry & { topic: string })[];
 };

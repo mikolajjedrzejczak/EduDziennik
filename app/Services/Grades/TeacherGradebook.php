@@ -13,7 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/** Read-only destination for selecting an exact assignment. Grade mutations belong to F-203–206. */
+/** Shared teacher/admin read model for an exact teaching context. */
 class TeacherGradebook
 {
     public function __construct(private readonly GradeAccess $access, private readonly ReadPage $pages, private readonly GradePresenter $grades, private readonly GradeSummary $summary, private readonly TeacherClassList $classes) {}
@@ -39,7 +39,7 @@ class TeacherGradebook
             }
         }
         if ($corrected !== $data) {
-            return redirect()->route('teacher.gradebooks.show', ['assignment' => $assignment->id, ...$corrected], 303);
+            return redirect()->route($actor->role.'.gradebooks.show', ['assignment' => $assignment->id, ...$corrected], 303);
         }
         $context = [
             'assignmentId' => (string) $assignment->id,
@@ -57,9 +57,10 @@ class TeacherGradebook
 
         return Inertia::render('shared/gradebooks/show', [
             'context' => $context,
+            'canCreateAssessment' => $actor->can('create', [Assessment::class, $assignment->schoolClass, $assignment->subject, $assignment->term]),
             'assessments' => $this->pages->present($assessments->appends($data), fn (Assessment $a) => [
                 'id' => (string) $a->id, 'topic' => $a->topic, 'category' => ['id' => (string) $a->category_id, 'label' => $a->category->name],
-                'defaultWeight' => $a->default_weight, 'gradedOn' => $a->graded_on->toDateString(),
+                'defaultWeight' => $a->default_weight, 'gradedOn' => $a->graded_on->toDateString(), 'canDelete' => $actor->can('delete', $a),
             ]),
             'students' => $this->pages->present($students->appends($data), function (StudentEnrollment $e) use ($actor, $visible, $base, $scope, $context) {
                 $grades = $visible->where('student_enrollment_id', $e->id);

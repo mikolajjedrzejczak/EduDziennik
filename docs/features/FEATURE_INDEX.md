@@ -19,7 +19,7 @@ Wspólne mechanizmy F-402/F-404/F-501 powstają wcześnie, a każda funkcja doda
 | F-104 | Grade History | P0 | Planned | F-103 | [spec](F-104.md) | A1 |
 | F-201 | Teacher Dashboard | P1 | Planned | F-007, F-202, F-203 | [spec](F-201.md) | A2/A3 |
 | F-202 | Teacher Classes | P0 | Implemented — do przeglądu | F-007, F-308 | [spec](F-202.md) | A1 |
-| F-203 | Class Gradebook | P0 | Planned | F-202, F-306, F-103, F-104 | [spec](F-203.md) | A1 |
+| F-203 | Class Gradebook | P0 | Do przeglądu (lokalnie) | F-202, F-306, F-103, F-104 | [spec](F-203.md) | A1 |
 | F-204 | Grade Creation | P0 | Planned | F-203, F-402 | [spec](F-204.md) | A1 |
 | F-205 | Grade Editing | P0 | Planned | F-204 | [spec](F-205.md) | A1 |
 | F-206 | Grade Deletion | P0 | Planned | F-205 | [spec](F-206.md) | A1 |

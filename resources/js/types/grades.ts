@@ -101,3 +101,18 @@ export type GradeDetailProps = {
     backUrl: string;
     history: Page<GradeHistoryEntry>;
 };
+
+export type StaffGradeListProps = {
+    grades: Page<GradeDTO>;
+    summary: GradeSummary;
+    filters: GradeFilters & {
+        studentEnrollmentId: string | null;
+        studentId: string | null;
+        schoolClassId: string | null;
+    };
+    options: GradeOptions & {
+        enrollments: Option[];
+        students: Option[];
+        classes: Option[];
+    };
+};

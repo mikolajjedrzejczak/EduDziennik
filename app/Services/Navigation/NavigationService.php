@@ -40,13 +40,18 @@ class NavigationService
             $primary[] = ['key' => 'grades', 'label' => 'Moje oceny', 'shortLabel' => 'Oceny', 'href' => route('student.grades.index', absolute: false), 'icon' => 'grades'];
         }
         if ($user->role === 'teacher') {
-            $primary[] = ['key' => 'classes', 'label' => 'Moje klasy', 'shortLabel' => 'Klasy', 'href' => route('teacher.gradebooks.index', absolute: false), 'icon' => 'classes', 'active' => request()->routeIs('teacher.gradebooks.*')];
+            $primary[] = ['key' => 'classes', 'label' => 'Moje klasy', 'shortLabel' => 'Klasy', 'href' => route('teacher.gradebooks.index', absolute: false), 'icon' => 'classes', 'active' => request()->routeIs('teacher.gradebooks.index')];
         }
         if ($user->role === 'admin') {
             $primary[] = ['key' => 'classes', 'label' => 'Klasy i przedmioty', 'shortLabel' => 'Klasy', 'href' => route('admin.classes.index', absolute: false), 'icon' => 'classes'];
             $primary[] = ['key' => 'subjects', 'label' => 'Przedmioty', 'shortLabel' => 'Przedmioty', 'href' => route('admin.subjects.index', absolute: false), 'icon' => 'subjects'];
             $primary[] = ['key' => 'assignments', 'label' => 'Przydziały', 'shortLabel' => 'Przydziały', 'href' => route('admin.assignments.index', absolute: false), 'icon' => 'assignments'];
             $primary[] = ['key' => 'users', 'label' => 'Użytkownicy', 'shortLabel' => 'Konta', 'href' => route('admin.users.index', absolute: false), 'icon' => 'users'];
+        }
+
+        if (in_array($user->role, ['teacher', 'admin'], true)) {
+            $primary[] = ['key' => 'gradebooks', 'label' => 'Dziennik ocen', 'shortLabel' => 'Dziennik', 'href' => route($user->role === 'teacher' ? 'teacher.gradebooks.index' : 'admin.gradebooks.index', absolute: false), 'icon' => 'grades', 'active' => request()->routeIs($user->role.'.gradebooks.show', $user->role.'.students.*', 'admin.gradebooks.index')];
+            $primary[] = ['key' => 'grades', 'label' => 'Lista ocen', 'shortLabel' => 'Oceny', 'href' => route($user->role.'.grades.index', absolute: false), 'icon' => 'grades'];
         }
 
         $primary[] = ['key' => 'history', 'label' => 'Historia zmian', 'shortLabel' => 'Historia', 'href' => route($user->role.'.history.index', absolute: false), 'icon' => 'history', 'active' => request()->routeIs($user->role.'.history.index', $user->role.'.grades.history')];
