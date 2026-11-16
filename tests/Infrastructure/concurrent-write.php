@@ -39,12 +39,17 @@ try {
         app(EnrollmentService::class)->enroll((int) $argv[2], (int) $argv[3], '2026-10-01');
     } elseif (($argv[1] ?? '') === 'transfer') {
         app(EnrollmentService::class)->enroll((int) $argv[2], (int) $argv[3], '2026-11-15', null, (int) $argv[4]);
+    } elseif (($argv[1] ?? '') === 'grade-update') {
+        app(GradeService::class)->update((int) $argv[2], (int) $argv[3], 1, 'Korekta konkurencyjna', ['value' => 6]);
     } elseif (($argv[1] ?? '') === 'grade') {
         app(GradeService::class)->create((int) $argv[2], (int) $argv[3], (int) $argv[4], ['value' => 4]);
     } else {
         throw new RuntimeException('Nieznana operacja.');
     }
-} catch (ValidationException|AuthorizationException) {
+} catch (ValidationException|AuthorizationException $exception) {
+    if (($argv[1] ?? '') === 'grade-update' && (! $exception instanceof ValidationException || ! array_key_exists('conflict', $exception->errors()))) {
+        throw $exception;
+    }
     fwrite(STDOUT, "rejected\n");
     exit(0);
 }

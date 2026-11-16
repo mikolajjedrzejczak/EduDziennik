@@ -46,7 +46,7 @@ export type StudentDetailProps = {
 };
 
 export type GradeFormProps = {
-    grade: null;
+    grade: GradeDTO | null;
     context: GradeContext;
     assessment: GradebookProps['assessments']['data'][number] | null;
     selectedEnrollmentId: string | null;
