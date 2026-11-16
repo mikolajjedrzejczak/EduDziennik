@@ -119,3 +119,9 @@ VERIFIED: przez Figma MCP odczytano design context i render 17:352 oraz 23:199. 
 ### F-205 — formularz korekty
 
 VERIFIED: odczytano design context i render 18:1741,23:2215,18:3707 przez Figma MCP. Współdzielony GradeForm obsługuje create/edit. Desktop480px drawer; mobile pełny przewijany panel z wszystkimi polami kontraktu, rozszerzający uproszczoną ramkę23:2215. Informacja o historii zastępuje podgląd nowej średniej, której klient nie oblicza. Usuwanie pozostaje osobną funkcją F-206. Tablet1024 i admin są adaptacjami wymagającymi odbioru właściciela; brak dedykowanych ramek.
+
+### F-206 — potwierdzenie usunięcia
+
+FACT: przez Figma MCP odczytano design context i rendery18:2282,23:2312,18:3278. Potwierdzenie używa Radix Dialog: desktop440px z szarym footerem, mobile bottom sheet z destrukcyjną akcją nad Anuluj. Pokazuje zapisaną ocenę, ucznia i przedmiot oraz osobny wymagany powód usunięcia (rozszerzenie kontraktu względem uproszczonej ramki). Nie wylicza przyszłej średniej w React. Konflikt jest błędem w dialogu z jawnym odświeżeniem;500 pozostaje na kanonicznej stronie shared/error, nie jest przedstawiany jako konflikt wersji. Tablet1024 i admin pozostają adaptacjami do odbioru właściciela, bez dedykowanych ramek.
+
+VERIFIED F-206: zrzuty potwierdzenia320/390/1024/1440 oraz walidacji390/1024 odczytano po Playwright; zachowany układ dialog/bottom sheet, wrap i dostępne akcje. Wymagane pole powodu zwiększa wysokość względem referencji. Nie deklarujemy zgodności dedykowanego admina/tabletu ani pełnego odbioru wizualnego bez przeglądu właściciela.

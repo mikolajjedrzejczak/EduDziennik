@@ -162,7 +162,7 @@ interface GradeFormProps extends SharedProps {
   grade: GradeDTO | null; context: GradeContext; assessment: AssessmentDTO | null;
   selectedEnrollmentId: Id | null;
   students: StudentSummary[]; assessments: AssessmentDTO[]; categories: Option[];
-  background: GradebookProps; submitUrl: string; cancelUrl: string;
+  background: GradebookProps; submitUrl: string; cancelUrl: string; deleteUrl?: string;
 }
 interface UserListProps extends SharedProps { users: Page<UserDTO>; filters: Filters; options: UserOptions }
 interface UserDetailProps extends SharedProps { user: UserDTO; enrollments: EnrollmentDTO[]; assignments: AssignmentDTO[] }
@@ -300,3 +300,5 @@ FACT: `GET role.grades.create` przyjmuje `assignment_id` oraz opcjonalnie `asses
 FACT: POST mapuje wyłącznie pola oceny z allowlisty; serwis bierze autora z sesji i ponownie sprawdza T/W w transakcji. Zajęta komórka, także po soft delete, zwraca błąd `form`, bez drugiej oceny ani audytu. Sukces: 303 do autoryzowanego `role.gradebooks.show` i flash „Ocena została zapisana.”. Formularz nie ponawia POST automatycznie. Parametry pojedynczej oceny nie zmieniają assessmentu. Zamknięty semestr zwraca redirect/errors.form. Anulowanie przywraca fokus do widocznej komórki, a gdy nie ma jej na bieżącej stronie — do filtra uczniów.
 
 FACT F-205: GradeFormProps.grade przy edycji zawiera GradeDTO; students/assessments mają wyłącznie ucznia i kolumnę bieżącej oceny. `assignment_id` jest wymagane w PATCH i musi odpowiadać kontekstowi rekordu. GET bez assignment_id wybiera pierwszy widoczny przydział dokładnego kontekstu. Zapis bez zmian przekierowuje do role.grades.show bez nowego audytu/version. Konflikt wersji zwraca session errors.conflict, zachowuje pola formularza i nie zapisuje niczego. Wczytanie aktualnych danych jest jawną akcją użytkownika odrzucającą lokalne zmiany.
+
+FACT F-206: `deleteUrl` jest przekazywane tylko do formularza edycji. DELETE używa osobnego `useForm` z `assignment_id`, zapisaną `version`, `reason` i `confirmed=true` ustawionym przez świadome zatwierdzenie dialogu. Treść potwierdzenia pokazuje zapisaną ocenę (bez niezapisanych zmian PATCH), ucznia, przedmiot, temat i wagę. Anulowanie nie wysyła mutacji. Sukces daje 303 do `role.gradebooks.show` i flash; powtórny DELETE daje 404 bez dodatkowego audytu. Konflikt zachowuje powód i wymaga jawnego wczytania danych. Utrata odpowiedzi blokuje kolejny DELETE i oferuje GET archiwalnych szczegółów, który pozwala sprawdzić także commit zakończony przed timeoutem. Błędy HTTP 403/404/500/503 obsługuje wspólny `shared/error` zgodnie z ERROR_HANDLING; bez automatycznego ponawiania mutacji.

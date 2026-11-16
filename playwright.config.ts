@@ -17,7 +17,7 @@ export default defineConfig({
         {
             name: 'shell',
             testMatch:
-                /(?:shell|subjects|assignments|teacher-classes|gradebook|grade-create|grade-edit|user-create|user-edit|user-delete|student-grades|grade-detail|history)\.spec\.ts/,
+                /(?:shell|subjects|assignments|teacher-classes|gradebook|grade-create|grade-edit|grade-delete|user-create|user-edit|user-delete|student-grades|grade-detail|history)\.spec\.ts/,
             use: { baseURL: 'http://127.0.0.1:8189' },
         },
         {

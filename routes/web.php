@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('grades', [$grades, 'store'])->name('grades.store');
             Route::get('grades/{grade}/edit', [$grades, 'edit'])->whereNumber('grade')->name('grades.edit');
             Route::patch('grades/{grade}', [$grades, 'update'])->whereNumber('grade')->name('grades.update');
+            Route::delete('grades/{grade}', [$grades, 'destroy'])->whereNumber('grade')->name('grades.destroy');
         });
     }
     Route::get('teacher', [Teacher\DashboardController::class, 'index'])->middleware('role:teacher')->name('teacher.dashboard');

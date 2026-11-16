@@ -3,6 +3,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useRef } from 'react';
 import InputError from '@/components/input-error';
+import { DeleteGradeDialog } from '@/components/grades/delete-grade-dialog';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { FormField } from '@/components/forms/form-field';
 import { SubmitButton } from '@/components/forms/submit-button';
@@ -489,6 +490,18 @@ export default function GradeForm(props: GradeFormProps) {
                                 )}
                             </div>
                             <footer className="flex shrink-0 flex-col-reverse gap-2 border-t border-border px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:flex-row md:justify-end md:px-6">
+                                {grade?.can.delete &&
+                                    props.deleteUrl &&
+                                    !form.processing && (
+                                        <DeleteGradeDialog
+                                            grade={grade}
+                                            subject={context.subject.label}
+                                            assignmentId={
+                                                context.assignmentId ?? ''
+                                            }
+                                            url={props.deleteUrl}
+                                        />
+                                    )}
                                 <Button
                                     type="button"
                                     variant="secondary"
