@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeleteGradeRequest;
 use App\Http\Requests\UpdateGradeRequest;
 use App\Models\Grade;
 use App\Models\GradeCategory;
@@ -39,6 +40,7 @@ class GradeEditingController extends GradeCreationController
             'categories' => GradeCategory::where('is_active', true)->orderBy('name')->get()->map(fn ($c) => ['id' => (string) $c->id, 'label' => $c->name])->all(),
             'background' => $background, 'submitUrl' => route($actor->role.'.grades.update', $grade),
             'cancelUrl' => route($actor->role.'.grades.show', $grade),
+            'deleteUrl' => route($actor->role.'.grades.destroy', $grade),
         ]);
     }
 
@@ -52,5 +54,14 @@ class GradeEditingController extends GradeCreationController
         $updated = $service->update($request->user()->id, $grade->id, (int) $data['version'], $data['reason'], $fields);
 
         return redirect()->route($request->user()->role.'.grades.show', $grade, 303)->with('success', $updated->version === (int) $data['version'] ? 'Ocena nie została zmieniona.' : 'Zmiany zostały zapisane. Wpis dodano do historii zmian.');
+    }
+
+    public function destroy(DeleteGradeRequest $request, Grade $grade, GradeService $service): RedirectResponse
+    {
+        $data = $request->validated();
+        $service->delete($request->user()->id, $grade->id, (int) $data['version'], $data['reason']);
+
+        return redirect()->route($request->user()->role.'.gradebooks.show', ['assignment' => $data['assignment_id']], 303)
+            ->with('success', 'Ocena została usunięta. Wpis zachowano w historii zmian.');
     }
 }

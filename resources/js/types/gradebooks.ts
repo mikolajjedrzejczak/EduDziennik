@@ -56,4 +56,5 @@ export type GradeFormProps = {
     background: GradebookProps;
     submitUrl: string;
     cancelUrl: string;
+    deleteUrl?: string;
 };
