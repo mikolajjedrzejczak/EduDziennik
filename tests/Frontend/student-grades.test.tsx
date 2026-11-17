@@ -1,10 +1,11 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import StudentGrades from '@/pages/student/grades/index';
 import type { GradeDTO, GradeListProps } from '@/types/grades';
 
 const get = vi.fn();
+const page = vi.hoisted(() => ({ errors: {} as Record<string, string> }));
 vi.mock('@inertiajs/react', () => ({
     Head: () => null,
     Link: ({
@@ -24,7 +25,7 @@ vi.mock('@inertiajs/react', () => ({
             {children}
         </a>
     ),
-    usePage: () => ({ props: { errors: {}, flash: {} } }),
+    usePage: () => ({ props: { errors: page.errors, flash: {} } }),
     router: {
         get: (...args: unknown[]) => get(...args),
         on: () => () => undefined,
@@ -114,6 +115,44 @@ const props = (
 });
 
 describe('student grades', () => {
+    beforeEach(() => {
+        page.errors = {};
+    });
+    it.each([
+        ['date_from', 'grades-from', 'Data od'],
+        ['date_to', 'grades-to', 'Data do'],
+        ['category_id', 'grades-category', 'Kategoria'],
+    ])(
+        'reveals the panel before focusing the invalid %s field',
+        async (name, id, label) => {
+            page.errors = { [name]: 'Nieprawidłowa wartość.' };
+            const user = userEvent.setup();
+            render(<StudentGrades {...props([grade()])} />);
+            const toggle = screen.getByRole('button', {
+                name: /Więcej filtrów/,
+            });
+            const panel = document.getElementById(
+                toggle.getAttribute('aria-controls') ?? '',
+            );
+            expect(toggle).toHaveAttribute('aria-expanded', 'false');
+            expect(panel).toHaveClass('hidden');
+            await user.tab();
+            expect(
+                screen.getByRole('link', {
+                    name: `${label}: Nieprawidłowa wartość.`,
+                }),
+            ).toHaveFocus();
+            await user.keyboard('{Enter}');
+            expect(toggle).toHaveAttribute('aria-expanded', 'true');
+            expect(panel).not.toHaveClass('hidden');
+            expect(document.getElementById(id)).toHaveFocus();
+            expect(document.getElementById(id)).toHaveAttribute(
+                'aria-describedby',
+                `${id}-error`,
+            );
+        },
+    );
+
     it('lists grades with weights, dates and the server-computed average', () => {
         render(
             <StudentGrades
