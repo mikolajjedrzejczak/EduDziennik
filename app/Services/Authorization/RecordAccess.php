@@ -46,6 +46,22 @@ final class RecordAccess
         if (! $assessment || $assessment->trashed()) {
             return false;
         }
+        if ($enrollment !== null) {
+            $enrollment = StudentEnrollment::find($enrollment->id);
+            if ($enrollment === null) {
+                return false;
+            }
+        }
+
+        return self::writableLoaded($assessment, $enrollment, $date);
+    }
+
+    /** Read preflight on a freshly loaded, authorized graph; never use for mutation authorization. */
+    public static function writableLoaded(Assessment $assessment, ?StudentEnrollment $enrollment = null, ?string $date = null): bool
+    {
+        if ($assessment->trashed()) {
+            return false;
+        }
         $term = $assessment->term;
         $class = $assessment->schoolClass;
         $subject = $assessment->subject;
@@ -59,10 +75,9 @@ final class RecordAccess
         if ($enrollment === null) {
             return true;
         }
-        $enrollment = StudentEnrollment::find($enrollment->id);
-        $student = $enrollment?->student;
+        $student = $enrollment->student;
 
-        return $enrollment && $enrollment->school_class_id === $assessment->school_class_id
+        return $enrollment->school_class_id === $assessment->school_class_id
             && $student && self::active($student) && $student->role === 'student'
             && $date >= $enrollment->starts_on->toDateString()
             && $date <= ($enrollment->ends_on ?? $class->academicYear->ends_on)->toDateString();

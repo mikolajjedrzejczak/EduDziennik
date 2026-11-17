@@ -32,6 +32,19 @@ class GradeSummary
     }
 
     /**
+     * @param  Builder<Grade>  $grades  Already authorized, restricted to the displayed enrollments, without pagination.
+     * @return array<int, array{average: string|null, count: int}>
+     */
+    public function byEnrollment(Builder $grades): array
+    {
+        return $grades->toBase()->groupBy('grades.student_enrollment_id')
+            ->selectRaw('grades.student_enrollment_id, '.self::AVERAGE_SQL.' AS average, COUNT(*) AS count')->get()
+            ->mapWithKeys(fn ($row) => [(int) $row->student_enrollment_id => [
+                'average' => $row->average === null ? null : (string) $row->average, 'count' => (int) $row->count,
+            ]])->all();
+    }
+
+    /**
      * Per-subject aggregates of an already authorized and filtered grade query, keyed by subject id.
      *
      * @param  Builder<Grade>  $grades
