@@ -3,6 +3,7 @@ import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { useId, useState } from 'react';
+import { FormField } from '@/components/forms/form-field';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { StudentGradeList } from '@/components/grades/student-grade-list';
 import { Pagination } from '@/components/pagination';
@@ -37,7 +38,15 @@ const errorFields = {
 function FilterForm({
     filters,
     options,
-}: Pick<GradeListProps, 'filters' | 'options'>) {
+    open,
+    onOpenChange,
+    panelId,
+}: Pick<GradeListProps, 'filters' | 'options'> & {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    panelId: string;
+}) {
+    const { errors } = usePage().props;
     const [termId, setTermId] = useFilterState(filters.termId ?? '');
     const [categoryId, setCategoryId] = useFilterState(
         filters.categoryId ?? '',
@@ -47,8 +56,6 @@ function FilterForm({
     const [q, setQ] = useFilterState(filters.q);
     const [dateFrom, setDateFrom] = useFilterState(filters.dateFrom ?? '');
     const [dateTo, setDateTo] = useFilterState(filters.dateTo ?? '');
-    const [open, setOpen] = useState(false);
-    const panelId = useId();
     const active = [
         filters.categoryId,
         filters.q,
@@ -97,7 +104,7 @@ function FilterForm({
                 aria-expanded={open}
                 aria-controls={panelId}
                 className="w-full md:hidden"
-                onClick={() => setOpen((value) => !value)}
+                onClick={() => onOpenChange(!open)}
             >
                 <SlidersHorizontal aria-hidden="true" />
                 Więcej filtrów{active > 0 ? ` (${active})` : ''}
@@ -111,6 +118,7 @@ function FilterForm({
                 <OptionField
                     id="grades-category"
                     label="Kategoria"
+                    error={errors.category_id}
                     value={categoryId}
                     options={options.categories}
                     onChange={setCategoryId}
@@ -135,25 +143,37 @@ function FilterForm({
                         />
                     </div>
                 </div>
-                <div className="grid min-w-0 gap-1.5">
-                    <Label htmlFor="grades-from">Data od</Label>
-                    <Input
-                        id="grades-from"
-                        type="date"
-                        value={dateFrom}
-                        onChange={(event) => setDateFrom(event.target.value)}
-                    />
-                </div>
-                <div className="grid min-w-0 gap-1.5">
-                    <Label htmlFor="grades-to">Data do</Label>
-                    <Input
-                        id="grades-to"
-                        type="date"
-                        value={dateTo}
-                        min={dateFrom || undefined}
-                        onChange={(event) => setDateTo(event.target.value)}
-                    />
-                </div>
+                <FormField
+                    id="grades-from"
+                    label="Data od"
+                    error={errors.date_from}
+                >
+                    {(attributes) => (
+                        <Input
+                            {...attributes}
+                            type="date"
+                            value={dateFrom}
+                            onChange={(event) =>
+                                setDateFrom(event.target.value)
+                            }
+                        />
+                    )}
+                </FormField>
+                <FormField
+                    id="grades-to"
+                    label="Data do"
+                    error={errors.date_to}
+                >
+                    {(attributes) => (
+                        <Input
+                            {...attributes}
+                            type="date"
+                            value={dateTo}
+                            min={dateFrom || undefined}
+                            onChange={(event) => setDateTo(event.target.value)}
+                        />
+                    )}
+                </FormField>
                 <OptionField
                     id="grades-sort"
                     label="Sortowanie"
@@ -192,6 +212,8 @@ export default function StudentGrades({
 }: GradeListProps) {
     const { errors } = usePage().props;
     const loading = usePageLoading();
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const filterPanelId = useId();
     const subject = options.subjects.find(
         (item) => item.id === filters.subjectId,
     );
@@ -230,8 +252,29 @@ export default function StudentGrades({
                     errors={errors}
                     fields={errorFields}
                     title="Sprawdź wybrane filtry"
+                    onBeforeFocus={async (field) => {
+                        if (
+                            document
+                                .getElementById(filterPanelId)
+                                ?.contains(document.getElementById(field.id))
+                        ) {
+                            setFiltersOpen(true);
+                            // Wait for the expanded panel to render before focus().
+                            await new Promise<void>((resolve) => {
+                                requestAnimationFrame(() => resolve());
+                            });
+                        }
+                    }}
                 />
-                {!noTerm && <FilterForm filters={filters} options={options} />}
+                {!noTerm && (
+                    <FilterForm
+                        filters={filters}
+                        options={options}
+                        open={filtersOpen}
+                        onOpenChange={setFiltersOpen}
+                        panelId={filterPanelId}
+                    />
+                )}
 
                 {noTerm ? (
                     <section className="rounded-lg border border-border bg-surface">

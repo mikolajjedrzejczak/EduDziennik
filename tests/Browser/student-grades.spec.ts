@@ -142,3 +142,67 @@ test('debounced search resets page and survives reload and Back/Forward', async 
     await openFilters(page);
     await expect(search).toHaveValue('Nieistniejący temat');
 });
+
+for (const width of [320, 390, 1440]) {
+    for (const { parameter, id, label } of [
+        { parameter: 'date_from', id: 'grades-from', label: 'Data od' },
+        { parameter: 'date_to', id: 'grades-to', label: 'Data do' },
+        { parameter: 'category_id', id: 'grades-category', label: 'Kategoria' },
+    ]) {
+        test(`error link reveals and focuses ${parameter} at ${width}px`, async ({
+            page,
+        }, testInfo) => {
+            await page.setViewportSize({ width, height: 844 });
+            await loginAsStudent(page);
+            await page.goto(`/student/grades?${parameter}=invalid`);
+            const summary = page.getByRole('alert');
+            const link = summary.getByRole('link', {
+                name: new RegExp(`^${label}:`),
+            });
+            const field = page.locator(`#${id}`);
+            const toggle = page.getByRole('button', { name: /Więcej filtrów/ });
+            if (width < 768) {
+                await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+                await expect(field).toBeHidden();
+            }
+            // The summary receives focus after the server validation redirect.
+            await expect(summary).toBeFocused();
+            await page.keyboard.press('Tab');
+            await expect(link).toBeFocused();
+            await page.keyboard.press('Enter');
+            await expect(field).toBeVisible();
+            await expect(field).toBeFocused();
+            await expect(field).toHaveAttribute('aria-invalid', 'true');
+            const message = page.locator(`#${id}-error`);
+            await expect(message).toBeVisible();
+            await expect(field).toHaveAttribute(
+                'aria-describedby',
+                `${id}-error`,
+            );
+            expect(await noHorizontalScroll(page)).toBe(true);
+            if (width < 768) {
+                await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+                const panelId = await toggle.getAttribute('aria-controls');
+                expect(
+                    await field.evaluate(
+                        (element, panelId) =>
+                            element.closest('[id="' + panelId + '"]') !== null,
+                        panelId,
+                    ),
+                ).toBe(true);
+                // A manually collapsed panel can be revealed again by the same error link.
+                await toggle.click();
+                await expect(field).toBeHidden();
+                await link.focus();
+                await page.keyboard.press('Enter');
+                await expect(field).toBeVisible();
+                await expect(field).toBeFocused();
+            }
+            if (parameter === 'date_from') {
+                await page.screenshot({
+                    path: testInfo.outputPath(`filter-error-${width}.png`),
+                });
+            }
+        });
+    }
+}

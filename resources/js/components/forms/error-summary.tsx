@@ -7,8 +7,11 @@ export function ErrorSummary({
     errors,
     fields,
     title = 'Nie udało się zapisać formularza',
+    onBeforeFocus,
 }: {
     title?: string;
+    /** Reveal a collapsed field before focus is moved to it. */
+    onBeforeFocus?: (field: ErrorSummaryField) => void | Promise<void>;
     errors: Readonly<Record<string, string | undefined>>;
     fields: Readonly<Record<string, ErrorSummaryField>>;
 }) {
@@ -45,8 +48,9 @@ export function ErrorSummary({
                                 <a
                                     className="inline-block min-h-11 py-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-form-focus md:min-h-0 md:py-0"
                                     href={`#${field.id}`}
-                                    onClick={(event) => {
+                                    onClick={async (event) => {
                                         event.preventDefault();
+                                        await onBeforeFocus?.(field);
                                         document
                                             .getElementById(field.id)
                                             ?.focus();
