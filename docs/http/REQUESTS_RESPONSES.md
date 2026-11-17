@@ -162,6 +162,7 @@ interface GradeFormProps extends SharedProps {
   grade: GradeDTO | null; context: GradeContext; assessment: AssessmentDTO | null;
   selectedEnrollmentId: Id | null;
   students: StudentSummary[]; assessments: AssessmentDTO[]; categories: Option[];
+  returnFilters?: Partial<Record<'q' | 'page' | 'per_page' | 'sort' | 'direction' | 'assessment_page', string | number | null>>;
   background: GradebookProps; submitUrl: string; cancelUrl: string; deleteUrl?: string;
 }
 interface UserListProps extends SharedProps { users: Page<UserDTO>; filters: Filters; options: UserOptions }
@@ -338,3 +339,5 @@ FACT: `userCounts` liczy wszystkie nieusunięte konta według roli, w tym nieakt
 FACT: ProfileProps zawiera `user: AuthUser` (id/name/firstName/lastName/email/role) i `passwordRateLimited: boolean` (normalnie false, true na odpowiedzi429). GET/PATCH `/profile`, PUT `/profile/password`, nazwy profile.edit/update/password.update. Profil ignoruje nadmiarowe pola; zapis wyłącznie first_name/last_name. Sukces obu formularzy: redirect profile.edit i flash.success. Hasło/current_password/password_confirmation nigdy nie trafiają do props ani old input. Limit hasła5/min według auth.id;429 + Retry-After zachowuje stronę profilu i auth. Hasła czyszczone po zakończeniu żądania oraz zdarzeniach historii dokumentu. Brak zapamiętywania formularza hasła w Inertia.
 
 FACT F-403: współdzielone reguły transportu list w `App\Support\ListFilters`; scope i relacje nadal w Request/Policy konkretnej funkcji. UI zatwierdza wyszukiwanie po350ms bezczynności lub od razu przyciskiem/Enter, zachowuje inne filtry i sort, pomija parametry stron i zapisuje nowy URL w historii. Kontrolki synchronizują się z props także po Wstecz/Dalej. Bez nowej trasy i bez osobnego kontraktu strony.
+
+FACT — review #68: GET tworzenia i POST oceny walidują wspólną allowlistę filtrów dziennika (`q`, `page`, `assessment_page`, `per_page`, `sort=last_name`, `direction`). `returnFilters` zawiera wyłącznie te zwalidowane pola; formularz przesyła je przy zapisie. Tło formularza, cancelUrl i sukces POST zachowują ten kontekst. Adres powrotu buduje serwer z rolą sesji i autoryzowanym assignmentem; dowolne `return_url` ani dodatkowe selektory tras nie wpływają na powrót. Nieaktualne numery stron podlegają istniejącej korekcie paginacji. Escape/Anuluj przywracają fokus do widocznej komórki; gdy zniknęła lub nie jest już edytowalna, do `roster-q`.

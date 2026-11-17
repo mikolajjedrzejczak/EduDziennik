@@ -19,6 +19,15 @@ final class ListFilters
         ];
     }
 
+    /** @return array<string, list<string>> */
+    public static function gradebookRules(): array
+    {
+        return [
+            ...self::rules(['last_name']),
+            'assessment_page' => ['nullable', 'integer', 'min:1', 'max:100000'],
+        ];
+    }
+
     /** Literal substring pattern for bound MariaDB LIKE parameters. */
     public static function contains(string $query): string
     {

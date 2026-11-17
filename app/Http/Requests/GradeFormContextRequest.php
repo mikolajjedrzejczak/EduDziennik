@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Grade;
 use App\Services\Grades\GradeFormContext;
+use App\Support\ListFilters;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GradeFormContextRequest extends FormRequest
@@ -18,6 +19,6 @@ class GradeFormContextRequest extends FormRequest
     /** @return array<string, list<string>> */
     public function rules(): array
     {
-        return ['assignment_id' => ['required', 'integer'], 'assessment_id' => ['nullable', 'integer'], 'student_enrollment_id' => ['nullable', 'integer']];
+        return [...ListFilters::gradebookRules(), 'assignment_id' => ['required', 'integer'], 'assessment_id' => ['nullable', 'integer'], 'student_enrollment_id' => ['nullable', 'integer']];
     }
 }
