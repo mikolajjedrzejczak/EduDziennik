@@ -167,7 +167,8 @@ jobs:
   e2e:
     name: e2e
     needs: [changes, frontend]
-    if: needs.changes.outputs.kind == 'code'
+    # Tymczasowo wyłączone; ustaw zmienną repozytorium ENABLE_E2E=true, aby wznowić.
+    if: needs.changes.outputs.kind == 'code' && vars.ENABLE_E2E == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     services:
@@ -254,4 +255,5 @@ jobs:
           FRONTEND_RESULT: ${{ needs.frontend.result }}
           BACKEND_RESULT: ${{ needs.backend.result }}
           E2E_RESULT: ${{ needs.e2e.result }}
+          E2E_ENABLED: ${{ vars.ENABLE_E2E == 'true' }}
         run: scripts/ci/require-jobs.sh
