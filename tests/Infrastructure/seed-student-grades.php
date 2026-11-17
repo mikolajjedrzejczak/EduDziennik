@@ -1,7 +1,10 @@
 <?php
 
 use App\Models\Grade;
+use App\Models\Subject;
+use App\Models\User;
 use App\Services\Grades\GradeService;
+use App\Services\School\AssessmentService;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -40,4 +43,21 @@ if (($argv[1] ?? '') === 'clean') {
 }
 config(['demo.password' => 'Playwright-grades-1', 'demo.date' => '2026-11-15']);
 Artisan::call('db:seed', ['--force' => true]);
+if (($argv[1] ?? '') === 'many-subjects') {
+    $base = Grade::whereHas('enrollment.student', fn ($q) => $q->where('email', 'student7@example.test'))->with('assessment')->firstOrFail();
+    $admin = User::where('role', 'admin')->firstOrFail();
+    for ($i = 1; $i <= 11; $i++) {
+        $subject = Subject::create(['name' => sprintf('Przedmiot mobilny %02d', $i)]);
+        $assessment = app(AssessmentService::class)->create($admin->id, [
+            'school_class_id' => $base->assessment->school_class_id,
+            'subject_id' => $subject->id,
+            'term_id' => $base->assessment->term_id,
+            'category_id' => $base->category_id,
+            'topic' => 'Mobilna ocena '.$i,
+            'default_weight' => 2,
+            'graded_on' => '2026-10-10',
+        ]);
+        app(GradeService::class)->create($admin->id, $base->student_enrollment_id, $assessment->id, ['value' => 4, 'weight' => 2]);
+    }
+}
 echo "Seeded student grades demo data.\n";

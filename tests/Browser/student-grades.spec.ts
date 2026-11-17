@@ -24,6 +24,13 @@ const seed = (...args: string[]) =>
     );
 
 test.beforeAll(() => seed());
+test.afterEach(({ page }, testInfo) => {
+    if (
+        testInfo.title.startsWith('mobile list/detail/back') &&
+        !page.isClosed()
+    )
+        seed();
+});
 test.afterAll(() => seed('clean'));
 
 async function loginAsStudent(page: Page) {
@@ -50,6 +57,98 @@ const noHorizontalScroll = (page: Page) =>
     page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
     );
+
+for (const width of [320, 390]) {
+    test(`mobile list/detail/back with 12 subjects at ${width}px`, async ({
+        page,
+    }, testInfo) => {
+        seed('many-subjects');
+        await page.setViewportSize({ width, height: 844 });
+        await loginAsStudent(page);
+        await page.goto('/student/grades?sort=value&direction=asc');
+        const nav = page.getByRole('navigation', { name: 'Przedmioty' });
+        await expect(nav.getByRole('link')).toHaveCount(12);
+        await expect(
+            page.getByRole('region', { name: 'Lista ocen' }),
+        ).toBeHidden();
+        await page.screenshot({
+            path: testInfo.outputPath(`subjects-${width}.png`),
+        });
+        const selected = nav.getByRole('link', {
+            name: /Przedmiot mobilny 11/,
+        });
+        await selected.click();
+        await expect(page).toHaveURL(/subject_id=/);
+        const detailUrl = page.url();
+        const term = new URL(detailUrl).searchParams.get('term_id');
+        const heading = page.locator('#grades-detail-heading');
+        await expect(heading).toBeFocused();
+        await expect(nav).toBeHidden();
+        await expect(
+            page.getByText('Mobilna ocena 11').last(),
+        ).toBeInViewport();
+        expect(await noHorizontalScroll(page)).toBe(true);
+        await page.screenshot({
+            path: testInfo.outputPath(`subject-detail-${width}.png`),
+        });
+        await page.goBack();
+        await expect(selected).toBeFocused();
+        await expect(selected).toBeInViewport();
+        await page.goForward();
+        await expect(heading).toBeFocused();
+        await page.getByRole('link', { name: 'Wróć do przedmiotów' }).click();
+        await expect(selected).toBeFocused();
+        const back = new URL(page.url()).searchParams;
+        expect(back.get('term_id')).toBe(term);
+        expect(back.get('subject_id')).toBeNull();
+        expect(back.get('sort')).toBe('value');
+        expect(back.get('direction')).toBe('asc');
+        await page.reload();
+        await expect(nav).toBeVisible();
+        await page.goto(detailUrl);
+        await expect(nav).toBeHidden();
+        await expect(page.getByText('Mobilna ocena 11').last()).toBeVisible();
+        await openFilters(page);
+        await page.getByLabel('Temat oceny').fill('Mobilna');
+        await page.getByRole('button', { name: 'Filtruj' }).click();
+        await expect(page).toHaveURL(/q=Mobilna/);
+        await page.getByRole('link', { name: 'Wróć do przedmiotów' }).click();
+        await expect(page).toHaveURL(/q=Mobilna/);
+        await expect(nav.getByRole('link')).toHaveCount(12);
+        await expect(
+            nav.getByRole('link', { name: /Matematyka/ }),
+        ).toContainText('0 ocen');
+        expect(await noHorizontalScroll(page)).toBe(true);
+    });
+}
+
+test('mobile navigation reflows with CSS zoom 200%', async ({
+    page,
+}, testInfo) => {
+    await page.setViewportSize({ width: 640, height: 844 });
+    await loginAsStudent(page);
+    await page.goto('/student/grades');
+    await page.addStyleTag({ content: 'html { zoom: 2; }' });
+    expect(await noHorizontalScroll(page)).toBe(true);
+    await page
+        .getByRole('navigation', { name: 'Przedmioty' })
+        .getByRole('link', { name: /Matematyka/ })
+        .click();
+    await expect(
+        page.getByRole('link', { name: 'Wróć do przedmiotów' }),
+    ).toBeInViewport();
+    expect(await noHorizontalScroll(page)).toBe(true);
+    await openFilters(page);
+    await expect(page.getByLabel('Temat oceny')).toBeVisible();
+    expect(await noHorizontalScroll(page)).toBe(true);
+    await page.screenshot({
+        path: testInfo.outputPath('grades-css-zoom-200.png'),
+    });
+    await page.getByRole('link', { name: 'Wróć do przedmiotów' }).click();
+    await expect(
+        page.locator('#grades-subjects a').filter({ hasText: 'Matematyka' }),
+    ).toBeFocused();
+});
 
 for (const { width, height } of viewports) {
     test(`student browses own grades at ${width}px`, async ({
@@ -96,7 +195,16 @@ for (const { width, height } of viewports) {
         await expect(page.getByText('Brak wyników')).toBeVisible();
         await page.getByRole('button', { name: 'Wyczyść filtry' }).click();
         await expect(page).not.toHaveURL(/q=/);
-        await expect(page.getByTestId('summary-average')).toHaveText('4,43');
+        if (width < 768) {
+            await expect(
+                page.getByRole('navigation', { name: 'Przedmioty' }),
+            ).toBeVisible();
+            await expect(page.getByText(/Średnia ważona: 4,43/)).toBeVisible();
+        } else {
+            await expect(page.getByTestId('summary-average')).toHaveText(
+                '4,43',
+            );
+        }
     });
 }
 

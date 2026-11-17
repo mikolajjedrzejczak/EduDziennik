@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import { useState } from 'react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import StudentGrades from '@/pages/student/grades/index';
@@ -6,18 +7,23 @@ import type { GradeDTO, GradeListProps } from '@/types/grades';
 
 const get = vi.fn();
 const page = vi.hoisted(() => ({ errors: {} as Record<string, string> }));
+const viewport = vi.hoisted(() => ({ value: 'desktop' }));
+vi.mock('@/hooks/use-viewport', () => ({ useViewport: () => viewport.value }));
 vi.mock('@inertiajs/react', () => ({
     Head: () => null,
     Link: ({
         children,
         href,
+        id,
         ...props
     }: React.PropsWithChildren<{
         href: string;
+        id?: string;
         'aria-label'?: string;
         'aria-current'?: string;
     }>) => (
         <a
+            id={id}
             href={href}
             aria-label={props['aria-label']}
             aria-current={props['aria-current'] as 'true' | undefined}
@@ -25,6 +31,7 @@ vi.mock('@inertiajs/react', () => ({
             {children}
         </a>
     ),
+    useRemember: (initial: string | null) => useState(initial),
     usePage: () => ({ props: { errors: page.errors, flash: {} } }),
     router: {
         get: (...args: unknown[]) => get(...args),
@@ -117,6 +124,76 @@ const props = (
 describe('student grades', () => {
     beforeEach(() => {
         page.errors = {};
+        viewport.value = 'desktop';
+        vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+        HTMLElement.prototype.scrollIntoView = vi.fn();
+    });
+    it('applies a mobile semester immediately and clears the previous subject and page', async () => {
+        viewport.value = 'mobile';
+        const user = userEvent.setup();
+        const list = props([grade()]);
+        render(
+            <StudentGrades
+                {...list}
+                filters={{ ...list.filters, subjectId: '1', page: 2 }}
+                options={{
+                    ...list.options,
+                    terms: [
+                        ...list.options.terms,
+                        { id: '10', label: 'Semestr II' },
+                    ],
+                }}
+            />,
+        );
+        await vi.waitFor(() =>
+            expect(
+                document.getElementById('grades-detail-heading'),
+            ).toHaveFocus(),
+        );
+        screen.getByLabelText('Semestr').focus();
+        await user.keyboard('{ArrowDown}');
+        await user.keyboard('{End}{Enter}');
+        const [url, query, settings] = get.mock.calls.at(-1) as [
+            string,
+            Record<string, unknown>,
+            Record<string, unknown>,
+        ];
+        expect(url).toBe('/student/grades');
+        expect(query).toMatchObject({ term_id: '10' });
+        expect(query).not.toHaveProperty('subject_id');
+        expect(query).not.toHaveProperty('page');
+        expect(settings).toMatchObject({ preserveScroll: false });
+    });
+    it('opens mobile detail and restores focus to the selected subject on return', async () => {
+        viewport.value = 'mobile';
+        vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+        HTMLElement.prototype.scrollIntoView = vi.fn();
+        const list = props([grade()]);
+        const view = render(<StudentGrades {...list} />);
+        view.rerender(
+            <StudentGrades
+                {...list}
+                filters={{ ...list.filters, subjectId: '1' }}
+            />,
+        );
+        await vi.waitFor(() =>
+            expect(
+                document.getElementById('grades-detail-heading'),
+            ).toHaveFocus(),
+        );
+        expect(
+            screen.getByRole('navigation', { name: 'Przedmioty' }),
+        ).toHaveClass('hidden');
+        view.rerender(<StudentGrades {...list} />);
+        await vi.waitFor(() =>
+            expect(document.getElementById('grades-subject-1')).toHaveFocus(),
+        );
+        expect(screen.getByRole('region', { name: 'Lista ocen' })).toHaveClass(
+            'hidden',
+        );
+        expect(
+            screen.getByRole('link', { name: /Matematyka/ }),
+        ).toHaveAttribute('href', '/student/grades?term_id=9&subject_id=1');
     });
     it.each([
         ['date_from', 'grades-from', 'Data od'],
@@ -136,6 +213,9 @@ describe('student grades', () => {
             );
             expect(toggle).toHaveAttribute('aria-expanded', 'false');
             expect(panel).toHaveClass('hidden');
+            await vi.waitFor(() =>
+                expect(screen.getByRole('alert')).toHaveFocus(),
+            );
             await user.tab();
             expect(
                 screen.getByRole('link', {
@@ -145,7 +225,9 @@ describe('student grades', () => {
             await user.keyboard('{Enter}');
             expect(toggle).toHaveAttribute('aria-expanded', 'true');
             expect(panel).not.toHaveClass('hidden');
-            expect(document.getElementById(id)).toHaveFocus();
+            await vi.waitFor(() =>
+                expect(document.getElementById(id)).toHaveFocus(),
+            );
             expect(document.getElementById(id)).toHaveAttribute(
                 'aria-describedby',
                 `${id}-error`,

@@ -16,9 +16,11 @@ import type { BreadcrumbItem } from '@/types';
 export function AppShell({
     children,
     breadcrumbs = [],
+    mobileHeader,
 }: {
     children: ReactNode;
     breadcrumbs?: BreadcrumbItem[];
+    mobileHeader?: ReactNode;
 }) {
     const { auth, navigation } = usePage().props;
     const viewport = useViewport();
@@ -41,16 +43,17 @@ export function AppShell({
                 />
             )}
             <div className="flex min-w-0 flex-1 flex-col">
-                {mobile && (
-                    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface pr-1 pl-4">
-                        <span className="min-w-0 truncate text-text-primary">
-                            <Brand />
-                        </span>
-                        {auth.user && (
-                            <LogoutButton className="text-text-secondary hover:text-text-primary" />
-                        )}
-                    </header>
-                )}
+                {mobile &&
+                    (mobileHeader ?? (
+                        <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface pr-1 pl-4">
+                            <span className="min-w-0 truncate text-text-primary">
+                                <Brand />
+                            </span>
+                            {auth.user && (
+                                <LogoutButton className="text-text-secondary hover:text-text-primary" />
+                            )}
+                        </header>
+                    ))}
                 {!mobile && breadcrumbs.length > 0 && (
                     <header className="flex h-14 shrink-0 items-center border-b border-border px-6">
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
