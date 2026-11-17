@@ -241,8 +241,7 @@ class UserController extends Controller
     {
         $ids = collect($users)->pluck('id');
         $today = now('Europe/Warsaw')->toDateString();
-        $classes = StudentEnrollment::query()->whereIn('student_id', $ids)->whereDate('starts_on', '<=', $today)
-            ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $today))
+        $classes = StudentEnrollment::query()->whereIn('student_id', $ids)->onDate($today)
             ->with('schoolClass')->get()->groupBy('student_id');
         $assignments = TeacherAssignment::query()->active()->whereIn('teacher_id', $ids)
             ->with(['schoolClass', 'subject'])->get()->groupBy('teacher_id');

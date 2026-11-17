@@ -42,7 +42,7 @@ class SchoolClassService
             $actor = User::lockForUpdate()->findOrFail($actorId);
             $class = SchoolClass::lockForUpdate()->findOrFail($classId);
             Gate::forUser($actor)->authorize('delete', $class);
-            if ($class->enrollments()->where(fn ($q) => $q->whereNull('ends_on')->orWhere('ends_on', '>=', now('Europe/Warsaw')->toDateString()))->exists()
+            if ($class->enrollments()->endingOnOrAfter(now('Europe/Warsaw')->toDateString())->exists()
                 || $class->assignments()->whereNull('revoked_at')->exists()) {
                 throw ValidationException::withMessages(['form' => 'Najpierw zakończ członkostwa uczniów i cofnij przydziały nauczycieli.']);
             }

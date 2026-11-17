@@ -79,12 +79,12 @@ class TeacherGradebook
                 'id' => (string) $a->id, 'topic' => $a->topic, 'category' => ['id' => (string) $a->category_id, 'label' => $a->category->name],
                 'defaultWeight' => $a->default_weight, 'gradedOn' => $a->graded_on->toDateString(), 'canDelete' => ! $a->getAttribute('has_grades') && $read->writable($a),
             ]),
-            'students' => $this->pages->present($students->appends($data), function (StudentEnrollment $e) use ($actor, $visible, $summaries, $scope, $context, $assessments, $read) {
+            'students' => $this->pages->present($students->appends($data), function (StudentEnrollment $e) use ($actor, $visible, $summaries, $scope, $context, $assessments, $read, $assignment) {
                 $grades = $visible->where('student_enrollment_id', $e->id);
 
                 return [
                     'student' => ['id' => (string) $e->student_id, 'enrollmentId' => (string) $e->id, 'name' => $e->student->name,
-                        'historical' => $e->ends_on !== null && $e->ends_on->toDateString() < now('Europe/Warsaw')->toDateString()],
+                        'historical' => $e->isHistorical($assignment->term->academicYear->ends_on)],
                     'grades' => $grades->filter(fn (Grade $g) => ! $g->trashed())->map(fn (Grade $g) => [...$this->grades->toArray($g, $actor, capabilities: $read->capabilities($g)), 'context' => $context])->values()->all(),
                     'creatableAssessmentIds' => $assessments->getCollection()->filter(fn (Assessment $a) => ! $grades->contains('assessment_id', $a->id) && $read->writable($a, $e))->map(fn (Assessment $a) => (string) $a->id)->values()->all(),
                     'deletedAssessmentIds' => $grades->filter(fn (Grade $g) => $g->trashed())->map(fn (Grade $g) => (string) $g->assessment_id)->values()->all(),

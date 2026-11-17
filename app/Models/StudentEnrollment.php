@@ -69,11 +69,23 @@ class StudentEnrollment extends DomainModel
             ->where(fn ($ends) => $ends->whereNull('ends_on')->orWhereDate('ends_on', '>=', $assignment->term->starts_on->toDateString()));
     }
 
+    /** BR-01: NULL means the end of the class's academic year; dates are inclusive. */
+    public function isHistorical(CarbonImmutable $academicYearEnd): bool
+    {
+        return ($this->ends_on ?? $academicYearEnd)->toDateString() < now('Europe/Warsaw')->toDateString();
+    }
+
+    /** @param Builder<StudentEnrollment> $query */
+    public function scopeEndingOnOrAfter(Builder $query, string $date): void
+    {
+        $query->where(fn (Builder $ends) => $ends->whereDate('ends_on', '>=', $date)
+            ->orWhere(fn (Builder $implicit) => $implicit->whereNull('ends_on')
+                ->whereHas('schoolClass.academicYear', fn ($year) => $year->whereDate('ends_on', '>=', $date))));
+    }
+
     /** @param Builder<StudentEnrollment> $query */
     public function scopeOnDate(Builder $query, string $date): void
     {
-        $query->whereDate('starts_on', '<=', $date)
-            ->where(fn ($q) => $q->whereDate('ends_on', '>=', $date)->orWhereNull('ends_on'))
-            ->whereHas('schoolClass.academicYear', fn ($q) => $q->whereDate('ends_on', '>=', $date));
+        $query->whereDate('starts_on', '<=', $date)->endingOnOrAfter($date);
     }
 }

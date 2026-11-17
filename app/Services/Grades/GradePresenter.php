@@ -36,7 +36,7 @@ class GradePresenter
 
         return [
             'id' => (string) $g->id,
-            'student' => ['id' => (string) $student->id, 'enrollmentId' => (string) $g->student_enrollment_id, 'name' => $student->name, 'historical' => $g->enrollment->ends_on !== null && $g->enrollment->ends_on->toDateString() < now('Europe/Warsaw')->toDateString()],
+            'student' => ['id' => (string) $student->id, 'enrollmentId' => (string) $g->student_enrollment_id, 'name' => $student->name, 'historical' => $g->enrollment->isHistorical($a->term->academicYear->ends_on)],
             'assessmentId' => (string) $g->assessment_id,
             'context' => [
                 'assignmentId' => null,
