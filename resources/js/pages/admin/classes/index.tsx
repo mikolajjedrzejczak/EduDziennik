@@ -7,7 +7,7 @@ import { ErrorSummary } from '@/components/forms/error-summary';
 import { ManagementDialog } from '@/components/school/management-dialog';
 import type { ManagementAction } from '@/components/school/management-dialog';
 import { OptionField } from '@/components/school/option-field';
-import { Pagination } from '@/components/school/pagination';
+import { Pagination } from '@/components/pagination';
 import { EmptyState } from '@/components/states/empty-state';
 import { SuccessNotice } from '@/components/states/success-notice';
 import { Button } from '@/components/ui/button';
@@ -181,7 +181,12 @@ export default function Classes({
                                 }
                             />
                         )}
-                        <Pagination page={classes} label="Strony klas" />
+                        <Pagination
+                            variant="compact"
+                            meta={classes.meta}
+                            links={classes.links}
+                            label="Strony klas"
+                        />
                     </section>
                     <section
                         aria-label="Członkostwa wybranej klasy"
@@ -311,7 +316,9 @@ export default function Classes({
                                 )}
                                 {enrollments && (
                                     <Pagination
-                                        page={enrollments}
+                                        variant="compact"
+                                        meta={enrollments.meta}
+                                        links={enrollments.links}
                                         label="Strony członkostw"
                                     />
                                 )}

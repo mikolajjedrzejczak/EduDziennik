@@ -5,6 +5,7 @@ namespace App\Services\Grades;
 use App\Models\Grade;
 use App\Models\GradeAudit;
 use App\Models\User;
+use App\Support\PagePresenter;
 use Illuminate\Support\Facades\Gate;
 
 class GradeDetail
@@ -49,11 +50,7 @@ class GradeDetail
                     'value' => $audit->new_values['value'], 'weight' => $audit->new_values['weight'],
                     'reason' => $audit->reason,
                 ])->all(),
-                'meta' => ['currentPage' => $audits->currentPage(), 'perPage' => 10, 'total' => $audits->total(), 'lastPage' => $audits->lastPage()],
-                'links' => [
-                    ['label' => 'Poprzednia', 'url' => $audits->previousPageUrl(), 'active' => false],
-                    ['label' => 'Następna', 'url' => $audits->nextPageUrl(), 'active' => false],
-                ],
+                ...app(PagePresenter::class)->navigation($audits),
             ],
         ];
     }

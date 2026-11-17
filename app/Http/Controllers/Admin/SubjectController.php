@@ -10,6 +10,7 @@ use App\Http\Requests\Admin\UpdateSubjectRequest;
 use App\Models\Subject;
 use App\Services\School\SubjectService;
 use App\Support\ListFilters;
+use App\Support\PagePresenter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -76,13 +77,6 @@ class SubjectController extends Controller
      */
     private function page(LengthAwarePaginator $page): array
     {
-        $last = $page->lastPage();
-        $links = [['label' => 'Poprzednia', 'url' => $page->currentPage() > 1 ? $page->url($page->currentPage() - 1) : null, 'active' => false]];
-        for ($i = 1; $i <= $last; $i++) {
-            $links[] = ['label' => (string) $i, 'url' => $page->url($i), 'active' => $i === $page->currentPage()];
-        }
-        $links[] = ['label' => 'Następna', 'url' => $page->currentPage() < $last ? $page->url($page->currentPage() + 1) : null, 'active' => false];
-
         return [
             'data' => collect($page->items())->map(fn (Subject $s) => [
                 'id' => (string) $s->id,
@@ -90,8 +84,7 @@ class SubjectController extends Controller
                 'deletedAt' => $s->deleted_at?->toIso8601String(),
                 'activeAssignmentsCount' => (int) $s->getAttribute('active_assignments_count'),
             ])->all(),
-            'meta' => ['currentPage' => $page->currentPage(), 'perPage' => $page->perPage(), 'total' => $page->total(), 'lastPage' => $last],
-            'links' => $links,
+            ...app(PagePresenter::class)->navigation($page),
         ];
     }
 }

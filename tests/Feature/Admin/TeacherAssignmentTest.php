@@ -60,6 +60,7 @@ class TeacherAssignmentTest extends TestCase
 
         $this->actingAs($this->admin)->get(route('admin.assignments.index'))->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('admin/assignments/index')
+                ->has('assignments.links', 2)
                 ->has('assignments.data', 1)
                 ->where('assignments.data.0.id', (string) $active->id)
                 ->where('assignments.data.0.revokedAt', null)

@@ -14,6 +14,7 @@ use App\Services\Grades\GradeDetail;
 use App\Services\Grades\GradePresenter;
 use App\Services\Grades\GradeSummary;
 use App\Services\Grades\StudentGradeList;
+use App\Support\PagePresenter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
@@ -146,17 +147,10 @@ class GradeController extends Controller
         if ($page === null || $student === null) {
             return ['data' => [], 'meta' => ['currentPage' => 1, 'perPage' => 10, 'total' => 0, 'lastPage' => 1], 'links' => []];
         }
-        $last = $page->lastPage();
-        $links = [['label' => 'Poprzednia', 'url' => $page->currentPage() > 1 ? $page->url($page->currentPage() - 1) : null, 'active' => false]];
-        for ($i = 1; $i <= $last; $i++) {
-            $links[] = ['label' => (string) $i, 'url' => $page->url($i), 'active' => $i === $page->currentPage()];
-        }
-        $links[] = ['label' => 'Następna', 'url' => $page->currentPage() < $last ? $page->url($page->currentPage() + 1) : null, 'active' => false];
 
         return [
             'data' => collect($page->items())->map(fn (Grade $g) => app(GradePresenter::class)->toArray($g, $student, withHistory: false))->all(),
-            'meta' => ['currentPage' => $page->currentPage(), 'perPage' => $page->perPage(), 'total' => $page->total(), 'lastPage' => $last],
-            'links' => $links,
+            ...app(PagePresenter::class)->navigation($page),
         ];
     }
 }

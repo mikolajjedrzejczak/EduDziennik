@@ -15,6 +15,7 @@ use App\Models\Term;
 use App\Models\User;
 use App\Services\Users\UserService;
 use App\Support\ListFilters;
+use App\Support\PagePresenter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -216,17 +217,9 @@ class UserController extends Controller
      */
     private function page(LengthAwarePaginator $page): array
     {
-        $last = $page->lastPage();
-        $links = [['label' => 'Poprzednia', 'url' => $page->currentPage() > 1 ? $page->url($page->currentPage() - 1) : null, 'active' => false]];
-        for ($i = 1; $i <= $last; $i++) {
-            $links[] = ['label' => (string) $i, 'url' => $page->url($i), 'active' => $i === $page->currentPage()];
-        }
-        $links[] = ['label' => 'Następna', 'url' => $page->currentPage() < $last ? $page->url($page->currentPage() + 1) : null, 'active' => false];
-
         return [
             'data' => $this->rows($page->items()),
-            'meta' => ['currentPage' => $page->currentPage(), 'perPage' => $page->perPage(), 'total' => $page->total(), 'lastPage' => $last],
-            'links' => $links,
+            ...app(PagePresenter::class)->navigation($page),
         ];
     }
 

@@ -13,6 +13,7 @@ use App\Models\TeacherAssignment;
 use App\Models\Term;
 use App\Models\User;
 use App\Services\School\AssignmentService;
+use App\Support\PagePresenter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -133,13 +134,6 @@ class TeacherAssignmentController extends Controller
      */
     private function page(LengthAwarePaginator $page): array
     {
-        $last = $page->lastPage();
-        $links = [['label' => 'Poprzednia', 'url' => $page->currentPage() > 1 ? $page->url($page->currentPage() - 1) : null, 'active' => false]];
-        for ($i = 1; $i <= $last; $i++) {
-            $links[] = ['label' => (string) $i, 'url' => $page->url($i), 'active' => $i === $page->currentPage()];
-        }
-        $links[] = ['label' => 'Następna', 'url' => $page->currentPage() < $last ? $page->url($page->currentPage() + 1) : null, 'active' => false];
-
         return [
             'data' => collect($page->items())->map(fn (TeacherAssignment $a) => [
                 'id' => (string) $a->id,
@@ -149,8 +143,7 @@ class TeacherAssignmentController extends Controller
                 'term' => ['id' => (string) $a->term_id, 'label' => $this->termLabel($a->term)],
                 'revokedAt' => $a->revoked_at?->toIso8601String(),
             ])->all(),
-            'meta' => ['currentPage' => $page->currentPage(), 'perPage' => $page->perPage(), 'total' => $page->total(), 'lastPage' => $last],
-            'links' => $links,
+            ...app(PagePresenter::class)->navigation($page),
         ];
     }
 }

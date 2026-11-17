@@ -7,6 +7,7 @@ use App\Models\GradeAudit;
 use App\Models\TeacherAssignment;
 use App\Models\User;
 use App\Services\Authorization\GradeAccess;
+use App\Support\PagePresenter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -38,7 +39,7 @@ class RosterStudent
             'student' => ['id' => (string) $enrollment->student_id, 'enrollmentId' => (string) $enrollment->id, 'name' => $enrollment->student->name,
                 'historical' => $enrollment->isHistorical($assignment->term->academicYear->ends_on)],
             'context' => $context,
-            'grades' => app(ReadPage::class)->present($page->appends($data), fn (Grade $g) => [...app(GradePresenter::class)->toArray($g, $actor), 'context' => $context]),
+            'grades' => app(PagePresenter::class)->present($page->appends($data), fn (Grade $g) => [...app(GradePresenter::class)->toArray($g, $actor), 'context' => $context]),
             'summary' => [...$summary, 'scopeLabel' => $assignment->schoolClass->name.' · '.$assignment->subject->name.' · '.$context['term']['label']],
             'recentHistory' => GradeAudit::visibleTo($actor)->whereHas('grade', fn ($g) => $g->withTrashed()->where('student_enrollment_id', $enrollment->id)->whereHas('assessment', fn ($a) => $a->where([
                 'school_class_id' => $assignment->school_class_id, 'subject_id' => $assignment->subject_id, 'term_id' => $assignment->term_id])))

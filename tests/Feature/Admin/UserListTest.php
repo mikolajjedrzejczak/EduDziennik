@@ -28,6 +28,7 @@ class UserListTest extends TestCase
 
         $this->actingAs($this->admin())->get(route('admin.users.index'))->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('admin/users/index')
+                ->has('users.links', 2)
                 ->has('users.data', 2)
                 ->where('users.data.1.lastName', 'Nowak')
                 ->has('users.data.1', fn (Assert $row) => $row->hasAll(['id', 'firstName', 'lastName', 'email', 'role', 'status', 'deletedAt', 'lastLoginAt', 'relationSummary']))

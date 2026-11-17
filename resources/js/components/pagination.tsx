@@ -9,17 +9,57 @@ const base =
 export function Pagination({
     meta,
     links,
+    label = 'Stronicowanie',
+    variant = 'default',
 }: {
     meta: Page<unknown>['meta'];
     links: Page<unknown>['links'];
+    label?: string;
+    variant?: 'default' | 'compact';
 }) {
-    if (meta.lastPage <= 1) return null;
+    if (variant === 'default' && meta.lastPage <= 1) return null;
     const previous = links[0]?.url ?? null;
     const next = links[links.length - 1]?.url ?? null;
 
+    if (variant === 'compact') {
+        return (
+            <nav
+                aria-label={label}
+                className="flex flex-wrap items-center justify-between gap-2 py-3 text-xs text-text-secondary"
+            >
+                <span>
+                    Strona {meta.currentPage} z {meta.lastPage} · {meta.total}{' '}
+                    rekordów
+                </span>
+                <div className="flex gap-3">
+                    {links.map((link) =>
+                        link.url ? (
+                            <Link
+                                key={link.label}
+                                href={link.url}
+                                preserveScroll
+                                className="inline-flex min-h-11 items-center rounded px-2 text-primary underline outline-none focus-visible:ring-[3px] focus-visible:ring-focus"
+                            >
+                                {link.label}
+                            </Link>
+                        ) : (
+                            <span
+                                key={link.label}
+                                aria-disabled="true"
+                                className="inline-flex min-h-11 items-center px-2"
+                            >
+                                {link.label}
+                            </span>
+                        ),
+                    )}
+                </div>
+            </nav>
+        );
+    }
+
     return (
         <nav
-            aria-label="Stronicowanie"
+            aria-label={label}
             className="flex items-center justify-between gap-3 px-1 py-3 text-sm text-text-secondary"
         >
             {previous ? (
