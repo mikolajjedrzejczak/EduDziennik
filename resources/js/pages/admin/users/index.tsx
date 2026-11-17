@@ -7,7 +7,7 @@ import { DeleteUserDialog } from '@/components/admin/delete-user-dialog';
 import { RoleBadge, StatusBadge } from '@/components/admin/user-badges';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { OptionField } from '@/components/school/option-field';
-import { Pagination } from '@/components/school/pagination';
+import { Pagination } from '@/components/pagination';
 import { EmptyState } from '@/components/states/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -304,7 +304,12 @@ export default function Users({ users, filters, options }: UserListProps) {
                             </ul>
                         </>
                     )}
-                    <Pagination page={users} label="Strony użytkowników" />
+                    <Pagination
+                        variant="compact"
+                        meta={users.meta}
+                        links={users.links}
+                        label="Strony użytkowników"
+                    />
                 </section>
             </div>
         </>

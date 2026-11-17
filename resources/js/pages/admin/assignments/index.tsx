@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { Ban, Plus, RotateCcw } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import TeacherAssignmentController from '@/actions/App/Http/Controllers/Admin/TeacherAssignmentController';
 import { AssignmentForm } from '@/components/admin/assignment-form';
 import { AssignmentStatusForm } from '@/components/admin/assignment-status-form';
@@ -17,6 +17,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { usePageLoading } from '@/hooks/use-page-loading';
 import { useViewport } from '@/hooks/use-viewport';
 import type {
     AssignmentDTO,
@@ -46,20 +47,6 @@ function query(
     if (next.direction !== 'asc') params.direction = next.direction;
 
     return params;
-}
-
-function usePageLoading() {
-    const [loading, setLoading] = useState(false);
-    useEffect(() => {
-        const off = [
-            router.on('start', () => setLoading(true)),
-            router.on('finish', () => setLoading(false)),
-        ];
-
-        return () => off.forEach((remove) => remove());
-    }, []);
-
-    return loading;
 }
 
 export default function AssignmentsIndex({

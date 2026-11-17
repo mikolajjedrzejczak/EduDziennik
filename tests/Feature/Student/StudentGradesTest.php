@@ -74,6 +74,7 @@ class StudentGradesTest extends TestCase
         foreach ([1 => 10, 2 => 1] as $page => $count) {
             $this->actingAs($this->student)->get(route('student.grades.index', [...$filters, 'page' => $page]))
                 ->assertOk()->assertInertia(fn (Assert $p) => $p->has('grades.data', $count)
+                ->has('grades.links', 2)
                 ->where('grades.meta.total', 11)->where('summary.count', 11)->where('summary.average', '4.00')
                 ->where('filters.q', 'Żółć%_'));
         }

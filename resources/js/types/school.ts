@@ -1,14 +1,6 @@
 export type Option = { id: string; label: string };
-export type Page<T> = {
-    data: T[];
-    meta: {
-        currentPage: number;
-        perPage: number;
-        total: number;
-        lastPage: number;
-    };
-    links: { label: string; url: string | null; active: boolean }[];
-};
+export type { Page } from './pagination';
+import type { Page } from './pagination';
 export type ClassDTO = {
     id: string;
     name: string;

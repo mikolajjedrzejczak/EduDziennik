@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\Authorization\GradeAccess;
 use App\Services\Authorization\GradebookContext;
 use App\Support\ListFilters;
+use App\Support\PagePresenter;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,7 +19,7 @@ use Inertia\Response;
 /** Shared teacher/admin read model for an exact teaching context. */
 class TeacherGradebook
 {
-    public function __construct(private readonly GradeAccess $access, private readonly ReadPage $pages, private readonly GradePresenter $grades, private readonly GradeSummary $summary, private readonly TeacherClassList $classes) {}
+    public function __construct(private readonly GradeAccess $access, private readonly PagePresenter $pages, private readonly GradePresenter $grades, private readonly GradeSummary $summary, private readonly TeacherClassList $classes) {}
 
     /** @param array<string, mixed> $data */
     public function render(User $actor, TeacherAssignment $assignment, array $data): Response|RedirectResponse

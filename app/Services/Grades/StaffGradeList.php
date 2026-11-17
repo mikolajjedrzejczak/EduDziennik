@@ -10,6 +10,7 @@ use App\Models\Subject;
 use App\Models\Term;
 use App\Models\User;
 use App\Support\ListFilters;
+use App\Support\PagePresenter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -85,7 +86,7 @@ class StaffGradeList
         }
 
         return Inertia::render($actor->role.'/grades/index', [
-            'grades' => app(ReadPage::class)->present($page->appends($data), fn (Grade $g) => app(GradePresenter::class)->toArray($g, $actor)),
+            'grades' => app(PagePresenter::class)->present($page->appends($data), fn (Grade $g) => app(GradePresenter::class)->toArray($g, $actor)),
             'summary' => [...$summary, 'scopeLabel' => implode(' · ', $labels)],
             'options' => $options,
             'filters' => ['termId' => $termId === null ? null : (string) $termId, 'subjectId' => isset($data['subject_id']) ? (string) $data['subject_id'] : null,

@@ -6,16 +6,16 @@ use App\Http\Requests\Teacher\ClassFilterRequest;
 use App\Http\Requests\Teacher\GradebookFilterRequest;
 use App\Models\TeacherAssignment;
 use App\Models\Term;
-use App\Services\Grades\ReadPage;
 use App\Services\Grades\TeacherClassList;
 use App\Services\Grades\TeacherGradebook;
+use App\Support\PagePresenter;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class GradebookController extends Controller
 {
-    public function index(ClassFilterRequest $request, TeacherClassList $list, ReadPage $presenter): Response|RedirectResponse
+    public function index(ClassFilterRequest $request, TeacherClassList $list, PagePresenter $presenter): Response|RedirectResponse
     {
         $actor = $request->user();
         $data = $request->validated();

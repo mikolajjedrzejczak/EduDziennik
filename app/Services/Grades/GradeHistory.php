@@ -12,6 +12,7 @@ use App\Models\TeacherAssignment;
 use App\Models\Term;
 use App\Models\User;
 use App\Services\Authorization\GradeAccess;
+use App\Support\PagePresenter;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
@@ -86,11 +87,7 @@ class GradeHistory
         return Inertia::render('shared/history/index', [
             'audits' => [
                 'data' => $page->map(fn (GradeAudit $audit) => app(AuditPresenter::class)->toArray($audit, $actor))->all(),
-                'meta' => ['currentPage' => $page->currentPage(), 'lastPage' => $page->lastPage(), 'perPage' => $page->perPage(), 'total' => $page->total()],
-                'links' => [
-                    ['label' => 'Poprzednia', 'url' => $page->previousPageUrl(), 'active' => false],
-                    ['label' => 'Następna', 'url' => $page->nextPageUrl(), 'active' => false],
-                ],
+                ...app(PagePresenter::class)->navigation($page),
             ],
             'filters' => $filters, 'options' => $this->options($actor, isset($filters['studentEnrollmentId']) ? (int) $filters['studentEnrollmentId'] : null),
             'grade' => $grade ? app(GradePresenter::class)->toArray($grade, $actor) : null,

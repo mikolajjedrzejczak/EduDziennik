@@ -29,6 +29,7 @@ class SubjectManagementTest extends TestCase
 
         $this->actingAs($this->admin())->get(route('admin.subjects.index'))->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('admin/subjects/index')
+                ->has('subjects.links', 2)
                 ->has('subjects.data', 1)
                 ->where('subjects.data.0.name', 'Matematyka')
                 ->where('subjects.data.0.deletedAt', null)

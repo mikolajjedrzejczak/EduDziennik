@@ -14,6 +14,7 @@ use App\Models\Term;
 use App\Models\User;
 use App\Services\School\SchoolClassService;
 use App\Support\ListFilters;
+use App\Support\PagePresenter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
@@ -107,11 +108,6 @@ class SchoolClassController extends Controller
      */
     private function page(LengthAwarePaginator $page, callable $map): array
     {
-        return ['data' => $page->getCollection()->map($map)->values(),
-            'meta' => ['currentPage' => $page->currentPage(), 'perPage' => $page->perPage(), 'total' => $page->total(), 'lastPage' => $page->lastPage()],
-            'links' => [
-                ['label' => 'Poprzednia', 'url' => $page->previousPageUrl(), 'active' => false],
-                ['label' => 'Następna', 'url' => $page->nextPageUrl(), 'active' => false],
-            ]];
+        return app(PagePresenter::class)->present($page, $map);
     }
 }
