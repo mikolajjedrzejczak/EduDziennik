@@ -223,6 +223,8 @@ FACT: `GradeListProps = { grades: Page<GradeDTO>, summary: GradeSummary, subject
 
 ### Stan integracji F-303
 
+FACT (review #65): tworzenie konta ponownie wykonuje `UserPolicy.create` w transakcji, po blokadzie `domain_locks.admin_membership` i aktualnego aktora. Utrata roli admina, dezaktywacja, soft delete lub brak aktora między autoryzacją Form Request a zapisem oznacza 403 i brak nowego konta/relacji.
+
 FACT: `UserFormProps = { user: null, options: { roles, classes, terms, subjects } }` — `classes`/`terms` jako `Option & { academicYearId }`, tylko wybieralne (klasy niearchiwalne, semestry niezamknięte), `subjects` jako `Option`. `POST /admin/users`: `first_name`/`last_name` trim, 1–80 znaków, litery Unicode/spacja/apostrof/łącznik z co najmniej jedną literą; `email` trim+lowercase, unique także dla usuniętych; `password` 12–128 + `password_confirmation`; `role` student|teacher|admin; `status` active|inactive; `enrollment` (tylko student, aktywne konto) i `assignments` (tylko teacher, aktywne konto, max 20, bez duplikatów) w jednej transakcji z `UserService`. Błędy: redirect + `errors` z kluczami `enrollment.*` i `assignments.N.*`; hasło nie wraca w props ani w starych danych.
 
 ### Stan integracji F-307

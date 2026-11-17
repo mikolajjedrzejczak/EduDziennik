@@ -89,6 +89,15 @@ class UserCreationTest extends TestCase
         $this->assertDatabaseHas('student_enrollments', ['student_id' => $user->id, 'school_class_id' => $this->class->id, 'ends_on' => null]);
     }
 
+    public function test_active_admin_can_create_another_active_admin(): void
+    {
+        $this->store($this->payload(['role' => 'admin']))->assertRedirect();
+
+        $this->assertDatabaseHas('users', ['email' => 'anna.nowak@example.test', 'role' => 'admin', 'status' => 'active']);
+        $this->assertDatabaseCount('student_enrollments', 0);
+        $this->assertDatabaseCount('teacher_assignments', 0);
+    }
+
     public function test_teacher_is_created_with_assignments(): void
     {
         $other = Subject::factory()->create();

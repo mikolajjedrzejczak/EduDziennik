@@ -24,6 +24,13 @@ class UserService
     public function create(int $actorId, array $account, ?array $enrollment = null, array $assignments = []): User
     {
         return DB::transaction(function () use ($actorId, $account, $enrollment, $assignments) {
+            // Match update/delete: membership lock precedes User and relation locks.
+            // Keep the actor locked until the account and all its relations commit.
+            DB::table('domain_locks')->where('key', 'admin_membership')->lockForUpdate()->firstOrFail();
+            $actor = User::withTrashed()->lockForUpdate()->find($actorId);
+            abort_if($actor === null, 403);
+            Gate::forUser($actor)->authorize('create', User::class);
+
             try {
                 $user = User::create($account);
             } catch (UniqueConstraintViolationException) {
