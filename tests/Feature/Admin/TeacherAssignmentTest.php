@@ -66,11 +66,93 @@ class TeacherAssignmentTest extends TestCase
                 ->has('assignments.data.0', fn (Assert $row) => $row->hasAll(['id', 'teacher', 'schoolClass', 'subject', 'term', 'revokedAt']))
                 ->has('assignments.data.0.teacher', fn (Assert $o) => $o->hasAll(['id', 'label']))
                 ->where('filters.revoked', false)
-                ->has('teachers', 2)->has('classes', 1)->has('subjects', 1)->has('terms', 1)
-                ->missing('teachers.0.email'));
+                ->has('createOptions.teachers', 2)->has('createOptions.classes', 1)->has('createOptions.subjects', 1)->has('createOptions.terms', 1)
+                ->missing('createOptions.teachers.0.email')->missing('filterOptions.teachers.0.email'));
 
         $this->actingAs($this->admin)->get(route('admin.assignments.index', ['revoked' => 1]))
             ->assertInertia(fn (Assert $page) => $page->has('assignments.data', 1)->where('assignments.data.0.revokedAt', fn ($v) => is_string($v)));
+    }
+
+    /** @return array<string, array{string}> */
+    public static function historicalTeachers(): array
+    {
+        return ['inactive' => ['inactive'], 'deleted' => ['deleted']];
+    }
+
+    #[DataProvider('historicalTeachers')]
+    public function test_historical_filter_options_remain_labelled_and_cannot_be_used_for_writes(string $state): void
+    {
+        $assignment = $this->assignment(['revoked_at' => now()]);
+        $this->teacher->update(['status' => 'inactive']);
+        if ($state === 'deleted') {
+            $this->teacher->delete();
+        }
+        $this->class->delete();
+        $this->subject->delete();
+        $this->term->update(['closed_at' => now()]);
+        // Unrelated historical records must not consume the filter dictionaries.
+        User::factory()->teacher()->create(['status' => 'inactive']);
+        SchoolClass::factory()->create()->delete();
+        Subject::factory()->create()->delete();
+        Term::factory()->create(['closed_at' => now()]);
+        $labels = [
+            'teachers' => $this->teacher->first_name.' '.$this->teacher->last_name.($state === 'deleted' ? ' (usunięty)' : ' (nieaktywny)'),
+            'classes' => $this->class->name.' · '.$this->class->academicYear->name.' (zarchiwizowana)',
+            'subjects' => $this->subject->name.' (zarchiwizowany)',
+            'terms' => 'Semestr '.$this->term->number.' · '.$this->term->academicYear->name.' (zamknięty)',
+        ];
+        $url = route('admin.assignments.index', [...$this->payload(), 'revoked' => 1]);
+        // First visit and reload reconstruct both the selected IDs and their labels.
+        foreach ([$url, $url, route('admin.assignments.index')] as $index => $visit) {
+            $this->actingAs($this->admin)->get($visit)->assertOk()->assertInertia(function (Assert $page) use ($assignment, $labels, $index) {
+                $page->has('assignments.data', $index < 2 ? 1 : 0);
+                if ($index < 2) {
+                    $page->where('assignments.data.0.id', (string) $assignment->id)
+                        ->where('filters.teacherId', (string) $this->teacher->id)
+                        ->where('filters.schoolClassId', (string) $this->class->id)
+                        ->where('filters.subjectId', (string) $this->subject->id)
+                        ->where('filters.termId', (string) $this->term->id);
+                }
+                foreach ($labels as $key => $label) {
+                    $page->has('filterOptions.'.$key, 1)
+                        ->has('filterOptions.'.$key.'.0', fn (Assert $option) => $option->hasAll(['id', 'label']))
+                        ->where('filterOptions.'.$key.'.0.label', $label)
+                        ->has('createOptions.'.$key, 0);
+                }
+            });
+        }
+        $this->post(route('admin.assignments.store'), $this->payload())->assertSessionHasErrors();
+        $this->patch(route('admin.assignments.update', $assignment), ['revoked' => false])->assertSessionHasErrors();
+        $this->assertNotNull($assignment->fresh()->revoked_at);
+        $this->assertSame(1, TeacherAssignment::count());
+    }
+
+    /** @return array<string, array{string, string}> */
+    public static function invalidReactivations(): array
+    {
+        return [
+            'inactive teacher' => ['inactive', 'teacher_id'],
+            'deleted teacher' => ['deleted', 'teacher_id'],
+            'archived class' => ['class', 'school_class_id'],
+            'archived subject' => ['subject', 'subject_id'],
+            'closed term' => ['closed', 'term_id'],
+        ];
+    }
+
+    #[DataProvider('invalidReactivations')]
+    public function test_reactivation_rejects_each_historical_context(string $state, string $error): void
+    {
+        $assignment = $this->assignment(['revoked_at' => now()]);
+        match ($state) {
+            'inactive' => $this->teacher->update(['status' => 'inactive']),
+            'deleted' => $this->teacher->delete(),
+            'class' => $this->class->delete(),
+            'subject' => $this->subject->delete(),
+            'closed' => $this->term->update(['closed_at' => now()]),
+        };
+        $this->actingAs($this->admin)->patch(route('admin.assignments.update', $assignment), ['revoked' => false])
+            ->assertSessionHasErrors($error);
+        $this->assertNotNull($assignment->fresh()->revoked_at);
     }
 
     public function test_filters_narrow_by_every_dimension(): void

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssignmentStatusForm } from '@/components/admin/assignment-status-form';
@@ -77,10 +77,18 @@ const base: AssignmentManagementProps = {
         sort: 'id',
         direction: 'asc',
     },
-    teachers: [{ id: '1', label: 'Anna Nowak' }],
-    classes: [{ id: '2', label: '2A · 2026/2027' }],
-    subjects: [{ id: '3', label: 'Matematyka' }],
-    terms: [{ id: '4', label: 'Semestr 1 · 2026/2027' }],
+    createOptions: {
+        teachers: [{ id: '1', label: 'Anna Nowak' }],
+        classes: [{ id: '2', label: '2A · 2026/2027' }],
+        subjects: [{ id: '3', label: 'Matematyka' }],
+        terms: [{ id: '4', label: 'Semestr 1 · 2026/2027' }],
+    },
+    filterOptions: {
+        teachers: [{ id: '1', label: 'Anna Nowak' }],
+        classes: [{ id: '2', label: '2A · 2026/2027' }],
+        subjects: [{ id: '3', label: 'Matematyka' }],
+        terms: [{ id: '4', label: 'Semestr 1 · 2026/2027' }],
+    },
 };
 
 beforeEach(() => {
@@ -113,6 +121,68 @@ describe('assignment management page', () => {
             }),
         ).toBeVisible();
         expect(screen.queryByRole('button', { name: /Edytuj/ })).toBeNull();
+    });
+
+    it('keeps historical labels selected after reload and excludes them from the grant dialog', async () => {
+        const user = userEvent.setup();
+        const historical = {
+            teachers: [{ id: '11', label: 'Jan Dawny (usunięty)' }],
+            classes: [{ id: '12', label: '1A · 2025/2026 (zarchiwizowana)' }],
+            subjects: [{ id: '13', label: 'Historia (zarchiwizowany)' }],
+            terms: [{ id: '14', label: 'Semestr 1 · 2025/2026 (zamknięty)' }],
+        };
+        const props = {
+            ...base,
+            filterOptions: historical,
+            filters: {
+                ...base.filters,
+                teacherId: '11',
+                schoolClassId: '12',
+                subjectId: '13',
+                termId: '14',
+                revoked: true,
+            },
+        };
+        const first = render(<AssignmentsIndex {...props} />);
+        for (const [index, key] of (
+            ['teachers', 'classes', 'subjects', 'terms'] as const
+        ).entries()) {
+            expect(screen.getAllByRole('combobox')[index]).toHaveTextContent(
+                historical[key][0].label,
+            );
+        }
+        first.unmount();
+        render(<AssignmentsIndex {...props} />);
+        for (const [index, key] of (
+            ['teachers', 'classes', 'subjects', 'terms'] as const
+        ).entries()) {
+            expect(screen.getAllByRole('combobox')[index]).toHaveTextContent(
+                historical[key][0].label,
+            );
+        }
+        await user.click(
+            screen.getByRole('button', { name: 'Przypisz nauczyciela' }),
+        );
+        const dialog = screen.getByRole('dialog');
+        const options = within(dialog).getAllByRole('option', { hidden: true });
+        for (const key of [
+            'teachers',
+            'classes',
+            'subjects',
+            'terms',
+        ] as const) {
+            expect(
+                options.some(
+                    (option) => option.textContent === historical[key][0].label,
+                ),
+            ).toBe(false);
+            expect(
+                options.some(
+                    (option) =>
+                        option.textContent === base.createOptions[key][0].label,
+                ),
+            ).toBe(true);
+        }
     });
 
     it('distinguishes an empty list from a filter without results', () => {
