@@ -40,6 +40,7 @@ export default function GradeForm(props: GradeFormProps) {
     const title = editing ? 'Edytuj ocenę' : 'Wystaw ocenę';
     const initial = assessment ?? assessments[0];
     const form = useForm({
+        ...props.returnFilters,
         assignment_id: context.assignmentId ?? '',
         assessment_id: initial?.id ?? '',
         student_enrollment_id: selectedEnrollmentId ?? '',

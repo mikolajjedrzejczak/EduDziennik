@@ -26,7 +26,8 @@ export default function Gradebook({
     canCreateAssessment,
     backgroundOnly = false,
 }: GradebookProps & { backgroundOnly?: boolean }) {
-    const { errors: pageErrors, auth, flash } = usePage().props;
+    const page = usePage();
+    const { errors: pageErrors, auth, flash } = page.props;
     const errors = backgroundOnly ? {} : pageErrors;
     const role = auth.user.role;
     const base = `/${role}/gradebooks/${context.assignmentId}`;
@@ -45,6 +46,18 @@ export default function Gradebook({
                 : null;
         setAction(value);
     }
+    const currentQuery = new URLSearchParams(page.url?.split('?')[1]);
+    const returnFilters = new URLSearchParams();
+    if (filters.q) returnFilters.set('q', filters.q);
+    if (filters.page > 1) returnFilters.set('page', String(filters.page));
+    if (filters.assessmentPage > 1)
+        returnFilters.set('assessment_page', String(filters.assessmentPage));
+    if (filters.perPage !== 10 || currentQuery.has('per_page'))
+        returnFilters.set('per_page', String(filters.perPage));
+    if (filters.direction !== 'asc' || currentQuery.has('direction'))
+        returnFilters.set('direction', filters.direction);
+    if (currentQuery.has('sort')) returnFilters.set('sort', filters.sort);
+    const returnQuery = returnFilters.size ? `&${returnFilters}` : '';
     const loading = usePageLoading();
     const title = `${context.schoolClass.label} · ${context.subject.label}`;
     return (
@@ -192,7 +205,7 @@ export default function Gradebook({
                                 gradeUrl={(id) => `/${role}/grades/${id}`}
                                 onDelete={openAction}
                                 createUrl={(enrollment, assessment) =>
-                                    `/${role}/grades/create?assignment_id=${context.assignmentId}&student_enrollment_id=${enrollment}&assessment_id=${assessment}`
+                                    `/${role}/grades/create?assignment_id=${context.assignmentId}&student_enrollment_id=${enrollment}&assessment_id=${assessment}${returnQuery}`
                                 }
                             />
                             <Pagination

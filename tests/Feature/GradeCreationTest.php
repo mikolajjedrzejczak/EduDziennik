@@ -68,6 +68,37 @@ class GradeCreationTest extends TestCase
         }
     }
 
+    public function test_return_filters_are_validated_and_preserved_without_accepting_a_return_url(): void
+    {
+        // Enough rows/columns to keep both second pages valid, including per_page=25.
+        StudentEnrollment::factory()->count(30)->create(['student_id' => fn () => User::factory()->create(['last_name' => 'Uczeń'])->id, 'school_class_id' => $this->assignment->school_class_id, 'starts_on' => '2026-09-01']);
+        Assessment::factory()->count(11)->create(['school_class_id' => $this->assignment->school_class_id, 'subject_id' => $this->assignment->subject_id, 'term_id' => $this->assignment->term_id]);
+        $filters = ['q' => 'Uczeń', 'page' => '2', 'per_page' => '25', 'sort' => 'last_name', 'direction' => 'desc', 'assessment_page' => '2'];
+        foreach ([$this->assignment->teacher, User::factory()->admin()->create()] as $actor) {
+            $url = route($actor->role.'.gradebooks.show', ['assignment' => $this->assignment->id, ...$filters]);
+            $payload = [...$this->input, ...$filters, 'return_url' => 'https://example.org', 'assignment' => 999999];
+            $this->actingAs($actor)->get(route($actor->role.'.grades.create', $payload))
+                ->assertInertia(fn (Assert $p) => $p->where('background.filters.page', 2)->where('background.filters.assessmentPage', 2)
+                    ->where('background.filters.q', 'Uczeń')->where('background.filters.perPage', 25)->where('background.filters.direction', 'desc')
+                    ->where('cancelUrl', $url)->missing('returnFilters.return_url')->missing('returnFilters.assignment'));
+            $this->post(route($actor->role.'.grades.store'), $payload)->assertRedirect($url);
+            $this->enrollment = StudentEnrollment::factory()->create(['school_class_id' => $this->assignment->school_class_id, 'starts_on' => '2026-09-01']);
+            $this->input['student_enrollment_id'] = (string) $this->enrollment->id;
+        }
+    }
+
+    public function test_invalid_return_filters_cannot_write_a_grade(): void
+    {
+        $this->actingAs($this->assignment->teacher);
+        foreach (['page' => 0, 'assessment_page' => 100001, 'q' => ['bad'], 'per_page' => 1000, 'direction' => 'invalid', 'sort' => 'email'] as $key => $invalid) {
+            $payload = [...$this->input, $key => $invalid];
+            $this->get(route('teacher.grades.create', $payload))->assertSessionHasErrors($key);
+            $this->post(route('teacher.grades.store'), $payload)->assertSessionHasErrors($key);
+        }
+        $this->assertDatabaseCount('grades', 0);
+        $this->assertDatabaseCount('grade_audits', 0);
+    }
+
     public function test_invalid_fields_have_no_effect_and_preserve_input(): void
     {
         $url = route('teacher.grades.create', $this->input);
@@ -83,6 +114,7 @@ class GradeCreationTest extends TestCase
 
     public function test_foreign_scope_mismatched_context_and_roles_are_denied(): void
     {
+        $this->input = [...$this->input, 'page' => '2', 'assessment_page' => '2', 'q' => 'Uczeń', 'per_page' => '25', 'direction' => 'desc'];
         $this->get(route('teacher.grades.create', $this->input))->assertRedirect(route('login'));
         foreach ([User::factory()->teacher()->create(), $this->enrollment->student] as $actor) {
             $this->actingAs($actor)->get(route('teacher.grades.create', $this->input))->assertStatus($actor->role === 'student' ? 403 : 404);

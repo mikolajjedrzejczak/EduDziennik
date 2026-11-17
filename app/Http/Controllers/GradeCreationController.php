@@ -12,6 +12,7 @@ use App\Services\Authorization\GradeAccess;
 use App\Services\Grades\GradeFormContext;
 use App\Services\Grades\GradeService;
 use App\Services\Grades\TeacherGradebook;
+use App\Support\ListFilters;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,7 +23,8 @@ class GradeCreationController extends Controller
     {
         $actor = $request->user();
         [$assignment, $assessment, $enrollment] = $resolver->resolve($actor, $request->validated('assignment_id'), $request->validated('assessment_id'), $request->validated('student_enrollment_id'));
-        $cancel = route($actor->role.'.gradebooks.show', $assignment);
+        $filters = $request->safe()->only(array_keys(ListFilters::gradebookRules()));
+        $cancel = route($actor->role.'.gradebooks.show', ['assignment' => $assignment->id, ...$filters]);
         if ($assignment->term->closed_at !== null) {
             return redirect($cancel, 303)->withErrors(['form' => 'Semestr jest zamknięty. Nie można wystawić oceny.']);
         }
@@ -37,7 +39,7 @@ class GradeCreationController extends Controller
                 return redirect($cancel, 303)->withErrors(['form' => 'Ta komórka ma już ocenę lub historię. Wybierz inną komórkę.']);
             }
         }
-        $background = $gradebook->props($actor, $assignment, []);
+        $background = $gradebook->props($actor, $assignment, $filters);
         if ($background instanceof RedirectResponse) {
             return $background;
         }
@@ -49,7 +51,7 @@ class GradeCreationController extends Controller
             'students' => $students->map(fn (StudentEnrollment $e) => ['id' => (string) $e->student_id, 'enrollmentId' => (string) $e->id, 'name' => $e->student->name, 'historical' => $e->isHistorical($assignment->term->academicYear->ends_on)])->all(),
             'assessments' => $assessments->map($present)->all(),
             'categories' => GradeCategory::where('is_active', true)->orderBy('name')->get()->map(fn ($c) => ['id' => (string) $c->id, 'label' => $c->name])->all(),
-            'background' => $background, 'submitUrl' => route($actor->role.'.grades.store'), 'cancelUrl' => $cancel,
+            'returnFilters' => $filters, 'background' => $background, 'submitUrl' => route($actor->role.'.grades.store'), 'cancelUrl' => $cancel,
         ]);
     }
 
@@ -63,6 +65,6 @@ class GradeCreationController extends Controller
         }
         $service->create($request->user()->id, $enrollment->id, $assessment->id, $fields);
 
-        return redirect()->route($request->user()->role.'.gradebooks.show', $assignment, 303)->with('success', 'Ocena została zapisana.');
+        return redirect()->route($request->user()->role.'.gradebooks.show', ['assignment' => $assignment->id, ...$request->safe()->only(array_keys(ListFilters::gradebookRules()))], 303)->with('success', 'Ocena została zapisana.');
     }
 }

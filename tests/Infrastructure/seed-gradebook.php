@@ -27,7 +27,8 @@ $teacher = User::factory()->teacher()->create(['email' => 'gradebook-teacher@exa
 User::factory()->admin()->create(['email' => 'gradebook-admin@example.test', 'password' => 'Playwright-grades-1']);
 $assignment = TeacherAssignment::create(['teacher_id' => $teacher->id, 'school_class_id' => $class->id, 'subject_id' => Subject::create(['name' => 'Matematyka'])->id, 'term_id' => $term->id]);
 $category = GradeCategory::create(['name' => 'Kartkówka', 'is_active' => true, 'default_weight' => 1]);
-$enrollments = collect(range(1, 12))->map(fn ($i) => StudentEnrollment::create(['student_id' => User::factory()->create(['first_name' => 'Jan', 'last_name' => sprintf('Uczeń %02d', $i), ...($i === 1 ? ['email' => 'gradebook-student@example.test', 'password' => 'Playwright-grades-1'] : [])])->id, 'school_class_id' => $class->id, 'starts_on' => '2026-09-01', 'ends_on' => $i === 1 ? '2026-10-31' : null]));
+$studentCount = ($argv[1] ?? null) === '--large-roster' ? 30 : 12;
+$enrollments = collect(range(1, $studentCount))->map(fn ($i) => StudentEnrollment::create(['student_id' => User::factory()->create(['first_name' => 'Jan', 'last_name' => sprintf('Uczeń %02d', $i), ...($i === 1 ? ['email' => 'gradebook-student@example.test', 'password' => 'Playwright-grades-1'] : [])])->id, 'school_class_id' => $class->id, 'starts_on' => '2026-09-01', 'ends_on' => $i === 1 ? '2026-10-31' : null]));
 foreach (range(1, 12) as $i) {
     $header = Assessment::create(['school_class_id' => $class->id, 'subject_id' => $assignment->subject_id, 'term_id' => $term->id, 'category_id' => $category->id, 'topic' => 'Kolumna '.$i, 'default_weight' => 1, 'graded_on' => '2026-10-01', 'created_by' => $teacher->id]);
     if ($i <= 4) {

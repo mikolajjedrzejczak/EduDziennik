@@ -25,10 +25,7 @@ class GradebookFilterRequest extends FormRequest
     /** @return array<string, list<string>> */
     public function rules(): array
     {
-        return [
-            ...ListFilters::rules(['last_name']),
-            'assessment_page' => ['nullable', 'integer', 'min:1', 'max:100000'],
-        ];
+        return ListFilters::gradebookRules();
     }
 
     /** @return array<string, string> */

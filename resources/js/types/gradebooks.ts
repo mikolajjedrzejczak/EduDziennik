@@ -56,5 +56,16 @@ export type GradeFormProps = {
     background: GradebookProps;
     submitUrl: string;
     cancelUrl: string;
+    returnFilters?: Partial<
+        Record<
+            | 'q'
+            | 'page'
+            | 'per_page'
+            | 'sort'
+            | 'direction'
+            | 'assessment_page',
+            string | number | null
+        >
+    >;
     deleteUrl?: string;
 };

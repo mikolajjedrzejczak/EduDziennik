@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Grade;
 use App\Models\GradeCategory;
 use App\Services\Grades\GradeFormContext;
+use App\Support\ListFilters;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\In;
@@ -28,6 +29,7 @@ class StoreGradeRequest extends MutationRequest
         $end = min($term->ends_on->toDateString(), $enrollment?->ends_on?->toDateString() ?? $term->ends_on->toDateString(), now('Europe/Warsaw')->toDateString());
 
         return [
+            ...ListFilters::gradebookRules(),
             'assignment_id' => ['required', 'integer'], 'assessment_id' => ['required', 'integer'], 'student_enrollment_id' => ['required', 'integer'],
             'value' => ['required', 'integer', 'between:1,6'], 'weight' => ['required', 'integer', 'between:1,5'],
             'category_id' => ['required', 'integer', Rule::in(GradeCategory::where('is_active', true)->pluck('id')->all())],
