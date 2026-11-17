@@ -46,7 +46,7 @@ class GradeCreationController extends Controller
         return Inertia::render('shared/grades/create', [
             'grade' => null, 'context' => $background['context'], 'assessment' => $assessment ? $present($assessment) : null,
             'selectedEnrollmentId' => $enrollment ? (string) $enrollment->id : null,
-            'students' => $students->map(fn (StudentEnrollment $e) => ['id' => (string) $e->student_id, 'enrollmentId' => (string) $e->id, 'name' => $e->student->name, 'historical' => $e->ends_on !== null && $e->ends_on->isPast()])->all(),
+            'students' => $students->map(fn (StudentEnrollment $e) => ['id' => (string) $e->student_id, 'enrollmentId' => (string) $e->id, 'name' => $e->student->name, 'historical' => $e->isHistorical($assignment->term->academicYear->ends_on)])->all(),
             'assessments' => $assessments->map($present)->all(),
             'categories' => GradeCategory::where('is_active', true)->orderBy('name')->get()->map(fn ($c) => ['id' => (string) $c->id, 'label' => $c->name])->all(),
             'background' => $background, 'submitUrl' => route($actor->role.'.grades.store'), 'cancelUrl' => $cancel,

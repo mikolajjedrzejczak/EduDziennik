@@ -36,7 +36,7 @@ class RosterStudent
 
         return Inertia::render('shared/students/show', [
             'student' => ['id' => (string) $enrollment->student_id, 'enrollmentId' => (string) $enrollment->id, 'name' => $enrollment->student->name,
-                'historical' => $enrollment->ends_on !== null && $enrollment->ends_on->toDateString() < now('Europe/Warsaw')->toDateString()],
+                'historical' => $enrollment->isHistorical($assignment->term->academicYear->ends_on)],
             'context' => $context,
             'grades' => app(ReadPage::class)->present($page->appends($data), fn (Grade $g) => [...app(GradePresenter::class)->toArray($g, $actor), 'context' => $context]),
             'summary' => [...$summary, 'scopeLabel' => $assignment->schoolClass->name.' · '.$assignment->subject->name.' · '.$context['term']['label']],
