@@ -1,8 +1,8 @@
 import { useFilterState } from '@/hooks/use-filter-state';
 import { SearchFilterForm } from '@/components/forms/search-filter-form';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Search, SlidersHorizontal } from 'lucide-react';
-import { useId, useState } from 'react';
+import { Head, Link, router, usePage, useRemember } from '@inertiajs/react';
+import { ChevronRight, Search, SlidersHorizontal } from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { FormField } from '@/components/forms/form-field';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { StudentGradeList } from '@/components/grades/student-grade-list';
@@ -13,6 +13,7 @@ import { LoadingState } from '@/components/states/loading-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePageLoading } from '@/hooks/use-page-loading';
+import { useViewport } from '@/hooks/use-viewport';
 import { Label } from '@/components/ui/label';
 import {
     GRADES_URL,
@@ -47,6 +48,7 @@ function FilterForm({
     panelId: string;
 }) {
     const { errors } = usePage().props;
+    const mobile = useViewport() === 'mobile';
     const [termId, setTermId] = useFilterState(filters.termId ?? '');
     const [categoryId, setCategoryId] = useFilterState(
         filters.categoryId ?? '',
@@ -67,7 +69,7 @@ function FilterForm({
         <SearchFilterForm
             role="search"
             aria-label="Filtry ocen"
-            className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 xl:items-end"
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 md:grid-cols-2 xl:grid-cols-4"
             onSubmit={(event) => {
                 event.preventDefault();
                 router.get(
@@ -96,23 +98,43 @@ function FilterForm({
                 label="Semestr"
                 value={termId}
                 options={options.terms}
-                onChange={setTermId}
+                onChange={(value) => {
+                    setTermId(value);
+                    if (mobile) {
+                        router.get(
+                            GRADES_URL,
+                            gradeQuery(filters, {
+                                term_id: value || null,
+                                subject_id:
+                                    value === filters.termId
+                                        ? filters.subjectId
+                                        : null,
+                                page: null,
+                            }),
+                            { preserveScroll: false },
+                        );
+                    }
+                }}
             />
             <Button
                 type="button"
                 variant="secondary"
                 aria-expanded={open}
                 aria-controls={panelId}
-                className="w-full md:hidden"
+                className="size-12 md:hidden"
                 onClick={() => onOpenChange(!open)}
             >
                 <SlidersHorizontal aria-hidden="true" />
-                Więcej filtrów{active > 0 ? ` (${active})` : ''}
+                <span className="sr-only">
+                    Więcej filtrów{active > 0 ? ` (${active})` : ''}
+                </span>
             </Button>
             <div
                 id={panelId}
                 className={
-                    open ? 'grid gap-3 md:contents' : 'hidden md:contents'
+                    open
+                        ? 'col-span-2 grid gap-3 md:contents'
+                        : 'hidden md:contents'
                 }
             >
                 <OptionField
@@ -196,7 +218,10 @@ function FilterForm({
                     ]}
                 />
             </div>
-            <Button type="submit" className="w-full md:w-auto">
+            <Button
+                type="submit"
+                className={`${open ? 'col-span-2' : 'hidden'} w-full md:col-span-1 md:inline-flex md:w-auto`}
+            >
                 Filtruj
             </Button>
         </SearchFilterForm>
@@ -212,6 +237,38 @@ export default function StudentGrades({
 }: GradeListProps) {
     const { errors } = usePage().props;
     const loading = usePageLoading();
+    const mobile = useViewport() === 'mobile';
+    const hasErrors = Object.keys(errors).length > 0;
+    const [returnSubject, setReturnSubject] = useRemember<string | null>(
+        filters.subjectId,
+        'student-grades.returnSubject',
+    );
+    const previousSubjectRef = useRef(filters.subjectId);
+    useEffect(() => {
+        const previous = previousSubjectRef.current;
+        previousSubjectRef.current = filters.subjectId;
+        if (!mobile || hasErrors) return;
+
+        let frame = requestAnimationFrame(() => {
+            // Inertia restores document scroll in its own frame after history navigation.
+            frame = requestAnimationFrame(() => {
+                if (filters.subjectId) {
+                    window.scrollTo(0, 0);
+                    document
+                        .getElementById('grades-detail-heading')
+                        ?.focus({ preventScroll: true });
+                } else if (!filters.subjectId && (previous || returnSubject)) {
+                    const target =
+                        document.getElementById(
+                            `grades-subject-${previous ?? returnSubject}`,
+                        ) ?? document.getElementById('grades-subjects');
+                    target?.focus({ preventScroll: true });
+                    target?.scrollIntoView({ block: 'center' });
+                }
+            });
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [filters.subjectId, mobile, hasErrors, returnSubject]);
     const [filtersOpen, setFiltersOpen] = useState(false);
     const filterPanelId = useId();
     const subject = options.subjects.find(
@@ -239,7 +296,7 @@ export default function StudentGrades({
         <>
             <Head title="Moje oceny" />
             <div className="space-y-5 p-4 md:p-6 xl:px-10 xl:py-7">
-                <header>
+                <header className="hidden md:block">
                     <h1 className="text-2xl leading-8 font-semibold">
                         Moje oceny
                     </h1>
@@ -286,9 +343,18 @@ export default function StudentGrades({
                     </section>
                 ) : (
                     <div className="grid gap-5 xl:grid-cols-[18rem_minmax(0,1fr)]">
-                        <nav aria-label="Przedmioty">
+                        <nav
+                            id="grades-subjects"
+                            tabIndex={-1}
+                            aria-label="Przedmioty"
+                            className={
+                                filters.subjectId
+                                    ? 'hidden md:block'
+                                    : undefined
+                            }
+                        >
                             <ul className="divide-y divide-border rounded-lg border border-border bg-surface">
-                                <li>
+                                <li className="hidden md:block">
                                     <SubjectLink
                                         href={gradeHref(filters, {
                                             subject_id: null,
@@ -305,6 +371,10 @@ export default function StudentGrades({
                                 {subjects.map((row) => (
                                     <li key={row.subject.id}>
                                         <SubjectLink
+                                            id={`grades-subject-${row.subject.id}`}
+                                            onClick={() =>
+                                                setReturnSubject(row.subject.id)
+                                            }
                                             href={gradeHref(filters, {
                                                 subject_id: row.subject.id,
                                                 page: null,
@@ -320,16 +390,30 @@ export default function StudentGrades({
                                     </li>
                                 ))}
                             </ul>
+                            {!filters.subjectId && subjects.length > 0 && (
+                                <p className="mt-4 text-sm text-text-secondary md:hidden">
+                                    Średnia ważona:{' '}
+                                    {formatAverage(summary.average)} ·{' '}
+                                    {gradeCount(summary.count)}
+                                    <span className="block">
+                                        {summary.scopeLabel}
+                                    </span>
+                                </p>
+                            )}
                         </nav>
 
                         <section
                             aria-label="Lista ocen"
                             aria-busy={loading}
-                            className="min-w-0 space-y-4"
+                            className={`min-w-0 space-y-4 ${!filters.subjectId && subjects.length > 0 ? 'hidden md:block' : ''}`}
                         >
                             <div className="flex items-start justify-between gap-4">
                                 <div className="min-w-0">
-                                    <h2 className="text-lg font-semibold wrap-anywhere">
+                                    <h2
+                                        id="grades-detail-heading"
+                                        tabIndex={-1}
+                                        className="text-lg font-semibold wrap-anywhere outline-none focus-visible:ring-[3px] focus-visible:ring-focus"
+                                    >
                                         {subject?.label ??
                                             'Wszystkie przedmioty'}
                                     </h2>
@@ -425,12 +509,16 @@ export default function StudentGrades({
 }
 
 function SubjectLink({
+    id,
+    onClick,
     href,
     active,
     name,
     average,
     count,
 }: {
+    id?: string;
+    onClick?: () => void;
     href: string;
     active: boolean;
     name: string;
@@ -439,10 +527,13 @@ function SubjectLink({
 }) {
     return (
         <Link
+            id={id}
+            onClick={onClick}
             href={href}
-            preserveScroll
+            preserveState
+            preserveScroll={false}
             aria-current={active ? 'true' : undefined}
-            className={`flex min-h-14 items-center justify-between gap-3 border-l-2 px-4 py-2 outline-none focus-visible:ring-[3px] focus-visible:ring-focus focus-visible:ring-inset ${
+            className={`flex min-h-[72px] items-center justify-between gap-3 border-l-2 px-4 py-3 outline-none focus-visible:ring-[3px] focus-visible:ring-focus focus-visible:ring-inset md:min-h-14 md:py-2 ${
                 active
                     ? 'border-primary bg-primary-subtle text-primary'
                     : 'border-transparent'
@@ -455,10 +546,17 @@ function SubjectLink({
                 </span>
             </span>
             {average !== undefined && (
-                <span className="shrink-0 text-base font-semibold tabular-nums">
+                <span className="ml-auto shrink-0 text-right text-base font-semibold tabular-nums">
                     {formatAverage(average)}
+                    <span className="block text-xs font-normal text-text-secondary md:hidden">
+                        średnia
+                    </span>
                 </span>
             )}
+            <ChevronRight
+                aria-hidden="true"
+                className="size-[18px] shrink-0 text-text-secondary md:hidden"
+            />
         </Link>
     );
 }

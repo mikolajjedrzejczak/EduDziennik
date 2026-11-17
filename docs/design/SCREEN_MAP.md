@@ -135,3 +135,7 @@ VERIFIED: odczytano design context/rendery14:2,21:2,38:8813 i porównano zrzuty 
 ### F-401 — profil i hasło
 
 FACT: odczytano context i rendery14:996/21:856. Dwa panele desktop, pionowy formularz mobile/tablet. Edytowalne imię/nazwisko i formularz hasła na mobile realizują kontrakt zamiast odczytu danych/nawigacji z makiety. Reguła12–128 zastępuje10 znaków z referencji. Bez listy sesji, wychowawcy i ostatniego logowania spoza ProfileProps. Zachowano tokeny i powłokę F-007; tablet nie ma dedykowanej ramki profilu. Adaptacja do odbioru właściciela; szczegóły i wyniki kontroli w F-401 §22.
+
+### F-102 — przejście mobilne, review #72
+
+VERIFIED: ponownie odczytano context i render21:76/21:284; porównano implementację390×844 i320×844. Mobile rozdziela listę przedmiotów i oceny na podstawie `subject_id`, ma nagłówek Root/Detail i powrót z fokusem. Lista zachowuje liczniki zamiast chipów ocen; selector pojedynczego semestru i dodatkowe filtry są adaptacją kontraktu. [Referencje i zakres weryfikacji](reviews/issue-72/README.md). Akceptacja właściciela pozostaje otwarta; brak deklaracji pełnej zgodności.
