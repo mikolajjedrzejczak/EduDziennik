@@ -20,11 +20,16 @@ export type AssignmentFilters = Omit<Filters, 'q' | 'sort'> & {
     sort: 'id';
 };
 
-export type AssignmentManagementProps = {
-    assignments: Page<AssignmentDTO>;
-    filters: AssignmentFilters;
+export type AssignmentOptions = {
     teachers: Option[];
     classes: Option[];
     subjects: Option[];
     terms: Option[];
+};
+
+export type AssignmentManagementProps = {
+    assignments: Page<AssignmentDTO>;
+    filters: AssignmentFilters;
+    createOptions: AssignmentOptions;
+    filterOptions: AssignmentOptions;
 };

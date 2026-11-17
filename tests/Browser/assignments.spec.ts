@@ -114,3 +114,100 @@ for (const { width, height } of viewports) {
         ).toBe(true);
     });
 }
+
+for (const { width, height } of viewports) {
+    test(`historical filters survive reload and stay out of create at ${width}px`, async ({
+        page,
+    }, testInfo) => {
+        await page.setViewportSize({ width, height });
+        await page.goto('/login');
+        await page.getByLabel('Adres e-mail').fill('assign-admin@example.test');
+        await page
+            .getByLabel('Hasło', { exact: true })
+            .fill('Playwright-assign-1');
+        await page
+            .getByRole('button', { name: 'Zaloguj się', exact: true })
+            .click();
+        await expect(page).toHaveURL(/\/admin$/);
+        await page.goto('/admin/assignments');
+        await page
+            .getByRole('button', { name: 'Cofnięte', exact: true })
+            .click();
+        const labels = [
+            ['Nauczyciel', 'Jan Nieaktywny (nieaktywny)'],
+            ['Klasa', '1B · 2025/2026 (zarchiwizowana)'],
+            ['Przedmiot', 'Geografia (zarchiwizowany)'],
+            ['Semestr', 'Semestr 1 · 2025/2026 (zamknięty)'],
+        ] as const;
+        for (const [label, option] of labels) {
+            const previousUrl = page.url();
+            await select(page, label, option);
+            await expect(page).not.toHaveURL(previousUrl);
+            await expect(
+                page.getByRole('combobox', { name: label, exact: true }),
+            ).toContainText(option);
+        }
+        await expect(
+            page
+                .getByRole('region', { name: 'Lista przydziałów' })
+                .getByText('Jan Nieaktywny', { exact: true }),
+        ).toBeVisible();
+        await page.reload();
+        for (const [label, option] of labels) {
+            await expect(
+                page.getByRole('combobox', { name: label, exact: true }),
+            ).toContainText(option);
+        }
+        const previousUrl = page.url();
+        await select(page, 'Nauczyciel', 'Jan Usunięty (usunięty)');
+        await expect(page).not.toHaveURL(previousUrl);
+        await page.reload();
+        await expect(
+            page.getByRole('combobox', { name: 'Nauczyciel', exact: true }),
+        ).toContainText('Jan Usunięty (usunięty)');
+        await expect(
+            page
+                .getByRole('region', { name: 'Lista przydziałów' })
+                .getByText('Jan Usunięty', { exact: true }),
+        ).toBeVisible();
+        await page.screenshot({
+            path: testInfo.outputPath(`historical-filters-${width}.png`),
+            fullPage: true,
+        });
+
+        await page
+            .getByRole('button', { name: 'Przypisz nauczyciela', exact: true })
+            .first()
+            .click();
+        const dialog = page.getByRole('dialog');
+        const current = [
+            'Anna Nowak',
+            '2A · 2026/2027',
+            'Matematyka',
+            'Semestr 1 · 2026/2027',
+        ];
+        for (const [index, [label, option]] of labels.entries()) {
+            await dialog
+                .getByRole('combobox', { name: label, exact: true })
+                .click();
+            await expect(
+                page.getByRole('option', { name: option, exact: true }),
+            ).toHaveCount(0);
+            await expect(
+                page.getByRole('option', {
+                    name: 'Jan Usunięty (usunięty)',
+                    exact: true,
+                }),
+            ).toHaveCount(0);
+            await page
+                .getByRole('option', { name: current[index], exact: true })
+                .click();
+        }
+        await page.keyboard.press('Escape');
+        expect(
+            await page.evaluate(
+                () => document.documentElement.scrollWidth <= innerWidth,
+            ),
+        ).toBe(true);
+    });
+}

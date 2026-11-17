@@ -40,12 +40,39 @@ class TeacherAssignmentController extends Controller
             return redirect()->route('admin.assignments.index', [...$request->query(), 'page' => $page->lastPage()], 303);
         }
 
-        $teachers = User::where('role', 'teacher')->where('status', 'active')->orderBy('last_name')->orderBy('first_name')->orderBy('id')->limit(self::OPTION_LIMIT + 1)->get();
-        $classes = SchoolClass::with('academicYear')->orderBy('name')->orderBy('id')->limit(self::OPTION_LIMIT + 1)->get();
-        $subjects = Subject::orderBy('name')->orderBy('id')->limit(self::OPTION_LIMIT + 1)->get();
-        $terms = Term::with('academicYear')->whereNull('closed_at')->orderByDesc('starts_on')->orderBy('id')->limit(self::OPTION_LIMIT + 1)->get();
+        // Read dictionaries include historical contexts with assignments, independently of list filters.
+        $teachers = User::withTrashed()->where(function ($query) {
+            $query->where(fn ($q) => $q->where('role', 'teacher')->where('status', 'active')->whereNull('deleted_at'))
+                ->orWhereIn('id', TeacherAssignment::select('teacher_id'));
+        })->orderBy('last_name')->orderBy('first_name')->orderBy('id')->limit(self::OPTION_LIMIT + 1)->get();
+        $classes = SchoolClass::withTrashed()->with('academicYear')->where(function ($query) {
+            $query->whereNull('deleted_at')->orWhereIn('id', TeacherAssignment::select('school_class_id'));
+        })->orderBy('name')->orderBy('id')->limit(self::OPTION_LIMIT + 1)->get();
+        $subjects = Subject::withTrashed()->where(function ($query) {
+            $query->whereNull('deleted_at')->orWhereIn('id', TeacherAssignment::select('subject_id'));
+        })->orderBy('name')->orderBy('id')->limit(self::OPTION_LIMIT + 1)->get();
+        $terms = Term::with('academicYear')->where(function ($query) {
+            $query->whereNull('closed_at')->orWhereIn('id', TeacherAssignment::select('term_id'));
+        })->orderByDesc('starts_on')->orderBy('id')->limit(self::OPTION_LIMIT + 1)->get();
         // Explicit failure instead of silently truncating a dictionary.
         abort_if(max($teachers->count(), $classes->count(), $subjects->count(), $terms->count()) > self::OPTION_LIMIT, 503);
+
+        $createOptions = [
+            'teachers' => $teachers->filter(fn (User $u) => ! $u->trashed() && $u->role === 'teacher' && $u->status === 'active')
+                ->map(fn (User $u) => ['id' => (string) $u->id, 'label' => $u->first_name.' '.$u->last_name])->values(),
+            'classes' => $classes->reject(fn (SchoolClass $c) => $c->trashed())
+                ->map(fn (SchoolClass $c) => ['id' => (string) $c->id, 'label' => $c->name.' · '.$c->academicYear->name])->values(),
+            'subjects' => $subjects->reject(fn (Subject $s) => $s->trashed())
+                ->map(fn (Subject $s) => ['id' => (string) $s->id, 'label' => $s->name])->values(),
+            'terms' => $terms->filter(fn (Term $t) => $t->closed_at === null)
+                ->map(fn (Term $t) => ['id' => (string) $t->id, 'label' => $this->termLabel($t)])->values(),
+        ];
+        $filterOptions = [
+            'teachers' => $teachers->map(fn (User $u) => ['id' => (string) $u->id, 'label' => $u->first_name.' '.$u->last_name.($u->trashed() ? ' (usunięty)' : ($u->status !== 'active' ? ' (nieaktywny)' : ''))])->values(),
+            'classes' => $classes->map(fn (SchoolClass $c) => ['id' => (string) $c->id, 'label' => $c->name.' · '.$c->academicYear->name.($c->trashed() ? ' (zarchiwizowana)' : '')])->values(),
+            'subjects' => $subjects->map(fn (Subject $s) => ['id' => (string) $s->id, 'label' => $s->name.($s->trashed() ? ' (zarchiwizowany)' : '')])->values(),
+            'terms' => $terms->map(fn (Term $t) => ['id' => (string) $t->id, 'label' => $this->termLabel($t).($t->closed_at !== null ? ' (zamknięty)' : '')])->values(),
+        ];
 
         return Inertia::render('admin/assignments/index', [
             'assignments' => $this->page($page->withQueryString()),
@@ -57,10 +84,8 @@ class TeacherAssignmentController extends Controller
                 'revoked' => $f['revoked'], 'page' => $page->currentPage(), 'perPage' => $f['perPage'],
                 'sort' => 'id', 'direction' => $f['direction'],
             ],
-            'teachers' => $teachers->map(fn (User $u) => ['id' => (string) $u->id, 'label' => $u->first_name.' '.$u->last_name])->values(),
-            'classes' => $classes->map(fn (SchoolClass $c) => ['id' => (string) $c->id, 'label' => $c->name.' · '.$c->academicYear->name])->values(),
-            'subjects' => $subjects->map(fn (Subject $s) => ['id' => (string) $s->id, 'label' => $s->name])->values(),
-            'terms' => $terms->map(fn (Term $t) => ['id' => (string) $t->id, 'label' => $this->termLabel($t)])->values(),
+            'createOptions' => $createOptions,
+            'filterOptions' => $filterOptions,
         ]);
     }
 

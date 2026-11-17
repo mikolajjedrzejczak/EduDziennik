@@ -65,10 +65,8 @@ function usePageLoading() {
 export default function AssignmentsIndex({
     assignments,
     filters,
-    teachers,
-    classes,
-    subjects,
-    terms,
+    createOptions,
+    filterOptions,
 }: AssignmentManagementProps) {
     const mobile = useViewport() === 'mobile';
     const loading = usePageLoading();
@@ -100,7 +98,7 @@ export default function AssignmentsIndex({
         key: FilterKey,
         id: string,
         label: string,
-        options: AssignmentManagementProps['teachers'],
+        options: AssignmentManagementProps['filterOptions']['teachers'],
     ) => (
         <OptionField
             id={id}
@@ -183,21 +181,26 @@ export default function AssignmentsIndex({
                         'teacherId',
                         'filter-teacher',
                         'Nauczyciel',
-                        teachers,
+                        filterOptions.teachers,
                     )}
                     {filterField(
                         'schoolClassId',
                         'filter-class',
                         'Klasa',
-                        classes,
+                        filterOptions.classes,
                     )}
                     {filterField(
                         'subjectId',
                         'filter-subject',
                         'Przedmiot',
-                        subjects,
+                        filterOptions.subjects,
                     )}
-                    {filterField('termId', 'filter-term', 'Semestr', terms)}
+                    {filterField(
+                        'termId',
+                        'filter-term',
+                        'Semestr',
+                        filterOptions.terms,
+                    )}
                 </form>
                 <div
                     role="group"
@@ -419,10 +422,10 @@ export default function AssignmentsIndex({
                                 </DialogDescription>
                             </DialogHeader>
                             <AssignmentForm
-                                teachers={teachers}
-                                classes={classes}
-                                subjects={subjects}
-                                terms={terms}
+                                teachers={createOptions.teachers}
+                                classes={createOptions.classes}
+                                subjects={createOptions.subjects}
+                                terms={createOptions.terms}
                                 onDone={close}
                                 onCancel={close}
                             />
