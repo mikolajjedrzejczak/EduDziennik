@@ -57,6 +57,10 @@ class StoreUserRequest extends MutationRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
             $rows = $this->input('assignments');
             if (! is_array($rows)) {
                 return;

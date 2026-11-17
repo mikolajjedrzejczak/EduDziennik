@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /** F-303: transactional account creation with optional enrollment / teaching scope. */
@@ -105,6 +106,46 @@ class UserCreationTest extends TestCase
 
         $user = User::where('email', 'anna.nowak@example.test')->firstOrFail();
         $this->assertSame(2, TeacherAssignment::where('teacher_id', $user->id)->whereNull('revoked_at')->count());
+    }
+
+    /** @return iterable<string, array{string, mixed}> */
+    public static function invalidAssignmentIds(): iterable
+    {
+        foreach (['school_class_id', 'subject_id', 'term_id'] as $field) {
+            yield "{$field}: array" => [$field, ['bad']];
+            yield "{$field}: object" => [$field, (object) ['id' => 'bad']];
+            yield "{$field}: null" => [$field, null];
+        }
+    }
+
+    #[DataProvider('invalidAssignmentIds')]
+    public function test_invalid_assignment_id_types_redirect_with_field_errors_without_creating_records(string $field, mixed $value): void
+    {
+        $this->actingAs($this->admin)->from(route('admin.users.create'))
+            ->json('POST', route('admin.users.store'), $this->payload([
+                'role' => 'teacher',
+                'assignments' => [$this->assignmentRow(), $this->assignmentRow([$field => $value])],
+            ]), ['Accept' => 'text/html'])
+            ->assertRedirect(route('admin.users.create'))
+            ->assertSessionHasErrors("assignments.1.{$field}");
+
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseMissing('users', ['email' => 'anna.nowak@example.test']);
+        $this->assertDatabaseCount('teacher_assignments', 0);
+    }
+
+    public function test_duplicate_valid_assignments_are_rejected_for_integer_and_string_ids(): void
+    {
+        $this->actingAs($this->admin)->from(route('admin.users.create'))
+            ->post(route('admin.users.store'), $this->payload([
+                'role' => 'teacher',
+                'assignments' => [$this->assignmentRow(), array_map(strval(...), $this->assignmentRow())],
+            ]))
+            ->assertRedirect(route('admin.users.create'))
+            ->assertSessionHasErrors(['assignments.1' => 'Ten przydział został już dodany.']);
+
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('teacher_assignments', 0);
     }
 
     public function test_failed_relation_rolls_back_the_account(): void
