@@ -2,15 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\RedirectsInvalidFilters;
 use App\Models\Grade;
+use App\Models\User;
 use App\Services\Authorization\RecordAccess;
 use App\Services\Grades\StaffGradeList;
 use App\Services\Grades\StudentGradeList;
 use App\Support\ListFilters;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 /**
  * GET grade filters use visible data for every role. Student owner selectors are prohibited;
@@ -19,7 +18,7 @@ use Illuminate\Validation\ValidationException;
  */
 class GradeFilterRequest extends FormRequest
 {
-    public const PER_PAGE = [10, 25, 50];
+    use RedirectsInvalidFilters;
 
     public const SORTS = ['graded_on', 'value', 'weight'];
 
@@ -27,7 +26,7 @@ class GradeFilterRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && RecordAccess::active($user) && in_array($user->role, ['student', 'teacher', 'admin'], true) && $user->can('viewAny', Grade::class);
+        return $user !== null && RecordAccess::active($user) && in_array($user->role, User::ROLES, true) && $user->can('viewAny', Grade::class);
     }
 
     /** @return array<string, list<mixed>> */
@@ -39,12 +38,12 @@ class GradeFilterRequest extends FormRequest
 
             return [
                 ...ListFilters::rules(self::SORTS),
-                'term_id' => ['nullable', 'integer', Rule::in($list->terms($actor)->pluck('id')->all())],
-                'subject_id' => ['nullable', 'integer', Rule::in($list->ids($actor, 'subject_id'))],
-                'category_id' => ['nullable', 'integer', Rule::in($list->ids($actor, 'category_id'))],
-                'student_enrollment_id' => ['nullable', 'integer', Rule::in($list->ids($actor, 'student_enrollment_id'))],
-                'student_id' => $actor->role === 'admin' ? ['nullable', 'integer', Rule::in($list->ids($actor, 'student_id'))] : ['prohibited'],
-                'school_class_id' => $actor->role === 'admin' ? ['nullable', 'integer', Rule::in($list->ids($actor, 'school_class_id'))] : ['prohibited'],
+                'term_id' => ['nullable', 'integer', $this->inWhenFilled('term_id', fn () => $list->terms($actor)->pluck('id')->all())],
+                'subject_id' => ['nullable', 'integer', $this->inWhenFilled('subject_id', fn () => $list->ids($actor, 'subject_id'))],
+                'category_id' => ['nullable', 'integer', $this->inWhenFilled('category_id', fn () => $list->ids($actor, 'category_id'))],
+                'student_enrollment_id' => ['nullable', 'integer', $this->inWhenFilled('student_enrollment_id', fn () => $list->ids($actor, 'student_enrollment_id'))],
+                'student_id' => $actor->role === 'admin' ? ['nullable', 'integer', $this->inWhenFilled('student_id', fn () => $list->ids($actor, 'student_id'))] : ['prohibited'],
+                'school_class_id' => $actor->role === 'admin' ? ['nullable', 'integer', $this->inWhenFilled('school_class_id', fn () => $list->ids($actor, 'school_class_id'))] : ['prohibited'],
                 'date_from' => ['nullable', 'date_format:Y-m-d'],
                 'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
             ];
@@ -54,9 +53,9 @@ class GradeFilterRequest extends FormRequest
 
         return [
             ...ListFilters::rules(self::SORTS),
-            'term_id' => ['bail', 'nullable', 'integer', Rule::in($list->terms($student)->pluck('id')->all())],
-            'subject_id' => ['bail', 'nullable', 'integer', Rule::in($list->subjectIds($student))],
-            'category_id' => ['bail', 'nullable', 'integer', Rule::in($list->categoryIds($student))],
+            'term_id' => ['bail', 'nullable', 'integer', $this->inWhenFilled('term_id', fn () => $list->terms($student)->pluck('id')->all())],
+            'subject_id' => ['bail', 'nullable', 'integer', $this->inWhenFilled('subject_id', fn () => $list->subjectIds($student))],
+            'category_id' => ['bail', 'nullable', 'integer', $this->inWhenFilled('category_id', fn () => $list->categoryIds($student))],
             'date_from' => ['nullable', 'date_format:Y-m-d'],
             'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
             // A student never selects another owner.
@@ -97,13 +96,8 @@ class GradeFilterRequest extends FormRequest
         ];
     }
 
-    protected function failedValidation(Validator $validator): void
+    protected function filterRedirectUrl(array $query): string
     {
-        $clean = array_intersect_key($this->except(array_keys($validator->errors()->messages())), array_flip(array_keys($this->rules())));
-
-        $exception = new ValidationException($validator);
-        $exception->response = redirect()->to(route($this->user()->role.'.grades.index', $clean), 303)->withErrors($validator->errors());
-
-        throw $exception;
+        return route($this->user()->role.'.grades.index', $query);
     }
 }

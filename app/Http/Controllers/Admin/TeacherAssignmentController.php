@@ -60,7 +60,7 @@ class TeacherAssignmentController extends Controller
 
         $createOptions = [
             'teachers' => $teachers->filter(fn (User $u) => ! $u->trashed() && $u->role === 'teacher' && $u->status === 'active')
-                ->map(fn (User $u) => ['id' => (string) $u->id, 'label' => $u->first_name.' '.$u->last_name])->values(),
+                ->map(fn (User $u) => ['id' => (string) $u->id, 'label' => $u->name])->values(),
             'classes' => $classes->reject(fn (SchoolClass $c) => $c->trashed())
                 ->map(fn (SchoolClass $c) => ['id' => (string) $c->id, 'label' => $c->name.' · '.$c->academicYear->name])->values(),
             'subjects' => $subjects->reject(fn (Subject $s) => $s->trashed())
@@ -69,7 +69,7 @@ class TeacherAssignmentController extends Controller
                 ->map(fn (Term $t) => ['id' => (string) $t->id, 'label' => $this->termLabel($t)])->values(),
         ];
         $filterOptions = [
-            'teachers' => $teachers->map(fn (User $u) => ['id' => (string) $u->id, 'label' => $u->first_name.' '.$u->last_name.($u->trashed() ? ' (usunięty)' : ($u->status !== 'active' ? ' (nieaktywny)' : ''))])->values(),
+            'teachers' => $teachers->map(fn (User $u) => ['id' => (string) $u->id, 'label' => $u->name.($u->trashed() ? ' (usunięty)' : ($u->status !== 'active' ? ' (nieaktywny)' : ''))])->values(),
             'classes' => $classes->map(fn (SchoolClass $c) => ['id' => (string) $c->id, 'label' => $c->name.' · '.$c->academicYear->name.($c->trashed() ? ' (zarchiwizowana)' : '')])->values(),
             'subjects' => $subjects->map(fn (Subject $s) => ['id' => (string) $s->id, 'label' => $s->name.($s->trashed() ? ' (zarchiwizowany)' : '')])->values(),
             'terms' => $terms->map(fn (Term $t) => ['id' => (string) $t->id, 'label' => $this->termLabel($t).($t->closed_at !== null ? ' (zamknięty)' : '')])->values(),
@@ -137,7 +137,7 @@ class TeacherAssignmentController extends Controller
         return [
             'data' => collect($page->items())->map(fn (TeacherAssignment $a) => [
                 'id' => (string) $a->id,
-                'teacher' => ['id' => (string) $a->teacher_id, 'label' => $a->teacher->first_name.' '.$a->teacher->last_name],
+                'teacher' => ['id' => (string) $a->teacher_id, 'label' => $a->teacher->name],
                 'schoolClass' => ['id' => (string) $a->school_class_id, 'label' => $a->schoolClass->name.' · '.$a->schoolClass->academicYear->name],
                 'subject' => ['id' => (string) $a->subject_id, 'label' => $a->subject->name],
                 'term' => ['id' => (string) $a->term_id, 'label' => $this->termLabel($a->term)],

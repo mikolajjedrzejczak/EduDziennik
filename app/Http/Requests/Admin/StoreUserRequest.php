@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\NormalizesAccountInput;
 use App\Http\Requests\MutationRequest;
 use App\Models\User;
 use App\Services\Authorization\RecordAccess;
@@ -11,7 +12,7 @@ use Illuminate\Validation\Validator;
 /** Shape/existence only; class/term/date consistency is re-checked by Enrollment/AssignmentService inside the creation transaction. */
 class StoreUserRequest extends MutationRequest
 {
-    private const NAME = ['bail', 'required', 'string', 'max:80', "regex:/^(?=.*\p{L})[\p{L}\p{M} '’-]+$/u"];
+    use NormalizesAccountInput;
 
     public function authorize(): bool
     {
@@ -20,27 +21,17 @@ class StoreUserRequest extends MutationRequest
         return $user !== null && RecordAccess::admin($user) && $user->can('create', User::class);
     }
 
-    protected function prepareForValidation(): void
-    {
-        $trim = fn (mixed $value) => is_string($value) ? trim($value) : $value;
-        $this->merge([
-            'first_name' => $trim($this->input('first_name')),
-            'last_name' => $trim($this->input('last_name')),
-            'email' => is_string($this->input('email')) ? mb_strtolower(trim($this->input('email'))) : $this->input('email'),
-        ]);
-    }
-
     /** @return array<string, mixed> */
     public function rules(): array
     {
         return [
-            'first_name' => self::NAME,
-            'last_name' => self::NAME,
+            'first_name' => self::NAME_RULES,
+            'last_name' => self::NAME_RULES,
             // Rule::unique does not filter soft-deleted rows: a deleted account keeps its address reserved.
             'email' => ['bail', 'required', 'string', 'email', 'max:254', Rule::unique(User::class, 'email')],
             'password' => ['bail', 'required', 'string', 'min:12', 'max:128', 'confirmed'],
-            'role' => ['bail', 'required', Rule::in(['student', 'teacher', 'admin'])],
-            'status' => ['bail', 'required', Rule::in(['active', 'inactive'])],
+            'role' => ['bail', 'required', Rule::in(User::ROLES)],
+            'status' => ['bail', 'required', Rule::in(User::STATUSES)],
             'enrollment' => ['nullable', 'array:school_class_id,starts_on,ends_on', 'prohibited_unless:role,student', 'prohibited_unless:status,active'],
             'enrollment.school_class_id' => ['bail', 'required_with:enrollment', 'integer', 'min:1', Rule::exists('school_classes', 'id')->whereNull('deleted_at')],
             'enrollment.starts_on' => ['bail', 'required_with:enrollment', 'date_format:Y-m-d'],

@@ -6,6 +6,8 @@ import { EmptyState } from '@/components/states/empty-state';
 import { LoadingState } from '@/components/states/loading-state';
 import { usePageLoading } from '@/hooks/use-page-loading';
 import { formatAverage } from '@/lib/grades';
+import { actionLabels } from '@/lib/history';
+import { formatDateTime } from '@/lib/users';
 import type { StudentDetailProps } from '@/types/gradebooks';
 
 export default function StudentDetail({
@@ -105,12 +107,7 @@ export default function StudentDetail({
                                         className="space-y-1 p-4 text-sm"
                                     >
                                         <p className="font-medium">
-                                            {entry.action === 'create'
-                                                ? 'Dodanie'
-                                                : entry.action === 'delete'
-                                                  ? 'Usunięcie'
-                                                  : 'Zmiana'}
-                                            :{' '}
+                                            {actionLabels[entry.action]}:{' '}
                                             {entry.oldValue !== null &&
                                             entry.action === 'update'
                                                 ? `${entry.oldValue} → `
@@ -121,14 +118,8 @@ export default function StudentDetail({
                                             {entry.topic}
                                         </p>
                                         <p className="text-xs text-text-secondary">
-                                            {new Intl.DateTimeFormat('pl-PL', {
-                                                dateStyle: 'short',
-                                                timeStyle: 'short',
-                                                timeZone: 'Europe/Warsaw',
-                                            }).format(
-                                                new Date(entry.occurredAt),
-                                            )}{' '}
-                                            · {entry.actor.label}
+                                            {formatDateTime(entry.occurredAt)} ·{' '}
+                                            {entry.actor.label}
                                         </p>
                                         {entry.reason && (
                                             <p className="text-xs wrap-anywhere text-text-secondary">

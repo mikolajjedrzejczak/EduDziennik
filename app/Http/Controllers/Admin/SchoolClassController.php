@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\RedirectsToSchoolClass;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ClassFilterRequest;
 use App\Http\Requests\Admin\DeleteClassRequest;
@@ -23,6 +24,8 @@ use Inertia\Response;
 
 class SchoolClassController extends Controller
 {
+    use RedirectsToSchoolClass;
+
     public function index(ClassFilterRequest $request): Response|RedirectResponse
     {
         Gate::authorize('create', SchoolClass::class);
@@ -57,11 +60,11 @@ class SchoolClassController extends Controller
             'years' => AcademicYear::orderByDesc('starts_on')->get()->map(fn ($year) => ['id' => (string) $year->id, 'label' => $year->name]),
             'selectedClass' => $selected ? $this->classDto($selected) : null,
             'enrollments' => $enrollments ? $this->page($enrollments, fn (StudentEnrollment $enrollment) => [
-                'id' => (string) $enrollment->id, 'student' => ['id' => (string) $enrollment->student_id, 'label' => $enrollment->student->first_name.' '.$enrollment->student->last_name],
+                'id' => (string) $enrollment->id, 'student' => ['id' => (string) $enrollment->student_id, 'label' => $enrollment->student->name],
                 'schoolClass' => ['id' => (string) $enrollment->school_class_id, 'label' => $enrollment->schoolClass->name],
                 'startsOn' => $enrollment->starts_on->toDateString(), 'endsOn' => $enrollment->ends_on?->toDateString(),
             ]) : null,
-            'students' => $students->map(fn ($student) => ['id' => (string) $student->id, 'label' => $student->first_name.' '.$student->last_name]),
+            'students' => $students->map(fn ($student) => ['id' => (string) $student->id, 'label' => $student->name]),
             'classOptions' => $options->map(fn ($class) => ['id' => (string) $class->id, 'label' => $class->name.' · '.$class->academicYear->name]),
         ]);
     }
@@ -86,11 +89,6 @@ class SchoolClassController extends Controller
         $service->archive($request->user()->id, $schoolClass->id);
 
         return redirect()->route('admin.classes.index', ['academic_year_id' => (string) $schoolClass->academic_year_id])->with('success', 'Zarchiwizowano klasę. Historia została zachowana.');
-    }
-
-    private function backToClass(SchoolClass $class): RedirectResponse
-    {
-        return redirect()->route('admin.classes.index', ['academic_year_id' => (string) $class->academic_year_id, 'selected_class_id' => (string) $class->id]);
     }
 
     /** @return array<string, mixed> */

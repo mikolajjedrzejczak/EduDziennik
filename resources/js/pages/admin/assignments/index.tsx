@@ -17,6 +17,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useReturnFocus } from '@/hooks/use-return-focus';
 import { usePageLoading } from '@/hooks/use-page-loading';
 import { useViewport } from '@/hooks/use-viewport';
 import type {
@@ -58,10 +59,10 @@ export default function AssignmentsIndex({
     const mobile = useViewport() === 'mobile';
     const loading = usePageLoading();
     const [modal, setModal] = useState<Modal | null>(null);
-    const openerRef = useRef<HTMLElement | null>(null);
+    const returnFocus = useReturnFocus();
     const headingRef = useRef<HTMLHeadingElement>(null);
     const openModal = (next: Modal) => {
-        openerRef.current = document.activeElement as HTMLElement | null;
+        returnFocus.remember();
         setModal(next);
     };
     const close = () => setModal(null);
@@ -380,10 +381,7 @@ export default function AssignmentsIndex({
                 <DialogContent
                     onCloseAutoFocus={(event) => {
                         event.preventDefault();
-                        const target = openerRef.current?.isConnected
-                            ? openerRef.current
-                            : headingRef.current;
-                        target?.focus();
+                        returnFocus.restore(headingRef.current);
                     }}
                     onOpenAutoFocus={
                         modal && modal.kind !== 'create'

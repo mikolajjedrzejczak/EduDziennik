@@ -2,16 +2,17 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\RedirectsInvalidFilters;
 use App\Models\TeacherAssignment;
 use App\Services\Authorization\RecordAccess;
-use Illuminate\Contracts\Validation\Validator;
+use App\Support\ListFilters;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Arr;
 
 /** GET filters (F-308). Invalid input redirects 303 to the same route without the offending parameters. */
 class AssignmentFilterRequest extends FormRequest
 {
-    public const PER_PAGE = [10, 25, 50];
+    use RedirectsInvalidFilters;
 
     public function authorize(): bool
     {
@@ -29,10 +30,7 @@ class AssignmentFilterRequest extends FormRequest
             'subject_id' => ['nullable', 'integer', 'min:1'],
             'term_id' => ['nullable', 'integer', 'min:1'],
             'revoked' => ['nullable', 'boolean'],
-            'page' => ['nullable', 'integer', 'min:1', 'max:100000'],
-            'per_page' => ['nullable', 'integer', 'in:'.implode(',', self::PER_PAGE)],
-            'sort' => ['nullable', 'in:id'],
-            'direction' => ['nullable', 'in:asc,desc'],
+            ...Arr::except(ListFilters::rules(['id']), 'q'),
         ];
     }
 
@@ -56,14 +54,8 @@ class AssignmentFilterRequest extends FormRequest
         ];
     }
 
-    protected function failedValidation(Validator $validator): void
+    protected function filterRedirectUrl(array $query): string
     {
-        $valid = $this->except(array_keys($validator->errors()->messages()));
-        $clean = array_intersect_key($valid, array_flip(array_keys($this->rules())));
-
-        $exception = new ValidationException($validator);
-        $exception->response = redirect()->to(route('admin.assignments.index', $clean), 303)->withErrors($validator->errors());
-
-        throw $exception;
+        return route('admin.assignments.index', $query);
     }
 }

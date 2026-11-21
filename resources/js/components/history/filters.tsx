@@ -9,13 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useViewport } from '@/hooks/use-viewport';
 import { usePageLoading } from '@/hooks/use-page-loading';
+import { actionLabels } from '@/lib/history';
 import type { HistoryProps } from '@/types/history';
-
-export const actionLabels = {
-    create: 'Dodanie',
-    update: 'Zmiana',
-    delete: 'Usunięcie',
-};
 
 export function HistoryFilters({
     filters,

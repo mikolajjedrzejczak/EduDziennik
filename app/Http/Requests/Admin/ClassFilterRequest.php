@@ -2,14 +2,15 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\RedirectsInvalidFilters;
 use App\Models\SchoolClass;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
 class ClassFilterRequest extends FormRequest
 {
+    use RedirectsInvalidFilters;
+
     public function authorize(): bool
     {
         return $this->user()->can('create', SchoolClass::class);
@@ -35,9 +36,8 @@ class ClassFilterRequest extends FormRequest
         return ['q' => 'wyszukiwanie', 'academic_year_id' => 'rok szkolny', 'term_id' => 'semestr', 'selected_class_id' => 'wybrana klasa', 'archived' => 'archiwalne', 'page' => 'strona klas', 'enrollment_page' => 'strona członkostw', 'per_page' => 'liczba rekordów na stronie', 'sort' => 'sortowanie', 'direction' => 'kierunek sortowania'];
     }
 
-    protected function failedValidation(Validator $validator): void
+    protected function filterRedirectUrl(array $query): string
     {
-        $query = array_diff_key($this->only(array_keys($this->rules())), $validator->errors()->messages());
-        throw new HttpResponseException(redirect()->route('admin.classes.index', $query, 303)->withErrors($validator));
+        return route('admin.classes.index', $query);
     }
 }

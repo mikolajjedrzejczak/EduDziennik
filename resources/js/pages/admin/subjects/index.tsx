@@ -2,7 +2,7 @@ import { useFilterState } from '@/hooks/use-filter-state';
 import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, router } from '@inertiajs/react';
 import { Archive, Pencil, Plus, Search } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import SubjectController from '@/actions/App/Http/Controllers/Admin/SubjectController';
 import { ArchiveSubjectForm } from '@/components/admin/archive-subject-form';
 import { SubjectForm } from '@/components/admin/subject-form';
@@ -19,6 +19,8 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useReturnFocus } from '@/hooks/use-return-focus';
+import { usePageLoading } from '@/hooks/use-page-loading';
 import { useViewport } from '@/hooks/use-viewport';
 import type {
     SubjectDTO,
@@ -43,20 +45,6 @@ function query(filters: SubjectFilters, overrides: Partial<SubjectFilters>) {
     return params;
 }
 
-function usePageLoading() {
-    const [loading, setLoading] = useState(false);
-    useEffect(() => {
-        const off = [
-            router.on('start', () => setLoading(true)),
-            router.on('finish', () => setLoading(false)),
-        ];
-
-        return () => off.forEach((remove) => remove());
-    }, []);
-
-    return loading;
-}
-
 export default function SubjectsIndex({
     subjects,
     filters,
@@ -65,10 +53,10 @@ export default function SubjectsIndex({
     const mobile = viewport === 'mobile';
     const loading = usePageLoading();
     const [modal, setModal] = useState<Modal | null>(null);
-    const openerRef = useRef<HTMLElement | null>(null);
+    const returnFocus = useReturnFocus();
     const headingRef = useRef<HTMLHeadingElement>(null);
     const openModal = (next: Modal) => {
-        openerRef.current = document.activeElement as HTMLElement | null;
+        returnFocus.remember();
         setModal(next);
     };
     const [search, setSearch] = useFilterState(filters.q ?? '');
@@ -350,10 +338,7 @@ export default function SubjectsIndex({
                         // The dialog has no Radix trigger: return focus to the opener,
                         // or to the heading when its row no longer exists.
                         event.preventDefault();
-                        const target = openerRef.current?.isConnected
-                            ? openerRef.current
-                            : headingRef.current;
-                        target?.focus();
+                        returnFocus.restore(headingRef.current);
                     }}
                     onOpenAutoFocus={
                         modal?.kind === 'archive'

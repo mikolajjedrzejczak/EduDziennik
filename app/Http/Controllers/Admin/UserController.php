@@ -96,7 +96,7 @@ class UserController extends Controller
 
         return Inertia::render('admin/users/edit', [
             'user' => $this->dto($user),
-            'options' => ['roles' => ['student', 'teacher', 'admin'], 'classes' => [], 'terms' => [], 'subjects' => []],
+            'options' => ['roles' => User::ROLES, 'classes' => [], 'terms' => [], 'subjects' => []],
         ]);
     }
 
@@ -195,8 +195,11 @@ class UserController extends Controller
         }
     }
 
-    /** Explicit allowlist (UserDTO): never password, remember token or 2FA material. */
-    /** @return array<string, mixed> */
+    /**
+     * Explicit allowlist (UserDTO): never password, remember token or 2FA material.
+     *
+     * @return array<string, mixed>
+     */
     private function dto(User $user): array
     {
         return [
@@ -275,11 +278,7 @@ class UserController extends Controller
             ->limit(self::OPTION_LIMIT)->get();
         $terms = Term::with('academicYear')->orderByDesc('academic_year_id')->orderBy('number')->limit(self::OPTION_LIMIT)->get();
 
-        return [
-            'roles' => ['student', 'teacher', 'admin'],
-            'classes' => $classes->map(fn (SchoolClass $c) => $this->classOption($c) + ['academicYearId' => (string) $c->academic_year_id])->all(),
-            'terms' => $terms->map(fn (Term $t) => $this->termOption($t) + ['academicYearId' => (string) $t->academic_year_id])->all(),
-        ];
+        return ['roles' => User::ROLES, ...$this->yearScopedOptions($classes, $terms)];
     }
 
     /** @return array{id: string, label: string} */
@@ -307,10 +306,24 @@ class UserController extends Controller
         abort_if(max($classes->count(), $terms->count(), $subjects->count()) > self::OPTION_LIMIT, 503);
 
         return [
-            'roles' => ['student', 'teacher', 'admin'],
+            'roles' => User::ROLES,
+            ...$this->yearScopedOptions($classes, $terms),
+            'subjects' => $subjects->map(fn (Subject $s) => ['id' => (string) $s->id, 'label' => $s->name])->all(),
+        ];
+    }
+
+    /**
+     * Class and term options carry their academic year so the form can pair them.
+     *
+     * @param  Collection<int, SchoolClass>  $classes
+     * @param  Collection<int, Term>  $terms
+     * @return array{classes: array<int, array<string, string>>, terms: array<int, array<string, string>>}
+     */
+    private function yearScopedOptions(Collection $classes, Collection $terms): array
+    {
+        return [
             'classes' => $classes->map(fn (SchoolClass $c) => $this->classOption($c) + ['academicYearId' => (string) $c->academic_year_id])->all(),
             'terms' => $terms->map(fn (Term $t) => $this->termOption($t) + ['academicYearId' => (string) $t->academic_year_id])->all(),
-            'subjects' => $subjects->map(fn (Subject $s) => ['id' => (string) $s->id, 'label' => $s->name])->all(),
         ];
     }
 }

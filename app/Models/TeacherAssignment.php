@@ -55,6 +55,20 @@ class TeacherAssignment extends DomainModel
         }
     }
 
+    /**
+     * Assignments covering the class/subject/term context of a gradebook column.
+     *
+     * @param  Builder<TeacherAssignment>  $query
+     */
+    public function scopeForAssessment(Builder $query, Assessment $assessment): void
+    {
+        $query->where([
+            'school_class_id' => $assessment->school_class_id,
+            'subject_id' => $assessment->subject_id,
+            'term_id' => $assessment->term_id,
+        ]);
+    }
+
     /** @param Builder<TeacherAssignment> $query */
     public function scopeActive(Builder $query): void
     {

@@ -1,3 +1,5 @@
+import { compactQuery, withQuery } from '@/lib/query';
+import type { Query, QueryValue } from '@/lib/query';
 import type { Average, GradeFilters, GradeSort } from '@/types/grades';
 
 export const GRADES_URL = '/student/grades';
@@ -25,14 +27,14 @@ export function gradeCount(count: number) {
     return `${count} ocen`;
 }
 
-type Query = Record<string, string | number>;
+type QueryOverride = Partial<Record<string, string | number | null>>;
 
 /** URL query of the filters; defaults are omitted so URLs stay short and shareable. */
 export function gradeQuery(
     filters: GradeFilters,
-    override: Partial<Record<string, string | number | null>> = {},
+    override: QueryOverride = {},
 ): Query {
-    const query: Record<string, string | number | null | undefined> = {
+    return compactQuery({
         term_id: filters.termId,
         subject_id: filters.subjectId,
         category_id: filters.categoryId,
@@ -43,28 +45,11 @@ export function gradeQuery(
         sort: filters.sort === 'graded_on' ? undefined : filters.sort,
         direction: filters.direction === 'desc' ? undefined : filters.direction,
         ...override,
-    };
-
-    return Object.fromEntries(
-        Object.entries(query).filter(
-            (entry): entry is [string, string | number] =>
-                entry[1] !== null && entry[1] !== undefined && entry[1] !== '',
-        ),
-    );
+    } satisfies Record<string, QueryValue>);
 }
 
-export function gradeHref(
-    filters: GradeFilters,
-    override: Partial<Record<string, string | number | null>> = {},
-) {
-    const query = new URLSearchParams(
-        Object.entries(gradeQuery(filters, override)).map(([key, value]) => [
-            key,
-            String(value),
-        ]),
-    ).toString();
-
-    return query ? `${GRADES_URL}?${query}` : GRADES_URL;
+export function gradeHref(filters: GradeFilters, override: QueryOverride = {}) {
+    return withQuery(GRADES_URL, gradeQuery(filters, override));
 }
 
 /** Next sort link: the same column toggles direction, a new column starts at its natural order. */

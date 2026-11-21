@@ -2,13 +2,14 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\Validator;
+use App\Http\Requests\Concerns\RedirectsInvalidFilters;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\ValidationException;
 
 class GradeDetailRequest extends FormRequest
 {
+    use RedirectsInvalidFilters;
+
     public function authorize(): bool
     {
         Gate::authorize('view', $this->route('grade'));
@@ -22,11 +23,9 @@ class GradeDetailRequest extends FormRequest
         return ['history_page' => ['sometimes', 'integer', 'min:1', 'max:100000']];
     }
 
-    protected function failedValidation(Validator $validator): void
+    /** The detail URL is rebuilt without any query: these filters are never partially kept. */
+    protected function filterRedirectUrl(array $query): string
     {
-        $exception = new ValidationException($validator);
-        $exception->response = redirect()->to($this->url(), 303)->withErrors($validator->errors());
-
-        throw $exception;
+        return $this->url();
     }
 }

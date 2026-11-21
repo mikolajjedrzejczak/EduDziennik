@@ -8,6 +8,7 @@ import { GradeChip } from '@/components/grades/grade-chip';
 import { Pagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { formatAverage, formatDate } from '@/lib/grades';
+import { actionLabels } from '@/lib/history';
 import { formatDateTime } from '@/lib/users';
 import type { GradeDetailProps, GradeValue } from '@/types/grades';
 
@@ -19,7 +20,6 @@ const names: Record<GradeValue, string> = {
     5: 'bardzo dobry',
     6: 'celujący',
 };
-const actions = { create: 'Dodanie', update: 'Zmiana', delete: 'Usunięcie' };
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
     return (
@@ -224,7 +224,8 @@ export default function ShowGrade({
                                                 className="space-y-1 px-5 py-3 text-sm wrap-anywhere"
                                             >
                                                 <p className="font-medium">
-                                                    {actions[entry.action]} ·{' '}
+                                                    {actionLabels[entry.action]}{' '}
+                                                    ·{' '}
                                                     {entry.oldValue !== null &&
                                                     entry.action === 'update'
                                                         ? `${entry.oldValue} → `

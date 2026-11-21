@@ -12,7 +12,7 @@ final class RecordAccess
     public static function active(User $actor): bool
     {
         return $actor->exists && ! $actor->trashed() && $actor->status === 'active'
-            && in_array($actor->role, ['student', 'teacher', 'admin'], true);
+            && in_array($actor->role, User::ROLES, true);
     }
 
     public static function admin(User $actor): bool
