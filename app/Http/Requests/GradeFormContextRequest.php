@@ -2,16 +2,18 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ResolvesGradeFormContext;
 use App\Models\Grade;
-use App\Services\Grades\GradeFormContext;
 use App\Support\ListFilters;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GradeFormContextRequest extends FormRequest
 {
+    use ResolvesGradeFormContext;
+
     public function authorize(): bool
     {
-        app(GradeFormContext::class)->resolve($this->user(), $this->input('assignment_id'), $this->input('assessment_id'), $this->input('student_enrollment_id'));
+        $this->gradeFormContext();
 
         return $this->user()->can('createAny', Grade::class);
     }

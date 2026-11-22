@@ -1,4 +1,4 @@
-import { actionLabels } from '@/components/history/filters';
+import { actionLabels } from '@/lib/history';
 import type { AuditAction } from '@/types/history';
 
 export function AuditActionBadge({ action }: { action: AuditAction }) {

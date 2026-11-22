@@ -2,18 +2,18 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesGradeFields;
 use App\Models\Grade;
-use App\Models\GradeCategory;
 use App\Services\Grades\GradeFormContext;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
 
 class UpdateGradeRequest extends MutationRequest
 {
+    use ValidatesGradeFields;
+
     public function authorize(): bool
     {
-        /** @var Grade $grade */
-        $grade = $this->route('grade');
+        $grade = $this->grade();
         Gate::authorize('view', $grade);
         app(GradeFormContext::class)->resolve($this->user(), $this->input('assignment_id'), $grade->assessment_id, $grade->student_enrollment_id);
         Gate::authorize('update', $grade);
@@ -21,11 +21,10 @@ class UpdateGradeRequest extends MutationRequest
         return true;
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, list<mixed>> */
     public function rules(): array
     {
-        /** @var Grade $grade */
-        $grade = $this->route('grade');
+        $grade = $this->grade();
         $term = $grade->assessment->term;
         $enrollment = $grade->enrollment;
         $start = max($term->starts_on->toDateString(), $enrollment->starts_on->toDateString());
@@ -35,17 +34,21 @@ class UpdateGradeRequest extends MutationRequest
             'assignment_id' => ['required', 'integer'],
             'version' => ['required', 'integer', 'min:1'],
             'reason' => ['required', 'string', 'min:3', 'max:500'],
-            'value' => ['required', 'integer', 'between:1,6'],
-            'weight' => ['required', 'integer', 'between:1,5'],
-            'category_id' => ['required', 'integer', Rule::in(GradeCategory::where('is_active', true)->pluck('id')->all())],
-            'topic' => ['required', 'string', 'min:1', 'max:120'],
-            'comment' => ['nullable', 'string', 'max:500'],
-            'graded_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$start, 'before_or_equal:'.$end],
+            ...$this->gradeFieldRules($start, $end),
         ];
     }
 
+    /** @return array<string, string> */
     public function attributes(): array
     {
-        return ['value' => 'ocena', 'weight' => 'waga', 'category_id' => 'kategoria', 'topic' => 'temat', 'comment' => 'komentarz', 'graded_on' => 'data oceny', 'version' => 'wersja', 'reason' => 'powód zmiany'];
+        return [...$this->gradeFieldAttributes(), 'version' => 'wersja', 'reason' => 'powód zmiany'];
+    }
+
+    private function grade(): Grade
+    {
+        $grade = $this->route('grade');
+        assert($grade instanceof Grade);
+
+        return $grade;
     }
 }

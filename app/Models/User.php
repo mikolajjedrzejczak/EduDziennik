@@ -40,6 +40,12 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
 
+    /** @var list<string> */
+    public const ROLES = ['student', 'teacher', 'admin'];
+
+    /** @var list<string> Persisted statuses; "deleted" is a soft-delete filter, not a status. */
+    public const STATUSES = ['active', 'inactive'];
+
     protected $dateFormat = 'Y-m-d H:i:s.u';
 
     /** @var list<string> */

@@ -2,14 +2,15 @@
 
 namespace App\Http\Requests\Teacher;
 
+use App\Http\Requests\Concerns\RedirectsInvalidFilters;
 use App\Models\TeacherAssignment;
 use App\Support\ListFilters;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\ValidationException;
 
 class GradebookFilterRequest extends FormRequest
 {
+    use RedirectsInvalidFilters;
+
     public function authorize(): bool
     {
         $assignment = $this->route('assignment');
@@ -34,12 +35,8 @@ class GradebookFilterRequest extends FormRequest
         return ['q' => 'nazwisko ucznia', 'page' => 'strona uczniów', 'assessment_page' => 'strona kolumn', 'per_page' => 'liczba na stronie', 'sort' => 'sortowanie', 'direction' => 'kierunek'];
     }
 
-    protected function failedValidation(Validator $validator): void
+    protected function filterRedirectUrl(array $query): string
     {
-        $clean = array_intersect_key($this->except(array_keys($validator->errors()->messages())), $this->rules());
-        $exception = new ValidationException($validator);
-        $exception->response = redirect()->route($this->route()->getName(), [...$this->route()->parameters(), ...$clean], 303)->withErrors($validator->errors());
-
-        throw $exception;
+        return route($this->route()->getName(), [...$this->route()->parameters(), ...$query]);
     }
 }

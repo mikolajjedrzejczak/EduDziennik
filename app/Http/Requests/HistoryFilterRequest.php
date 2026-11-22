@@ -2,18 +2,22 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\RedirectsInvalidFilters;
 use App\Models\Grade;
 use App\Models\GradeAudit;
 use App\Models\StudentEnrollment;
 use App\Services\Grades\GradeHistory;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 class HistoryFilterRequest extends FormRequest
 {
+    use RedirectsInvalidFilters;
+
+    /** @var array<string, array<int, array{id: string, label: string}>>|null */
+    private ?array $historyOptions = null;
+
     public function authorize(): bool
     {
         Gate::authorize('viewAny', GradeAudit::class);
@@ -48,14 +52,15 @@ class HistoryFilterRequest extends FormRequest
     /** @return array<string, list<mixed>> */
     public function rules(): array
     {
-        $options = app(GradeHistory::class)->options($this->user(), $this->user()->role !== 'student' && is_scalar($this->input('student_enrollment_id')) && ctype_digit((string) $this->input('student_enrollment_id')) ? (int) $this->input('student_enrollment_id') : null);
+        $enrollmentId = $this->user()->role !== 'student' && is_scalar($this->input('student_enrollment_id')) && ctype_digit((string) $this->input('student_enrollment_id')) ? (int) $this->input('student_enrollment_id') : null;
+        $options = fn (): array => $this->historyOptions ??= app(GradeHistory::class)->options($this->user(), $enrollmentId);
 
         return [
             'grade_id' => ['nullable', 'integer', 'min:1'],
             'student_enrollment_id' => $this->user()->role === 'student' ? ['prohibited'] : ['nullable', 'integer', 'min:1'],
             'student_id' => ['prohibited'],
-            'term_id' => ['nullable', 'integer', Rule::in(array_column($options['terms'], 'id'))],
-            'subject_id' => ['nullable', 'integer', Rule::in(array_column($options['subjects'], 'id'))],
+            'term_id' => ['nullable', 'integer', $this->inWhenFilled('term_id', fn () => array_column($options()['terms'], 'id'))],
+            'subject_id' => ['nullable', 'integer', $this->inWhenFilled('subject_id', fn () => array_column($options()['subjects'], 'id'))],
             'action' => ['nullable', Rule::in(['create', 'update', 'delete'])],
             'date_from' => ['nullable', 'date_format:Y-m-d'],
             'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
@@ -86,10 +91,9 @@ class HistoryFilterRequest extends FormRequest
         return [...$filters, 'page' => (int) ($data['page'] ?? 1), 'perPage' => (int) ($data['per_page'] ?? 10)];
     }
 
-    protected function failedValidation(Validator $validator): void
+    /** The detail URL is rebuilt without any query: these filters are never partially kept. */
+    protected function filterRedirectUrl(array $query): string
     {
-        $exception = new ValidationException($validator);
-        $exception->response = redirect()->to($this->url(), 303)->withErrors($validator->errors());
-        throw $exception;
+        return $this->url();
     }
 }

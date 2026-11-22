@@ -65,11 +65,7 @@ class Grade extends DomainModel
         } elseif ($actor->role === 'student') {
             $query->whereHas('enrollment', fn ($q) => $q->where('student_id', $actor->id));
         } elseif ($actor->role === 'teacher') {
-            $query->whereHas('assessment', fn ($q) => $q->whereExists(fn ($a) => $a->selectRaw('1')->from('teacher_assignments')
-                ->whereColumn('teacher_assignments.school_class_id', 'assessments.school_class_id')
-                ->whereColumn('teacher_assignments.subject_id', 'assessments.subject_id')
-                ->whereColumn('teacher_assignments.term_id', 'assessments.term_id')
-                ->where('teacher_id', $actor->id)->whereNull('revoked_at')));
+            $query->whereHas('assessment', fn ($assessments) => $assessments->visibleTo($actor));
         } elseif ($actor->role !== 'admin') {
             $query->whereRaw('1 = 0');
         }

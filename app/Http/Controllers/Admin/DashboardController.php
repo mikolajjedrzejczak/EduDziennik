@@ -12,8 +12,6 @@ class DashboardController extends Controller
 {
     public function index(DashboardFilterRequest $request, AdminDashboard $dashboard): Response
     {
-        $termId = $request->validated('term_id');
-
-        return Inertia::render('admin/dashboard', $dashboard->props($request->user(), $termId === null ? null : (int) $termId));
+        return Inertia::render('admin/dashboard', $dashboard->props($request->user(), $request->termId()));
     }
 }

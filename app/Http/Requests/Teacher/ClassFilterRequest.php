@@ -2,16 +2,16 @@
 
 namespace App\Http\Requests\Teacher;
 
+use App\Http\Requests\Concerns\RedirectsInvalidFilters;
 use App\Models\TeacherAssignment;
 use App\Services\Grades\TeacherClassList;
 use App\Support\ListFilters;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 class ClassFilterRequest extends FormRequest
 {
+    use RedirectsInvalidFilters;
+
     public function authorize(): bool
     {
         return in_array($this->user()?->role, ['teacher', 'admin'], true) && $this->user()->can('viewAny', TeacherAssignment::class);
@@ -21,7 +21,7 @@ class ClassFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'term_id' => ['bail', 'nullable', 'integer', Rule::in(app(TeacherClassList::class)->terms($this->user())->pluck('id')->all())],
+            'term_id' => ['bail', 'nullable', 'integer', $this->inWhenFilled('term_id', fn () => app(TeacherClassList::class)->terms($this->user())->pluck('id')->all())],
             ...ListFilters::rules(['name']),
         ];
     }
@@ -32,12 +32,8 @@ class ClassFilterRequest extends FormRequest
         return ['term_id' => 'semestr', 'q' => 'klasa lub przedmiot', 'page' => 'strona', 'per_page' => 'liczba na stronie', 'sort' => 'sortowanie', 'direction' => 'kierunek'];
     }
 
-    protected function failedValidation(Validator $validator): void
+    protected function filterRedirectUrl(array $query): string
     {
-        $clean = array_intersect_key($this->except(array_keys($validator->errors()->messages())), $this->rules());
-        $exception = new ValidationException($validator);
-        $exception->response = redirect()->route($this->user()->role.'.gradebooks.index', $clean, 303)->withErrors($validator->errors());
-
-        throw $exception;
+        return route($this->user()->role.'.gradebooks.index', $query);
     }
 }

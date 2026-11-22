@@ -3,6 +3,7 @@ import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useReturnFocus } from '@/hooks/use-return-focus';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { AssessmentDialog } from '@/components/gradebook/assessment-dialog';
 import { Roster } from '@/components/gradebook/roster';
@@ -37,13 +38,10 @@ export default function Gradebook({
     const [action, setAction] = useState<
         'create' | GradebookProps['assessments']['data'][number] | null
     >(null);
-    const openerRef = useRef<HTMLElement | null>(null);
+    const returnFocus = useReturnFocus();
     const createButtonRef = useRef<HTMLButtonElement>(null);
     function openAction(value: typeof action) {
-        openerRef.current =
-            document.activeElement instanceof HTMLElement
-                ? document.activeElement
-                : null;
+        returnFocus.remember();
         setAction(value);
     }
     const currentQuery = new URLSearchParams(page.url?.split('?')[1]);
@@ -261,12 +259,9 @@ export default function Gradebook({
                             : `/${role}/assessments/${action.id}`
                     }
                     onClose={() => setAction(null)}
-                    restoreFocus={() => {
-                        (openerRef.current?.isConnected
-                            ? openerRef.current
-                            : createButtonRef.current
-                        )?.focus();
-                    }}
+                    restoreFocus={() =>
+                        returnFocus.restore(createButtonRef.current)
+                    }
                 />
             )}
         </>

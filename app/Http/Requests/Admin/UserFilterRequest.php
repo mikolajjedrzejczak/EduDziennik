@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\RedirectsInvalidFilters;
 use App\Models\SchoolClass;
 use App\Models\User;
 use App\Services\Authorization\RecordAccess;
@@ -9,7 +10,6 @@ use App\Support\ListFilters;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 /**
  * GET filters of the admin user list (F-302). Invalid input redirects (303) to
@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
  */
 class UserFilterRequest extends FormRequest
 {
-    public const PER_PAGE = [10, 25, 50];
+    use RedirectsInvalidFilters;
 
     public const SORTS = ['last_name', 'email', 'role', 'created_at'];
 
@@ -33,8 +33,8 @@ class UserFilterRequest extends FormRequest
     {
         return [
             ...ListFilters::rules(self::SORTS),
-            'role' => ['nullable', Rule::in(['student', 'teacher', 'admin'])],
-            'status' => ['nullable', Rule::in(['active', 'inactive', 'deleted'])],
+            'role' => ['nullable', Rule::in(User::ROLES)],
+            'status' => ['nullable', Rule::in([...User::STATUSES, 'deleted'])],
             'school_class_id' => ['bail', 'nullable', 'integer', 'min:1', 'required_with:term_id', Rule::exists('school_classes', 'id')],
             'term_id' => ['bail', 'nullable', 'integer', 'min:1', 'required_with:school_class_id', Rule::exists('terms', 'id')->where(
                 fn ($terms) => $terms->whereIn('academic_year_id', SchoolClass::withTrashed()->whereKey((int) $this->input('school_class_id'))->select('academic_year_id')),
@@ -73,19 +73,20 @@ class UserFilterRequest extends FormRequest
         ];
     }
 
-    protected function failedValidation(Validator $validator): void
+    /**
+     * Class and term only make sense together, so a rejected one drops its partner.
+     *
+     * @return list<string>
+     */
+    protected function rejectedFilters(Validator $validator): array
     {
         $invalid = array_keys($validator->errors()->messages());
-        // class and term only make sense together, so a rejected one drops its partner.
-        if (array_intersect(['school_class_id', 'term_id'], $invalid) !== []) {
-            $invalid = [...$invalid, 'school_class_id', 'term_id'];
-        }
-        $clean = array_intersect_key($this->except($invalid), array_flip(array_keys($this->rules())));
 
-        $exception = new ValidationException($validator);
-        $exception->response = redirect()->to(route('admin.users.index', $clean), 303)
-            ->withErrors($validator->errors());
+        return array_intersect(['school_class_id', 'term_id'], $invalid) === [] ? $invalid : [...$invalid, 'school_class_id', 'term_id'];
+    }
 
-        throw $exception;
+    protected function filterRedirectUrl(array $query): string
+    {
+        return route('admin.users.index', $query);
     }
 }

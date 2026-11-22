@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\Student;
 
+use App\Http\Controllers\Concerns\ShowsGradeDetail;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\GradeDetailRequest;
 use App\Http\Requests\GradeFilterRequest;
 use App\Models\Grade;
 use App\Models\GradeCategory;
 use App\Models\Subject;
 use App\Models\Term;
 use App\Models\User;
-use App\Services\Grades\GradeDetail;
 use App\Services\Grades\GradePresenter;
 use App\Services\Grades\GradeSummary;
 use App\Services\Grades\StudentGradeList;
@@ -24,12 +23,9 @@ use Inertia\Response;
 /** "Moje oceny" (F-102): the signed-in student's own, non-deleted grades. */
 class GradeController extends Controller
 {
-    public function __construct(private readonly StudentGradeList $list, private readonly GradeSummary $summary) {}
+    use ShowsGradeDetail;
 
-    public function show(GradeDetailRequest $request, Grade $grade, GradeDetail $detail): Response
-    {
-        return Inertia::render('shared/grades/show', $detail->props($request->user(), $grade, (int) $request->validated('history_page', 1)));
-    }
+    public function __construct(private readonly StudentGradeList $list, private readonly GradeSummary $summary) {}
 
     public function index(GradeFilterRequest $request): Response|RedirectResponse
     {

@@ -31,7 +31,7 @@ class StoreAssessmentRequest extends MutationRequest
         $term = $assignment->term;
 
         return [
-            'category_id' => ['required', 'integer', Rule::in(GradeCategory::where('is_active', true)->pluck('id')->all())],
+            'category_id' => ['required', 'integer', Rule::in(GradeCategory::activeIds())],
             'topic' => ['required', 'string', 'min:1', 'max:120'],
             'default_weight' => ['required', 'integer', 'between:1,5'],
             'graded_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$term->starts_on->toDateString(), 'before_or_equal:'.$term->ends_on->toDateString(), 'before_or_equal:'.now('Europe/Warsaw')->toDateString()],

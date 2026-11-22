@@ -2,25 +2,6 @@
 
 namespace App\Http\Controllers\Teacher;
 
-use App\Http\Controllers\GradeEditingController;
-use App\Http\Requests\GradeDetailRequest;
-use App\Http\Requests\GradeFilterRequest;
-use App\Models\Grade;
-use App\Services\Grades\GradeDetail;
-use App\Services\Grades\StaffGradeList;
-use Illuminate\Http\RedirectResponse;
-use Inertia\Inertia;
-use Inertia\Response;
+use App\Http\Controllers\StaffGradeController;
 
-class GradeController extends GradeEditingController
-{
-    public function index(GradeFilterRequest $request, StaffGradeList $list): Response|RedirectResponse
-    {
-        return $list->render($request->user(), $request->validated());
-    }
-
-    public function show(GradeDetailRequest $request, Grade $grade, GradeDetail $detail): Response
-    {
-        return Inertia::render('shared/grades/show', $detail->props($request->user(), $grade, (int) $request->validated('history_page', 1)));
-    }
-}
+class GradeController extends StaffGradeController {}

@@ -12,6 +12,8 @@ import { EmptyState } from '@/components/states/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { compactQuery, withQuery } from '@/lib/query';
+import type { QueryValue } from '@/lib/query';
 import { formatDateTime, fullName, initials, roleLabels } from '@/lib/users';
 import type { UserFilters, UserListProps, UserSort } from '@/types/users';
 
@@ -21,8 +23,11 @@ const statusOptions = [
     { id: 'deleted', label: 'Usunięte' },
 ];
 
-function params(filters: UserFilters, override: Record<string, unknown> = {}) {
-    const query: Record<string, unknown> = {
+function params(
+    filters: UserFilters,
+    override: Record<string, QueryValue> = {},
+) {
+    return compactQuery({
         q: filters.q || undefined,
         role: filters.role ?? undefined,
         status: filters.status ?? undefined,
@@ -32,20 +37,11 @@ function params(filters: UserFilters, override: Record<string, unknown> = {}) {
         sort: filters.sort === 'last_name' ? undefined : filters.sort,
         direction: filters.direction === 'asc' ? undefined : filters.direction,
         ...override,
-    };
-    return Object.fromEntries(
-        Object.entries(query).filter(([, value]) => value !== undefined),
-    );
+    });
 }
 
-function href(filters: UserFilters, override: Record<string, unknown> = {}) {
-    const query = new URLSearchParams(
-        Object.entries(params(filters, override)).map(([key, value]) => [
-            key,
-            String(value),
-        ]),
-    ).toString();
-    return `/admin/users${query ? `?${query}` : ''}`;
+function href(filters: UserFilters, override: Record<string, QueryValue> = {}) {
+    return withQuery('/admin/users', params(filters, override));
 }
 
 export default function Users({ users, filters, options }: UserListProps) {

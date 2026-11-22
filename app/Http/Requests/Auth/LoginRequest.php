@@ -2,20 +2,16 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Http\Requests\Concerns\NormalizesAccountInput;
 use App\Http\Requests\MutationRequest;
 
 class LoginRequest extends MutationRequest
 {
+    use NormalizesAccountInput;
+
     public function authorize(): bool
     {
         return true; // The guest middleware owns access to this public form.
-    }
-
-    protected function prepareForValidation(): void
-    {
-        if (is_string($this->input('email'))) {
-            $this->merge(['email' => mb_strtolower(trim($this->input('email')))]);
-        }
     }
 
     /** @return array<string, list<string>> */

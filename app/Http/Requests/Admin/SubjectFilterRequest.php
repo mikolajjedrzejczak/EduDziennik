@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\RedirectsInvalidFilters;
 use App\Models\Subject;
 use App\Services\Authorization\RecordAccess;
-use Illuminate\Contracts\Validation\Validator;
+use App\Support\ListFilters;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\ValidationException;
 
 /**
  * GET filters. Invalid input redirects (303) to the same route without the
@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
  */
 class SubjectFilterRequest extends FormRequest
 {
-    public const PER_PAGE = [10, 25, 50];
+    use RedirectsInvalidFilters;
 
     public function authorize(): bool
     {
@@ -27,12 +27,8 @@ class SubjectFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'q' => ['nullable', 'string', 'max:100'],
+            ...ListFilters::rules(['name']),
             'archived' => ['nullable', 'boolean'],
-            'page' => ['nullable', 'integer', 'min:1', 'max:100000'],
-            'per_page' => ['nullable', 'integer', 'in:'.implode(',', self::PER_PAGE)],
-            'sort' => ['nullable', 'in:name'],
-            'direction' => ['nullable', 'in:asc,desc'],
         ];
     }
 
@@ -57,15 +53,8 @@ class SubjectFilterRequest extends FormRequest
         ];
     }
 
-    protected function failedValidation(Validator $validator): void
+    protected function filterRedirectUrl(array $query): string
     {
-        $valid = $this->except(array_keys($validator->errors()->messages()));
-        $clean = array_intersect_key($valid, array_flip(array_keys($this->rules())));
-
-        $exception = new ValidationException($validator);
-        $exception->response = redirect()->to(route('admin.subjects.index', $clean), 303)
-            ->withErrors($validator->errors());
-
-        throw $exception;
+        return route('admin.subjects.index', $query);
     }
 }

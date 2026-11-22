@@ -9,21 +9,21 @@ use App\Models\Grade;
 use App\Models\GradeCategory;
 use App\Models\StudentEnrollment;
 use App\Services\Authorization\GradeAccess;
-use App\Services\Grades\GradeFormContext;
 use App\Services\Grades\GradeService;
 use App\Services\Grades\TeacherGradebook;
 use App\Support\ListFilters;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class GradeCreationController extends Controller
 {
-    public function create(GradeFormContextRequest $request, GradeFormContext $resolver, GradeAccess $access, TeacherGradebook $gradebook): Response|RedirectResponse
+    public function create(GradeFormContextRequest $request, GradeAccess $access, TeacherGradebook $gradebook): Response|RedirectResponse
     {
         $actor = $request->user();
-        [$assignment, $assessment, $enrollment] = $resolver->resolve($actor, $request->validated('assignment_id'), $request->validated('assessment_id'), $request->validated('student_enrollment_id'));
-        $filters = $request->safe()->only(array_keys(ListFilters::gradebookRules()));
+        [$assignment, $assessment, $enrollment] = $request->gradeFormContext();
+        $filters = $this->gradebookFilters($request);
         $cancel = route($actor->role.'.gradebooks.show', ['assignment' => $assignment->id, ...$filters]);
         if ($assignment->term->closed_at !== null) {
             return redirect($cancel, 303)->withErrors(['form' => 'Semestr jest zamknięty. Nie można wystawić oceny.']);
@@ -43,28 +43,38 @@ class GradeCreationController extends Controller
         if ($background instanceof RedirectResponse) {
             return $background;
         }
-        $present = fn (Assessment $a) => ['id' => (string) $a->id, 'topic' => $a->topic, 'category' => ['id' => (string) $a->category_id, 'label' => $a->category->name], 'defaultWeight' => $a->default_weight, 'gradedOn' => $a->graded_on->toDateString(), 'canDelete' => false];
 
         return Inertia::render('shared/grades/create', [
-            'grade' => null, 'context' => $background['context'], 'assessment' => $assessment ? $present($assessment) : null,
+            'grade' => null, 'context' => $background['context'], 'assessment' => $assessment ? $this->assessmentOption($assessment) : null,
             'selectedEnrollmentId' => $enrollment ? (string) $enrollment->id : null,
             'students' => $students->map(fn (StudentEnrollment $e) => ['id' => (string) $e->student_id, 'enrollmentId' => (string) $e->id, 'name' => $e->student->name, 'historical' => $e->isHistorical($assignment->term->academicYear->ends_on)])->all(),
-            'assessments' => $assessments->map($present)->all(),
-            'categories' => GradeCategory::where('is_active', true)->orderBy('name')->get()->map(fn ($c) => ['id' => (string) $c->id, 'label' => $c->name])->all(),
+            'assessments' => $assessments->map(fn (Assessment $a) => $this->assessmentOption($a))->all(),
+            'categories' => GradeCategory::activeOptions(),
             'returnFilters' => $filters, 'background' => $background, 'submitUrl' => route($actor->role.'.grades.store'), 'cancelUrl' => $cancel,
         ]);
     }
 
-    public function store(StoreGradeRequest $request, GradeFormContext $resolver, GradeService $service): RedirectResponse
+    public function store(StoreGradeRequest $request, GradeService $service): RedirectResponse
     {
-        $data = $request->validated();
-        [$assignment, $assessment, $enrollment] = $resolver->resolve($request->user(), $data['assignment_id'], $data['assessment_id'], $data['student_enrollment_id']);
-        $fields = $request->safe()->only(['value', 'weight', 'category_id', 'topic', 'comment', 'graded_on']);
-        foreach (['value', 'weight', 'category_id'] as $key) {
-            $fields[$key] = (int) $fields[$key];
-        }
-        $service->create($request->user()->id, $enrollment->id, $assessment->id, $fields);
+        [$assignment, $assessment, $enrollment] = $request->gradeFormContext();
+        $service->create($request->user()->id, $enrollment->id, $assessment->id, $request->gradeFields());
 
-        return redirect()->route($request->user()->role.'.gradebooks.show', ['assignment' => $assignment->id, ...$request->safe()->only(array_keys(ListFilters::gradebookRules()))], 303)->with('success', 'Ocena została zapisana.');
+        return redirect()->route($request->user()->role.'.gradebooks.show', ['assignment' => $assignment->id, ...$this->gradebookFilters($request)], 303)->with('success', 'Ocena została zapisana.');
+    }
+
+    /** @return array<string, mixed> gradebook list state to restore after the form */
+    protected function gradebookFilters(FormRequest $request): array
+    {
+        return $request->safe()->only(array_keys(ListFilters::gradebookRules()));
+    }
+
+    /** @return array<string, mixed> */
+    protected function assessmentOption(Assessment $assessment): array
+    {
+        return [
+            'id' => (string) $assessment->id, 'topic' => $assessment->topic,
+            'category' => ['id' => (string) $assessment->category_id, 'label' => $assessment->category->name],
+            'defaultWeight' => $assessment->default_weight, 'gradedOn' => $assessment->graded_on->toDateString(), 'canDelete' => false,
+        ];
     }
 }

@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePageLoading } from '@/hooks/use-page-loading';
+import { withQuery } from '@/lib/query';
 import type { ClassListProps } from '@/types/gradebooks';
 
 const fields = {
@@ -48,7 +49,13 @@ export default function TeacherClasses({
         sort: 'name',
         direction: filters.direction,
     };
-    const sortHref = `${url}?${new URLSearchParams({ term_id: filters.termId ?? '', q: filters.q, per_page: String(filters.perPage), sort: 'name', direction: filters.direction === 'asc' ? 'desc' : 'asc' })}`;
+    const sortHref = withQuery(url, {
+        term_id: filters.termId ?? '',
+        q: filters.q,
+        per_page: filters.perPage,
+        sort: 'name',
+        direction: filters.direction === 'asc' ? 'desc' : 'asc',
+    });
     const SortIcon = filters.direction === 'asc' ? ArrowUp : ArrowDown;
 
     return (

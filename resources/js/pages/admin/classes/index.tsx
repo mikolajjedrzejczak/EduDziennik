@@ -2,7 +2,8 @@ import { useFilterState } from '@/hooks/use-filter-state';
 import { SearchFilterForm } from '@/components/forms/search-filter-form';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronRight, Plus } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
+import { useReturnFocus } from '@/hooks/use-return-focus';
 import { ErrorSummary } from '@/components/forms/error-summary';
 import { ManagementDialog } from '@/components/school/management-dialog';
 import type { ManagementAction } from '@/components/school/management-dialog';
@@ -13,6 +14,7 @@ import { SuccessNotice } from '@/components/states/success-notice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { withQuery } from '@/lib/query';
 import type { ClassManagementProps } from '@/types/school';
 
 export default function Classes({
@@ -27,7 +29,7 @@ export default function Classes({
     const { errors, flash } = usePage().props;
     const [pending, setPending] = useState(false);
     const [action, setAction] = useState<ManagementAction | null>(null);
-    const openerRef = useRef<HTMLElement | null>(null);
+    const returnFocus = useReturnFocus();
     const query = {
         q: filters.q || undefined,
         academic_year_id: filters.academicYearId ?? undefined,
@@ -37,17 +39,15 @@ export default function Classes({
         direction: filters.direction,
     };
     function open(next: ManagementAction) {
-        openerRef.current =
-            document.activeElement instanceof HTMLElement
-                ? document.activeElement
-                : null;
+        returnFocus.remember();
         setAction(next);
     }
     function close() {
         setAction(null);
         requestAnimationFrame(() => {
-            if (openerRef.current?.isConnected) openerRef.current.focus();
-            else document.getElementById('selected-class-heading')?.focus();
+            returnFocus.restore(
+                document.getElementById('selected-class-heading'),
+            );
         });
     }
     return (
@@ -97,27 +97,13 @@ export default function Classes({
                             <div className="overflow-hidden rounded-lg border border-border bg-surface">
                                 <div className="flex items-center justify-between gap-3 border-b border-border bg-surface-secondary px-3 py-2 text-xs text-text-secondary">
                                     <Link
-                                        href={
-                                            '/admin/classes?' +
-                                            new URLSearchParams(
-                                                Object.entries({
-                                                    ...query,
-                                                    direction:
-                                                        filters.direction ===
-                                                        'asc'
-                                                            ? 'desc'
-                                                            : 'asc',
-                                                })
-                                                    .filter(
-                                                        ([, value]) =>
-                                                            value !== undefined,
-                                                    )
-                                                    .map(([key, value]) => [
-                                                        key,
-                                                        String(value),
-                                                    ]),
-                                            )
-                                        }
+                                        href={withQuery('/admin/classes', {
+                                            ...query,
+                                            direction:
+                                                filters.direction === 'asc'
+                                                    ? 'desc'
+                                                    : 'asc',
+                                        })}
                                         className="inline-flex min-h-11 items-center font-medium text-text-primary"
                                     >
                                         Klasa{' '}
@@ -130,25 +116,11 @@ export default function Classes({
                                 {classes.data.map((schoolClass) => (
                                     <Link
                                         key={schoolClass.id}
-                                        href={
-                                            '/admin/classes?' +
-                                            new URLSearchParams(
-                                                Object.entries({
-                                                    ...query,
-                                                    page: filters.page,
-                                                    selected_class_id:
-                                                        schoolClass.id,
-                                                })
-                                                    .filter(
-                                                        ([, value]) =>
-                                                            value !== undefined,
-                                                    )
-                                                    .map(([key, value]) => [
-                                                        key,
-                                                        String(value),
-                                                    ]),
-                                            )
-                                        }
+                                        href={withQuery('/admin/classes', {
+                                            ...query,
+                                            page: filters.page,
+                                            selected_class_id: schoolClass.id,
+                                        })}
                                         preserveScroll
                                         aria-current={
                                             selectedClass?.id === schoolClass.id
