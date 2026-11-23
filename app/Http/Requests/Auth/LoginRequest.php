@@ -25,7 +25,7 @@ class LoginRequest extends MutationRequest
     {
         return [
             'email.required' => 'Wpisz adres e-mail.',
-            'email.email' => 'Wpisz pełny adres, np. jan.kowalski@lo4.edu.pl.',
+            'email.email' => 'Wpisz poprawny adres e-mail.',
             'password.required' => 'Wpisz hasło.',
         ];
     }

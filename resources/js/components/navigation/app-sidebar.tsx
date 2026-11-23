@@ -65,19 +65,10 @@ export function AppSidebar({
             <div
                 className={cn(
                     'mb-6',
-                    collapsed ? 'flex justify-center' : 'space-y-1 px-2',
+                    collapsed ? 'flex justify-center' : 'px-2',
                 )}
             >
-                {collapsed ? (
-                    <BrandMark />
-                ) : (
-                    <>
-                        <Brand />
-                        <p className="text-xs leading-4 text-nav-text-muted">
-                            LO nr 4 im. M. Kopernika
-                        </p>
-                    </>
-                )}
+                {collapsed ? <BrandMark /> : <Brand />}
             </div>
             <nav aria-label="Główna nawigacja" className="flex-1">
                 <ul className="space-y-1">

@@ -54,16 +54,10 @@ export default function AuthSimpleLayout({ children }: AuthLayoutProps) {
                         </div>
                     ))}
                 </div>
-                <p className="text-xs leading-4 text-auth-muted">
-                    LO nr 4 im. Mikołaja Kopernika w Krakowie
-                </p>
             </aside>
             <main className="flex min-w-0 flex-1 flex-col px-5 pt-8 pb-8 md:items-center md:justify-center md:p-10">
-                <div className="mb-5 space-y-1 pt-2 pb-4 md:hidden">
+                <div className="mb-5 pt-2 pb-4 md:hidden">
                     <Brand />
-                    <p className="text-xs leading-4 text-form-muted">
-                        LO nr 4 im. M. Kopernika w Krakowie
-                    </p>
                 </div>
                 <div className="flex w-full flex-1 flex-col md:max-w-[400px] md:flex-none">
                     {children}

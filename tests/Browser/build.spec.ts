@@ -1,7 +1,9 @@
 import { expect, test } from './fixtures';
 
 for (const width of [320, 390, 1024, 1440]) {
-    test(`built login and guest protection at ${width}px`, async ({ page }) => {
+    test(`home opens the built login for guests at ${width}px`, async ({
+        page,
+    }) => {
         await page.setViewportSize({ width, height: 900 });
         const failedAssets: string[] = [];
         page.on('response', (response) => {
@@ -9,7 +11,7 @@ for (const width of [320, 390, 1024, 1440]) {
                 failedAssets.push(response.url());
             }
         });
-        await page.goto('/dashboard');
+        await page.goto('/');
         await expect(page).toHaveURL(/\/login$/);
         await expect(
             page.getByRole('button', { name: 'Zaloguj się', exact: true }),

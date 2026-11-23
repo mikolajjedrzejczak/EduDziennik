@@ -17,11 +17,18 @@ class StarterScopeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_example_page_is_resolved_by_the_inertia_page_resolver()
+    public function test_login_page_is_resolved_by_the_inertia_page_resolver()
     {
-        $this->get(route('home'))
+        $this->get(route('login'))
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->component('welcome'));
+            ->assertInertia(fn (Assert $page) => $page->component('auth/login'));
+    }
+
+    public function test_home_redirects_signed_in_users_to_the_dashboard()
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('home'))
+            ->assertRedirectToRoute('dashboard');
     }
 
     public function test_removed_starter_routes_are_not_registered()
