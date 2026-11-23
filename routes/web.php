@@ -4,9 +4,11 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Student;
 use App\Http\Controllers\Teacher;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::get('/', fn (Request $request): RedirectResponse => to_route($request->user() ? 'dashboard' : 'login'))->name('home');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

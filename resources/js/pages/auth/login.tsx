@@ -47,7 +47,7 @@ export default function Login({ errors = noErrors, retryAfter }: LoginProps) {
                         Zaloguj się
                     </h1>
                     <p className="text-base leading-6 text-form-muted md:text-sm md:leading-5">
-                        Użyj szkolnego adresu e-mail.
+                        Użyj adresu e-mail przypisanego do konta.
                         <span className="hidden md:inline">
                             {' '}
                             Po zalogowaniu trafisz do pulpitu swojej roli.
@@ -74,7 +74,6 @@ export default function Login({ errors = noErrors, retryAfter }: LoginProps) {
                             autoFocus
                             required
                             maxLength={254}
-                            placeholder="np. jan.kowalski@lo4.edu.pl"
                             value={form.data.email}
                             disabled={form.processing}
                             onChange={(event) =>

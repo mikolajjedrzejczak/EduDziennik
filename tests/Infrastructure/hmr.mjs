@@ -2,7 +2,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
 const base = `http://127.0.0.1:${process.env.VITE_PORT ?? 5173}`;
-const path = '/resources/js/pages/welcome.tsx';
+const path = '/resources/js/pages/auth/login.tsx';
 const file = `.${path}`;
 const original = await readFile(file, 'utf8');
 const client = await (await fetch(`${base}/@vite/client`)).text();
